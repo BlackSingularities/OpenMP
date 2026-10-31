@@ -14,11 +14,11 @@ use crate::app::*;
 use crate::*;
 
 fn nav(id: &str, label: &str, icon: &str, count: String) -> NavItem {
-    NavItem { id: ss(id), label: ss(label), icon: ss(icon), count: ss(count), section: false }
+    NavItem { id: ss(id), label: ss(label), icon: ss(icon), count: ss(count), section: false, depth: 0, expander: 0 }
 }
 
 fn section(id: &str, label: &str) -> NavItem {
-    NavItem { id: ss(id), label: ss(label), icon: ss(""), count: ss(""), section: true }
+    NavItem { id: ss(id), label: ss(label), icon: ss(""), count: ss(""), section: true, depth: 0, expander: 0 }
 }
 
 fn n(v: usize) -> String {
@@ -76,9 +76,44 @@ pub fn rebuild_nav(app: &mut App) {
     let roots: Vec<String> = app.s.library_folders.iter().chain(app.s.video_folders.iter()).cloned().collect();
     for root in roots {
         let count = under_root(app, &root).count();
-        v.push(nav(&format!("root:{root}"), &folder_name(&root), "folder-open", n(count)));
+        let root = root.trim_end_matches(['\\', '/']).to_string();
+        nav_tree(app, &mut v, &root, &folder_name(&root), count, 0);
     }
     app.m.nav.set_vec(v);
+}
+
+/// Folder w panelu i – gdy rozwinięty – jego podfoldery, jak w okienku nawigacji Eksploratora.
+fn nav_tree(app: &App, v: &mut Vec<NavItem>, dir: &str, label: &str, count: usize, depth: i32) {
+    let (children, _) = library::folder_children(&app.lib.tracks, dir);
+    let (vchildren, _) = library::folder_children(&app.lib.videos, dir);
+    let mut kids: Vec<library::Group> = children;
+    for g in vchildren {
+        match kids.iter_mut().find(|k| k.name.eq_ignore_ascii_case(&g.name)) {
+            Some(k) => k.count += g.count,
+            None => kids.push(g),
+        }
+    }
+    kids.sort_by_key(|g| g.name.to_lowercase());
+    let open = app.libv.expanded.contains(&dir.to_lowercase());
+    let mut item = nav(&format!("root:{dir}"), label, if depth == 0 { "folder-open" } else { "folder" }, n(count));
+    item.depth = depth;
+    item.expander = if kids.is_empty() { 0 } else if open { 2 } else { 1 };
+    v.push(item);
+    if open {
+        for k in kids {
+            nav_tree(app, v, &k.name, &folder_name(&k.name), k.count, depth + 1);
+        }
+    }
+}
+
+/// Strzałka przy folderze w panelu: rozwija albo zwija podfoldery.
+pub fn nav_toggle(app: &mut App, id: &str) {
+    let Some(dir) = id.strip_prefix("root:") else { return };
+    let key = dir.to_lowercase();
+    if !app.libv.expanded.remove(&key) {
+        app.libv.expanded.insert(key);
+    }
+    rebuild_nav(app);
 }
 
 /// Kliknięcie w panelu nawigacji.
@@ -376,7 +411,11 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
         k if k.starts_with("root:") => {
             // Folder biblioteki jako drzewo: podfoldery, a w nich pliki.
             let root = k[5..].to_string();
-            let video = app.s.video_folders.iter().any(|f| f.eq_ignore_ascii_case(&root));
+            let video = app.s.video_folders.iter().any(|f| {
+                let f = f.trim_end_matches(['\\', '/']).to_lowercase();
+                let r = root.to_lowercase();
+                r == f || r.starts_with(&format!("{f}\\")) || r.starts_with(&format!("{f}/"))
+            });
             if video == video_kind {
                 show_dir(app, source, &root, video);
             } else {
@@ -408,49 +447,31 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
     }
 }
 
-/// Zawartość jednego folderu: podfoldery jako kafelki, a pliki leżące obok nich jako osobny
-/// kafelek; folder bez podfolderów od razu pokazuje listę plików.
-fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, video: bool) {
+/// Zawartość jednego folderu: tylko pliki leżące bezpośrednio w nim – podfoldery rozwija się
+/// w panelu nawigacji, jak w Eksploratorze.
+fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, _video: bool) {
     let Some(ui) = app.ui() else { return };
     let l = ui.global::<Lib>();
-    let (mut groups, direct) = library::folder_children(source, dir);
-    let all = library::in_tree(source, dir);
-    let dur: f64 = all.iter().map(|t| t.duration).sum();
+    let (groups, direct) = library::folder_children(source, dir);
+    let mut t: Vec<TrackInfo> = direct.into_iter().cloned().collect();
+    t.sort_by_key(|t| natural(&t.path));
+    let dur: f64 = t.iter().map(|t| t.duration).sum();
     l.set_title(ss(folder_name(dir)));
-    let mut s = vec![];
-    if !groups.is_empty() {
-        s.push(format!("{} {}", groups.len(), crate::lists::plural(groups.len(), "podfolder", "podfoldery", "podfolderów")));
-    }
-    s.push(format!("{} {}", all.len(), crate::lists::plural(all.len(), "pozycja", "pozycje", "pozycji")));
+    let mut s = vec![format!("{} {}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))];
     if dur > 0.0 {
         s.push(meta::fmt_total(dur));
     }
+    if !groups.is_empty() {
+        s.push(format!("{} {} – rozwiń w panelu", groups.len(), crate::lists::plural(groups.len(), "podfolder", "podfoldery", "podfolderów")));
+    }
     s.push(dir.trim_end_matches(['\\', '/']).to_string());
     l.set_subtitle(ss(s.join("  ·  ")));
-    l.set_empty_text(ss("Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."));
-    if groups.is_empty() {
-        let mut t: Vec<TrackInfo> = direct.into_iter().cloned().collect();
-        t.sort_by_key(|t| natural(&t.path));
-        set_tracks(app, t);
-        return;
-    }
-    let kind = if video { "v-dir" } else { "dir" };
-    let mut keys: Vec<(String, String, String)> = groups.iter().map(|g| (kind.to_string(), g.name.clone(), String::new())).collect();
-    if !direct.is_empty() {
-        groups.insert(
-            0,
-            library::Group {
-                name: dir.trim_end_matches(['\\', '/']).to_string(),
-                count: direct.len(),
-                duration: direct.iter().map(|t| t.duration).sum(),
-                first: direct[0].path.clone(),
-                sub: FILES_HERE.into(),
-            },
-        );
-        keys.insert(0, (if video { "v-files" } else { "files" }.to_string(), groups[0].name.clone(), String::new()));
-    }
-    set_tiles(app, groups, kind, true);
-    app.libv.tile_keys = keys;
+    l.set_empty_text(ss(if groups.is_empty() {
+        "Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."
+    } else {
+        "W tym folderze są tylko podfoldery – rozwiń go strzałką w panelu po lewej."
+    }));
+    set_tracks(app, t);
 }
 
 const FILES_HERE: &str = "Pliki w tym folderze";

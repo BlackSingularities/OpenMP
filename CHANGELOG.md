@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.2.5
+
+- Foldery w panelu rozwijane jak w Eksploratorze: strzałka (albo dwuklik) pokazuje podfoldery pod spodem, z wcięciem.
+- Widok folderu pokazuje tylko pliki leżące bezpośrednio w nim, bez kafelków podfolderów.
+
 ## 1.2.4
 
 - Panel nawigacji bez pozycji „Foldery” i „Foldery wideo” – foldery są w sekcji FOLDERY.

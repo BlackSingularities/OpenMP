@@ -91,6 +91,8 @@ pub struct LibState {
     pub sel: HashSet<usize>,
     pub anchor: Option<usize>,
     pub tile_keys: Vec<(String, String, String)>,
+    /// Rozwinięte foldery w panelu nawigacji (ścieżki małymi literami).
+    pub expanded: HashSet<String>,
     pub search: String,
 }
 

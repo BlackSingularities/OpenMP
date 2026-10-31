@@ -302,9 +302,19 @@ export component Sidebar inherits Rectangle {
                         background: Theme.tint;
                     }
                     HorizontalLayout {
+                        // Drzewo folderów: wcięcie wg poziomu i miejsce na strzałkę.
                         padding-left: 12px;
                         padding-right: 18px;
                         spacing: 12px;
+                        if n.icon == "folder-open" || n.depth > 0: Rectangle {
+                            width: 16px + n.depth * 14px;
+                            if n.expander > 0: Icon {
+                                x: n.depth * 14px;
+                                icon: n.expander == 2 ? Icons.chevron-down : Icons.chevron-right;
+                                size: 16px;
+                                fill: Theme.text3;
+                            }
+                        }
                         Rectangle {
                             width: 26px;
                             if n.icon == "folder-open": Rectangle {
@@ -337,11 +347,23 @@ export component Sidebar inherits Rectangle {
                     }
                     nta := TouchArea {
                         clicked => { Lib.nav-clicked(n.id); }
+                        double-clicked => {
+                            if n.expander > 0 {
+                                Lib.nav-toggle(n.id);
+                            }
+                        }
                         pointer-event(e) => {
                             if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
                                 Lib.nav-menu(n.id, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
                             }
                         }
+                    }
+                    // Strzałka przy folderze: rozwija i zwija podfoldery (nad obszarem kliknięcia wiersza).
+                    if n.expander > 0: TouchArea {
+                        x: 12px + n.depth * 14px - 4px;
+                        width: 24px;
+                        mouse-cursor: pointer;
+                        clicked => { Lib.nav-toggle(n.id); }
                     }
                 }
             }

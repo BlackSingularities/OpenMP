@@ -537,6 +537,7 @@ fn wire(ui: &AppWindow) {
     let b = ui.global::<Lib>();
     b.on_nav_clicked(|id| later(move |app| libview::nav_clicked(app, &id)));
     b.on_nav_menu(|id, x, y| later(move |app| libview::nav_menu(app, &id, x, y)));
+    b.on_nav_toggle(|id| later(move |app| libview::nav_toggle(app, &id)));
     b.on_tile_clicked(|k| later(move |app| libview::tile_clicked(app, &k)));
     b.on_tile_double(|k| later(move |app| libview::tile_double(app, &k)));
     b.on_tile_menu(|k, x, y| later(move |app| libview::tile_menu(app, &k, x, y)));

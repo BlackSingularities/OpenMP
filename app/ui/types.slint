@@ -27,6 +27,9 @@ export struct NavItem {
     icon: string,
     count: string,
     section: bool,
+    // Drzewo folderów: poziom wcięcia i strzałka (0 – brak, 1 – zwinięty, 2 – rozwinięty).
+    depth: int,
+    expander: int,
 }
 
 export struct Tile {
