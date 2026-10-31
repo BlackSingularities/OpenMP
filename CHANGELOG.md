@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.2.6
+
+- Podpowiedź po najechaniu na każdym przycisku z ikoną (zamykanie, poprzedni/następny w wideo, wyciszanie, usuwanie z kolejki, czyszczenie pola).
+- Menu wyboru urządzenia i wyłącznika czasowego otwiera się tuż nad przyciskiem, a nie w połowie okna.
+
 ## 1.2.5
 
 - Foldery w panelu rozwijane jak w Eksploratorze: strzałka (albo dwuklik) pokazuje podfoldery pod spodem, z wcięciem.

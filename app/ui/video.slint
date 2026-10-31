@@ -325,6 +325,7 @@ export component VideoView inherits Rectangle {
                 spacing: 2px;
                 IconBtn {
                     icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Icons.volume;
+                    tip: Player.muted ? "Włącz dźwięk" : "Wycisz";
                     on-dark: true;
                     icon-color: #ffffffd0;
                     hover-color: #ffffff;
@@ -343,6 +344,7 @@ export component VideoView inherits Rectangle {
                 }
                 IconBtn {
                     icon: Icons.prev;
+                    tip: "Poprzedni";
                     on-dark: true;
                     icon-color: #ffffffd0;
                     hover-color: #ffffff;
@@ -382,6 +384,7 @@ export component VideoView inherits Rectangle {
                 }
                 IconBtn {
                     icon: Icons.next;
+                    tip: "Następny";
                     on-dark: true;
                     icon-color: #ffffffd0;
                     hover-color: #ffffff;
@@ -684,6 +687,7 @@ export component MiniView inherits Rectangle {
                 }
                 IconBtn {
                     icon: Icons.close;
+                    tip: "Zamknij";
                     size: 26px;
                     icon-size: 14px;
                     clicked => { Ui.close(); }
@@ -704,6 +708,7 @@ export component MiniView inherits Rectangle {
                 IconBtn {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.prev;
+                    tip: "Poprzedni";
                     size: 34px;
                     icon-size: 20px;
                     icon-color: Theme.text;
@@ -717,6 +722,7 @@ export component MiniView inherits Rectangle {
                 IconBtn {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.next;
+                    tip: "Następny";
                     size: 34px;
                     icon-size: 20px;
                     icon-color: Theme.text;

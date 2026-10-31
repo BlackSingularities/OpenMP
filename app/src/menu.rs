@@ -23,6 +23,15 @@ pub fn sep() -> MenuEntry {
 }
 
 pub fn open(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32) {
+    open_at(app, ctx, items, x, y, false);
+}
+
+/// Menu nad punktem (x, y) – dolną krawędzią tuż nad przyciskiem, wg prawdziwej wysokości.
+pub fn open_above(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32) {
+    open_at(app, ctx, items, x, y, true);
+}
+
+fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, above: bool) {
     app.menu = ctx;
     let Some(ui) = app.ui() else { return };
     if app.menu_win.is_none() {
@@ -58,7 +67,11 @@ pub fn open(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32) 
     // Pozycja kliknięcia na ekranie; menu nie wychodzi poza monitor.
     let mut px = wx as f32 + x * sf;
     let mut py = wy as f32 + y * sf;
+    if above {
+        py -= h + 6.0 * sf;
+    }
     if let Some((mx, my, mw_, mh)) = crate::win::monitor(&ui) {
+        py = py.max(my as f32);
         px = px.min((mx + mw_ as i32) as f32 - w - 4.0).max(mx as f32);
         if py + h > (my + mh as i32) as f32 {
             py = (py - h).max(my as f32);
@@ -84,8 +97,7 @@ pub fn device_menu(app: &mut App, x: f32, y: f32) {
     let p = ui.global::<Prefs>();
     let cur = p.get_device();
     let items: Vec<MenuEntry> = p.get_devices().iter().enumerate().map(|(i, d)| check(&format!("dev-{i}"), &d, i as i32 == cur, "")).collect();
-    let n = items.len() as f32;
-    open(app, MenuCtx::Device, items, x - 120.0, (y - n * 30.0 - 16.0).max(4.0));
+    open_above(app, MenuCtx::Device, items, x - 120.0, y);
 }
 
 pub fn main_menu(app: &mut App, x: f32, y: f32) {
@@ -151,7 +163,7 @@ pub fn sleep_menu(app: &mut App, x: f32, y: f32) {
         items.push(sep());
         items.push(item("sleep-off", "Wyłącz wyłącznik", "close", ""));
     }
-    open(app, MenuCtx::Sleep, items, x, (y - 290.0).max(10.0));
+    open_above(app, MenuCtx::Sleep, items, x, y);
 }
 
 /// Wybór pozycji menu.
