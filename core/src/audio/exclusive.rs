@@ -175,7 +175,9 @@ fn encode(src: &[f32], fmt: Fmt, d: &mut Dither, out: &mut [u8]) {
 /// Regulacja głośności Windows dla urządzenia – gdy karta nie robi tego sprzętowo.
 fn endpoint_volume(id: &str) -> Option<windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume> {
     use windows::core::PCWSTR;
-    use windows::Win32::Media::Audio::Endpoints::{IAudioEndpointVolume, ENDPOINT_HARDWARE_SUPPORT_VOLUME};
+    use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
+    // ENDPOINT_HARDWARE_SUPPORT_VOLUME (endpointvolume.h) – w crate windows tylko za dodatkową funkcją.
+    const ENDPOINT_HARDWARE_SUPPORT_VOLUME: u32 = 0x1;
     use windows::Win32::Media::Audio::{IMMDeviceEnumerator, MMDeviceEnumerator};
     use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_ALL};
     if id.is_empty() {
