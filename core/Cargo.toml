@@ -1,6 +1,6 @@
 [package]
 name = "openmp-core"
-version = "1.2.2"
+version = "1.2.3"
 description = "OpenMP – silnik odtwarzania, biblioteka i playlisty"
 authors = ["Adam Rędzikowski"]
 edition = "2021"

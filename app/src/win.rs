@@ -405,3 +405,69 @@ pub fn thumb_state(app: &App) {
         }
     });
 }
+
+// Globalne skróty: działają także, gdy aktywne jest inne okno.
+
+const HOTKEYS: [(i32, u32, &str); 5] = [
+    (0x4f01, 0x20, "play-pause"), // Ctrl+Alt+Spacja
+    (0x4f02, 0x27, "next"),       // Ctrl+Alt+→
+    (0x4f03, 0x25, "prev"),       // Ctrl+Alt+←
+    (0x4f04, 0x26, "vol-up"),     // Ctrl+Alt+↑
+    (0x4f05, 0x28, "vol-down"),   // Ctrl+Alt+↓
+];
+
+unsafe extern "system" fn hotkey_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    msg: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _id: usize,
+    _data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::UI::Shell::DefSubclassProc;
+    use windows::Win32::UI::WindowsAndMessaging::WM_HOTKEY;
+    if msg == WM_HOTKEY {
+        if let Some(&(_, _, action)) = HOTKEYS.iter().find(|h| h.0 as usize == wparam.0) {
+            match action {
+                "play-pause" => later(crate::player::play_pause),
+                "next" => later(crate::player::next),
+                "prev" => later(crate::player::prev),
+                "vol-up" => later(|app| crate::player::set_volume(app, app.s.volume + 0.05)),
+                _ => later(|app| crate::player::set_volume(app, app.s.volume - 0.05)),
+            }
+            return windows::Win32::Foundation::LRESULT(0);
+        }
+    }
+    DefSubclassProc(hwnd, msg, wparam, lparam)
+}
+
+/// Rejestruje albo zwalnia globalne skróty Ctrl+Alt+… dla głównego okna.
+/// Skrót zajęty przez inny program jest pomijany; zwraca liczbę zarejestrowanych.
+pub fn hotkeys(app: &App, on: bool) -> usize {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::Input::KeyboardAndMouse::{RegisterHotKey, UnregisterHotKey, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT};
+    use windows::Win32::UI::Shell::{RemoveWindowSubclass, SetWindowSubclass};
+    let Some(ui) = app.ui() else { return 0 };
+    let h = hwnd(&ui);
+    if h == 0 {
+        return 0;
+    }
+    let hw = HWND(h as *mut _);
+    let mut n = 0;
+    unsafe {
+        for (id, _, _) in HOTKEYS {
+            let _ = UnregisterHotKey(Some(hw), id);
+        }
+        let _ = RemoveWindowSubclass(hw, Some(hotkey_proc), 0x4f4d51);
+        if !on {
+            return 0;
+        }
+        let _ = SetWindowSubclass(hw, Some(hotkey_proc), 0x4f4d51, 0);
+        for (id, vk, _) in HOTKEYS {
+            if RegisterHotKey(Some(hw), id, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, vk).is_ok() {
+                n += 1;
+            }
+        }
+    }
+    n
+}

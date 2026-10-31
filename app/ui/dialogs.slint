@@ -880,6 +880,12 @@ export component SettingsDialog inherits Dialog {
                     toggled => { Prefs.changed("media-keys"); }
                 }
                 SettingSwitch {
+                    title: "Globalne skróty klawiszowe";
+                    hint: "Ctrl+Alt+Spacja – odtwórz/pauza, Ctrl+Alt+←/→ – utwór, Ctrl+Alt+↑/↓ – głośność; także gdy okno jest w tle";
+                    checked <=> Prefs.global-hotkeys;
+                    toggled => { Prefs.changed("global-hotkeys"); }
+                }
+                SettingSwitch {
                     title: "Nie usypiaj komputera podczas filmu";
                     checked <=> Prefs.prevent-sleep;
                     toggled => { Prefs.changed("prevent-sleep"); }

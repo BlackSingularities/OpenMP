@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.2.3
+
+- Globalne skróty klawiszowe, działające także przy oknie w tle: Ctrl+Alt+Spacja (odtwórz/pauza), Ctrl+Alt+←/→ (utwór), Ctrl+Alt+↑/↓ (głośność). Można je wyłączyć w ustawieniach.
+
 ## 1.2.2
 
 - ReplayGain bez tagów: pliki bez wpisów ReplayGain są mierzone w tle (EBU R128) i wyrównywane tak samo jak otagowane.

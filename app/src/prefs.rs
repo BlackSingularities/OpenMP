@@ -92,6 +92,7 @@ pub fn publish(app: &mut App) {
     p.set_deinterlace(s.deinterlace);
     p.set_single_instance(s.single_instance);
     p.set_media_keys(s.media_keys);
+    p.set_global_hotkeys(s.global_hotkeys);
     p.set_prevent_sleep(s.prevent_sleep);
     p.set_check_updates(s.check_updates);
     p.set_folders(crate::app::strings(&s.library_folders));
@@ -287,6 +288,13 @@ pub fn changed(app: &mut App, key: &str) {
             }
         }
         "single-instance" => app.s.single_instance = p.get_single_instance(),
+        "global-hotkeys" => {
+            app.s.global_hotkeys = p.get_global_hotkeys();
+            let n = crate::win::hotkeys(app, app.s.global_hotkeys);
+            if app.s.global_hotkeys && n < 5 {
+                app.toast(format!("Część skrótów zajmuje inny program ({n} z 5 działa)"));
+            }
+        }
         "media-keys" => {
             app.s.media_keys = p.get_media_keys();
             if app.s.media_keys {

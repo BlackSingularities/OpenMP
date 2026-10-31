@@ -40,6 +40,7 @@ pub fn help() -> Vec<KeyHelp> {
         k("Del", "Usuń zaznaczone z listy"),
         k("Alt + ↑ / ↓", "Przesuń zaznaczone na liście"),
         k("Ctrl + A", "Zaznacz wszystko"),
+        k("Ctrl + Alt + Spacja / ← / → / ↑ / ↓", "Globalnie: odtwórz/pauza, utwór, głośność"),
         k("Ctrl + D", "Ulubione"),
         k("Ctrl + 1…5 / Ctrl + 0", "Oceń zaznaczone (5 = ulubione) / usuń ocenę"),
         k("F2", "Edytuj tagi"),

@@ -222,6 +222,9 @@ fn main() {
             if let Some(ui) = app.ui() {
                 win::thumb_init(&ui);
             }
+            if app.s.global_hotkeys {
+                win::hotkeys(app, true);
+            }
             libview::watch(app);
             let stale = library::now().saturating_sub(app.lib.scanned) > 6 * 3600;
             let has_folders = !app.s.library_folders.is_empty() || !app.s.video_folders.is_empty();

@@ -68,6 +68,8 @@ pub struct Settings {
     // System
     pub single_instance: bool,
     pub media_keys: bool,
+    /// Globalne skróty Ctrl+Alt+Spacja/strzałki.
+    pub global_hotkeys: bool,
     pub prevent_sleep: bool,
     pub check_updates: bool,
     pub library_folders: Vec<String>,
@@ -132,6 +134,7 @@ impl Default for Settings {
             deinterlace: false,
             single_instance: true,
             media_keys: true,
+            global_hotkeys: true,
             prevent_sleep: true,
             check_updates: true,
             library_folders: dirs::audio_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
