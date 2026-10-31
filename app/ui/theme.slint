@@ -1,0 +1,46 @@
+// Kolory i miary całego programu. Wyświetlacz jest zawsze ciemny (jak ekran LCD odtwarzacza),
+// reszta zależy od motywu. Akcent: z ustawień albo z okładki bieżącego albumu.
+
+export global Theme {
+    in-out property <bool> dark: true;
+    in-out property <color> accent: #4f8cff;
+    // Akcent z okładki (gdy włączony) – wyświetlacz i pasek przewijania.
+    in-out property <color> tint: accent;
+
+    out property <color> bg: dark ? #0e1015 : #f2f3f6;
+    out property <color> panel: dark ? #14171e : #ffffff;
+    out property <color> panel2: dark ? #1a1e27 : #f7f8fa;
+    out property <color> raised: dark ? #20252f : #ffffff;
+    out property <color> line: dark ? #252a35 : #e2e5eb;
+    out property <color> line2: dark ? #2f3542 : #d3d8e0;
+    out property <color> text: dark ? #e8ebf1 : #171a21;
+    out property <color> text2: dark ? #a0a8b6 : #545d6b;
+    out property <color> text3: dark ? #6c7484 : #8b93a0;
+    out property <color> hover: dark ? #ffffff0d : #0000000a;
+    out property <color> press: dark ? #ffffff17 : #00000014;
+    out property <color> sel: accent.with-alpha(dark ? 0.20 : 0.14);
+    out property <color> sel-strong: accent.with-alpha(dark ? 0.32 : 0.24);
+    out property <color> on-accent: #ffffff;
+    out property <color> danger: #ef5a5a;
+    out property <color> ok: #3ccf8e;
+    out property <color> scrim: #00000099;
+
+    // Wyświetlacz
+    out property <color> lcd: #07090d;
+    out property <color> lcd2: #0d1118;
+    out property <color> lcd-text: #eef2f8;
+    out property <color> lcd-dim: #8791a3;
+    out property <color> lcd-faint: #4b5363;
+
+    out property <length> radius: 8px;
+    out property <length> radius-lg: 12px;
+    out property <length> fs-xs: 10.5px;
+    out property <length> fs-sm: 11.5px;
+    out property <length> fs: 12.5px;
+    out property <length> fs-md: 14px;
+    out property <length> fs-lg: 17px;
+    out property <length> fs-xl: 22px;
+    out property <string> font: "Segoe UI Variable Text";
+    out property <string> font-display: "Segoe UI Variable Display";
+    out property <string> mono: "Cascadia Mono";
+}

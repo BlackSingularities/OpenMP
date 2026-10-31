@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["core", "app"]
+
+[profile.release]
+codegen-units = 16
+lto = "thin"
+opt-level = 3
+panic = "unwind"
+strip = true
+
+# Dekodery i renderer z optymalizacją także w buildzie dev – inaczej dźwięk i wizualizacje się przycinają.
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.dev]
+opt-level = 1

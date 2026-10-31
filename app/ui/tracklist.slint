@@ -1,0 +1,209 @@
+// Lista utworów z nagłówkami albumów – wspólna dla list odtwarzania i biblioteki.
+
+import { ListView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, Cover } from "widgets.slint";
+import { TrackRow } from "types.slint";
+
+export component TrackList inherits Rectangle {
+    in property <[TrackRow]> rows;
+    in property <bool> show-album;
+    in property <length> scroll-y;
+    in property <int> scroll-gen;
+    in property <string> empty-text;
+    in property <string> empty-icon: Icons.playlist;
+    callback clicked(int, bool, bool);
+    callback double(int);
+    callback menu(int, length, length);
+    callback header-clicked(int);
+    callback header-double(int);
+    callback fav(int);
+    callback empty-clicked();
+    changed scroll-gen => {
+        lv.content-y = -root.scroll-y;
+    }
+    if root.rows.length == 0: VerticalLayout {
+        alignment: center;
+        spacing: 10px;
+        Icon {
+            x: (parent.width - self.width) / 2;
+            icon: root.empty-icon;
+            size: 44px;
+            fill: Theme.text3.with-alpha(0.5);
+        }
+        Text {
+            text: root.empty-text;
+            color: Theme.text3;
+            font-size: Theme.fs;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+        TouchArea {
+            height: 0;
+            double-clicked => { root.empty-clicked(); }
+        }
+    }
+    if root.rows.length == 0: TouchArea {
+        double-clicked => { root.empty-clicked(); }
+    }
+    lv := ListView {
+        visible: root.rows.length > 0;
+        for r[i] in root.rows: Rectangle {
+            height: r.header ? 54px : 30px;
+            if r.header: Rectangle {
+                y: 8px;
+                height: parent.height - 10px;
+                border-radius: Theme.radius;
+                background: hta.has-hover ? Theme.hover : transparent;
+                HorizontalLayout {
+                    padding-left: 8px;
+                    padding-right: 12px;
+                    spacing: 11px;
+                    Cover {
+                        y: (parent.height - self.height) / 2;
+                        width: 38px;
+                        height: 38px;
+                        source: r.h-cover;
+                        has: r.h-has-cover;
+                        border-radius: 5px;
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 1px;
+                        Text {
+                            text: r.h-title;
+                            color: Theme.text;
+                            font-size: Theme.fs-md;
+                            font-weight: 600;
+                            overflow: elide;
+                        }
+                        Text {
+                            text: r.h-sub;
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            overflow: elide;
+                        }
+                    }
+                }
+                hta := TouchArea {
+                    clicked => { root.header-clicked(r.idx); }
+                    double-clicked => { root.header-double(r.idx); }
+                }
+            }
+            if !r.header: Rectangle {
+                border-radius: 6px;
+                background: r.selected ? Theme.sel : ta.has-hover ? Theme.hover : transparent;
+                HorizontalLayout {
+                    padding-left: 8px;
+                    padding-right: 10px;
+                    spacing: 10px;
+                    Rectangle {
+                        width: 30px;
+                        if r.playing: Icon {
+                            icon: Icons.equalizer;
+                            size: 15px;
+                            fill: Theme.accent;
+                        }
+                        if !r.playing && r.queued != "": Rectangle {
+                            width: 18px;
+                            height: 18px;
+                            border-radius: 9px;
+                            background: Theme.accent.with-alpha(0.25);
+                            Text {
+                                text: r.queued;
+                                color: Theme.accent;
+                                font-size: 10px;
+                                font-weight: 700;
+                            }
+                        }
+                        if !r.playing && r.queued == "": Text {
+                            text: r.num;
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            horizontal-alignment: right;
+                            width: 100%;
+                        }
+                    }
+                    if r.video: Icon {
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.movie;
+                        size: 14px;
+                        fill: Theme.text3;
+                    }
+                    Text {
+                        horizontal-stretch: 3;
+                        text: r.title;
+                        color: r.missing ? Theme.text3 : r.playing ? Theme.accent : Theme.text;
+                        font-weight: r.playing ? 600 : 400;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                        overflow: elide;
+                        min-width: 80px;
+                    }
+                    if root.width > 520px: Text {
+                        horizontal-stretch: 2;
+                        text: r.artist;
+                        color: Theme.text2;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                        overflow: elide;
+                        min-width: 60px;
+                    }
+                    if root.show-album && root.width > 760px: Text {
+                        horizontal-stretch: 2;
+                        text: r.album;
+                        color: Theme.text3;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                        overflow: elide;
+                        min-width: 60px;
+                    }
+                    if root.width > 640px: Text {
+                        width: 92px;
+                        text: r.info;
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                        vertical-alignment: center;
+                        horizontal-alignment: right;
+                        overflow: elide;
+                    }
+                    Rectangle {
+                        width: 22px;
+                        if r.fav || ta.has-hover: Icon {
+                            icon: r.fav ? Icons.heart : Icons.heart-outline;
+                            size: 14px;
+                            fill: r.fav ? #ff5d7a : Theme.text3;
+                        }
+                        if r.fav || ta.has-hover: TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { root.fav(r.idx); }
+                        }
+                    }
+                    Text {
+                        width: 46px;
+                        text: r.dur;
+                        color: Theme.text3;
+                        font-size: Theme.fs-sm;
+                        vertical-alignment: center;
+                        horizontal-alignment: right;
+                    }
+                }
+                ta := TouchArea {
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                            root.clicked(r.idx, e.modifiers.control, e.modifiers.shift);
+                        }
+                        if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                            if !r.selected {
+                                root.clicked(r.idx, false, false);
+                            }
+                            root.menu(r.idx, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                        }
+                    }
+                    double-clicked => { root.double(r.idx); }
+                }
+            }
+        }
+    }
+}

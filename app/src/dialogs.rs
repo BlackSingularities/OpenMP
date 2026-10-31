@@ -1,0 +1,313 @@
+//! Okna wyboru plików, edytor tagów, zmiana nazwy, adres URL, aktualizacje.
+
+use std::collections::HashMap;
+use std::path::Path;
+
+use openmp_core::meta::{self, TagEdit};
+use slint::{Image, ModelRc, VecModel};
+
+use crate::app::*;
+use crate::*;
+
+fn media_filters(d: rfd::FileDialog) -> rfd::FileDialog {
+    let mut all: Vec<&str> = meta::AUDIO.to_vec();
+    all.extend_from_slice(meta::VIDEO);
+    all.extend_from_slice(meta::PLAYLISTS);
+    d.add_filter("Multimedia i listy", &all)
+        .add_filter("Muzyka", meta::AUDIO)
+        .add_filter("Wideo", meta::VIDEO)
+        .add_filter("Listy odtwarzania", meta::PLAYLISTS)
+        .add_filter("Wszystkie pliki", &["*"])
+}
+
+pub fn open_files(app: &mut App) {
+    let Some(files) = media_filters(rfd::FileDialog::new().set_title("Otwórz pliki")).pick_files() else { return };
+    let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    crate::player::open_paths(app, paths, true, None);
+}
+
+pub fn add_files(app: &mut App) {
+    let Some(files) = media_filters(rfd::FileDialog::new().set_title("Dodaj do listy")).pick_files() else { return };
+    let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
+    crate::player::open_paths(app, paths, false, None);
+}
+
+pub fn open_folder(app: &mut App) {
+    let Some(dir) = rfd::FileDialog::new().set_title("Otwórz folder").pick_folder() else { return };
+    crate::player::open_paths(app, vec![dir.to_string_lossy().into_owned()], true, None);
+}
+
+pub fn import_list(app: &mut App, new_tab: bool) {
+    let Some(f) = rfd::FileDialog::new().set_title("Importuj listę").add_filter("Listy odtwarzania", meta::PLAYLISTS).pick_file() else { return };
+    let name = f.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "Lista".into());
+    crate::player::open_paths(app, vec![f.to_string_lossy().into_owned()], false, new_tab.then_some(name));
+}
+
+pub fn export_list(app: &mut App) {
+    let li = app.store.active;
+    let name = app.store.lists[li].name.clone();
+    let Some(f) = rfd::FileDialog::new().set_title("Zapisz listę").set_file_name(format!("{name}.m3u8")).add_filter("Lista M3U8", &["m3u8", "m3u"]).save_file() else { return };
+    match openmp_core::playlist::export_m3u(&f, &app.store.lists[li].items) {
+        Ok(()) => app.toast(format!("Zapisano „{}”", f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default())),
+        Err(e) => app.toast(format!("Nie udało się zapisać: {e}")),
+    }
+}
+
+pub fn rename(app: &mut App, ctx: RenameCtx, title: &str, value: &str) {
+    app.rename = ctx;
+    if let Some(ui) = app.ui() {
+        let u = ui.global::<Ui>();
+        u.set_rename_title(ss(title));
+        u.set_rename_text(ss(value));
+        u.set_rename_dialog(true);
+    }
+}
+
+pub fn rename_accepted(app: &mut App, text: &str) {
+    let text = text.trim().to_string();
+    if let Some(ui) = app.ui() {
+        ui.global::<Ui>().set_rename_dialog(false);
+        ui.invoke_focus_keys();
+    }
+    if text.is_empty() {
+        return;
+    }
+    match std::mem::take(&mut app.rename) {
+        RenameCtx::Tab(i) => {
+            if let Some(l) = app.store.lists.get_mut(i) {
+                l.name = text;
+                app.dirty = true;
+            }
+            crate::lists::rebuild_tabs(app);
+            crate::libview::rebuild_nav(app);
+        }
+        RenameCtx::EqPreset => {
+            let gains = app.s.dsp.gains.clone();
+            app.s.custom_eq.retain(|(n, _)| *n != text);
+            app.s.custom_eq.push((text.clone(), gains));
+            app.s.eq_preset = text;
+            crate::prefs::publish_presets(app);
+            app.s.save();
+            app.toast("Zapisano ustawienie korektora");
+        }
+        RenameCtx::RadioUrl => crate::radio::add_url(app, &text),
+        RenameCtx::NetFolder(kind) => crate::prefs::add_folder_path(app, kind, text),
+        RenameCtx::None => {}
+    }
+}
+
+/// Edytor tagów dla jednego lub wielu plików (pola różniące się zostają bez zmian).
+pub fn open_tag_editor(app: &mut App, paths: Vec<String>) {
+    let paths: Vec<String> = paths.into_iter().filter(|p| !meta::is_url(p) && Path::new(p).exists()).collect();
+    if paths.is_empty() {
+        return;
+    }
+    let infos: Vec<_> = paths.iter().map(|p| meta::read(Path::new(p))).collect();
+    let fields = |t: &meta::TrackInfo| -> [String; 10] {
+        [
+            t.title.clone(),
+            t.artist.clone(),
+            t.album.clone(),
+            t.album_artist.clone(),
+            t.genre.clone(),
+            if t.year > 0 { t.year.to_string() } else { String::new() },
+            if t.track > 0 { t.track.to_string() } else { String::new() },
+            if t.disc > 0 { t.disc.to_string() } else { String::new() },
+            t.composer.clone(),
+            t.comment.clone(),
+        ]
+    };
+    let first = fields(&infos[0]);
+    let mut mixed = vec![false; 10];
+    for t in &infos[1..] {
+        let f = fields(t);
+        for i in 0..10 {
+            if f[i] != first[i] {
+                mixed[i] = true;
+            }
+        }
+    }
+    let values: Vec<String> = (0..10).map(|i| if mixed[i] { String::new() } else { first[i].clone() }).collect();
+    app.tag_paths = paths.clone();
+    app.tag_mixed = mixed.clone();
+    app.tag_cover = None;
+    let cover = meta::cover(Path::new(&paths[0])).and_then(|b| crate::covers::decode(&b, 300));
+    if let Some(ui) = app.ui() {
+        let u = ui.global::<Ui>();
+        u.set_tag_title(ss(if paths.len() == 1 { paths[0].clone() } else { format!("{} plików", paths.len()) }));
+        u.set_tag_values(ModelRc::new(VecModel::from(values.iter().map(ss).collect::<Vec<_>>())));
+        u.set_tag_mixed(ModelRc::new(VecModel::from(mixed)));
+        u.set_tag_has_cover(cover.is_some());
+        u.set_tag_cover(cover.map(Image::from_rgba8).unwrap_or_default());
+        u.set_tag_busy(false);
+        u.set_tag_editor(true);
+    }
+}
+
+pub fn tag_pick_cover(app: &mut App) {
+    let Some(f) = rfd::FileDialog::new().set_title("Okładka").add_filter("Obrazy", &["jpg", "jpeg", "png", "webp", "bmp"]).pick_file() else { return };
+    let Ok(bytes) = std::fs::read(&f) else { return };
+    // Do pliku zapisujemy JPEG/PNG – inne formaty konwertujemy.
+    let bytes = match meta::ext(&f).as_str() {
+        "jpg" | "jpeg" | "png" => bytes,
+        _ => match image::load_from_memory(&bytes) {
+            Ok(img) => {
+                let mut out = std::io::Cursor::new(Vec::new());
+                if img.to_rgb8().write_to(&mut out, image::ImageFormat::Jpeg).is_err() {
+                    return;
+                }
+                out.into_inner()
+            }
+            Err(_) => return,
+        },
+    };
+    if let Some(buf) = crate::covers::decode(&bytes, 300) {
+        if let Some(ui) = app.ui() {
+            ui.global::<Ui>().set_tag_cover(Image::from_rgba8(buf));
+            ui.global::<Ui>().set_tag_has_cover(true);
+        }
+    }
+    app.tag_cover = Some(bytes);
+}
+
+pub fn tag_save(app: &mut App, v: Vec<String>) {
+    let paths = app.tag_paths.clone();
+    let mixed = app.tag_mixed.clone();
+    let cover = app.tag_cover.clone();
+    if let Some(ui) = app.ui() {
+        ui.global::<Ui>().set_tag_busy(true);
+    }
+    // Plik grany przez mpv bywa zablokowany – zwalniamy go na czas zapisu.
+    std::thread::spawn(move || {
+        let mut errors = Vec::new();
+        let mut fresh = HashMap::new();
+        for p in &paths {
+            let cur = meta::read(Path::new(p));
+            let keep = |i: usize, old: String| if mixed.get(i).copied().unwrap_or(false) && v[i].trim().is_empty() { old } else { v[i].clone() };
+            let e = TagEdit {
+                title: keep(0, cur.title.clone()),
+                artist: keep(1, cur.artist.clone()),
+                album: keep(2, cur.album.clone()),
+                album_artist: keep(3, cur.album_artist.clone()),
+                genre: keep(4, cur.genre.clone()),
+                year: keep(5, if cur.year > 0 { cur.year.to_string() } else { String::new() }),
+                track: keep(6, if cur.track > 0 { cur.track.to_string() } else { String::new() }),
+                disc: keep(7, if cur.disc > 0 { cur.disc.to_string() } else { String::new() }),
+                composer: keep(8, cur.composer.clone()),
+                comment: keep(9, cur.comment.clone()),
+                cover: cover.clone(),
+            };
+            match meta::write(Path::new(p), &e) {
+                Ok(()) => {
+                    fresh.insert(p.to_lowercase(), meta::read(Path::new(p)));
+                }
+                Err(err) => errors.push(format!("{}: {err}", Path::new(p).file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default())),
+            }
+        }
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| {
+                if let Some(ui) = app.ui() {
+                    ui.global::<Ui>().set_tag_busy(false);
+                    ui.global::<Ui>().set_tag_editor(false);
+                    ui.invoke_focus_keys();
+                }
+                for p in fresh.keys() {
+                    crate::covers::forget(p);
+                }
+                let n = fresh.len();
+                crate::lists::refresh_infos(app, &fresh);
+                if app.cur.as_ref().is_some_and(|c| fresh.contains_key(&c.info.path.to_lowercase())) {
+                    crate::display::show_track(app);
+                }
+                if errors.is_empty() {
+                    app.toast(format!("Zapisano tagi ({n})"));
+                } else {
+                    app.toast(format!("Błędy zapisu: {}", errors.join("; ")));
+                }
+            });
+        });
+    });
+}
+
+/// Sprawdzenie aktualizacji (`manual` – komunikat także, gdy nic nowego).
+pub fn check_update(app: &mut App, manual: bool) {
+    let skip = app.s.skip_version.clone();
+    std::thread::spawn(move || {
+        let res = openmp_core::update::check();
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| match res {
+                Ok(Some(rel)) if manual || rel.version != skip => {
+                    if let Some(ui) = app.ui() {
+                        let u = ui.global::<Ui>();
+                        u.set_update_version(ss(&rel.version));
+                        u.set_update_notes(ss(rel.notes.trim()));
+                        u.set_update_progress(-1.0);
+                        u.set_update_status(ss(""));
+                        u.set_update_portable(!openmp_core::update::installed());
+                        u.set_update_dialog(true);
+                    }
+                    app.update = Some(rel);
+                }
+                Ok(_) => {
+                    if manual {
+                        app.toast(format!("Masz najnowszą wersję ({})", openmp_core::version()));
+                    }
+                }
+                Err(e) => {
+                    if manual {
+                        app.toast(format!("Nie udało się sprawdzić aktualizacji: {e}"));
+                    }
+                }
+            });
+        });
+    });
+}
+
+pub fn update_install(app: &mut App) {
+    let Some(rel) = app.update.clone() else { return };
+    if let Some(ui) = app.ui() {
+        ui.global::<Ui>().set_update_progress(0.0);
+        ui.global::<Ui>().set_update_status(ss("Pobieranie…"));
+    }
+    let weak = app.ui.clone();
+    std::thread::spawn(move || {
+        let w2 = weak.clone();
+        let res = openmp_core::update::download(&rel, move |done, total| {
+            let w = w2.clone();
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = w.upgrade() {
+                    ui.global::<Ui>().set_update_progress(if total > 0 { done as f32 / total as f32 } else { 0.0 });
+                }
+            });
+        });
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| match res {
+                Ok(path) => {
+                    if let Some(ui) = app.ui() {
+                        ui.global::<Ui>().set_update_status(ss("Instalowanie – OpenMP uruchomi się ponownie."));
+                    }
+                    match openmp_core::update::apply(&path) {
+                        Ok(()) => crate::keys::quit(app),
+                        Err(e) => app.toast(format!("Nie udało się uruchomić instalatora: {e}")),
+                    }
+                }
+                Err(e) => {
+                    if let Some(ui) = app.ui() {
+                        ui.global::<Ui>().set_update_progress(-1.0);
+                        ui.global::<Ui>().set_update_status(ss(format!("Błąd: {e}")));
+                    }
+                }
+            });
+        });
+    });
+}
+
+pub fn update_skip(app: &mut App) {
+    if let Some(r) = &app.update {
+        app.s.skip_version = r.version.clone();
+        app.s.save();
+    }
+    if let Some(ui) = app.ui() {
+        ui.global::<Ui>().set_update_dialog(false);
+    }
+}

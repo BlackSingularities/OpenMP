@@ -1,0 +1,243 @@
+//! Stan programu żyjący w wątku interfejsu (thread_local) i modele list dla Slint.
+
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
+use std::time::Instant;
+
+use openmp_core::audio::engine::Engine;
+use openmp_core::audio::viz::Analyzer;
+use openmp_core::library::{Library, Stats};
+use openmp_core::meta::TrackInfo;
+use openmp_core::mpv::Mpv;
+use openmp_core::playlist::Store;
+use openmp_core::radio::Station;
+use openmp_core::settings::{Session, Settings};
+use slint::{ModelRc, SharedString, VecModel};
+
+use crate::*;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Backend {
+    Engine,
+    Mpv,
+}
+
+/// Co teraz gra.
+#[derive(Clone, Debug)]
+pub struct Playing {
+    /// Lista i pozycja (radio i pliki spoza list – `None`).
+    pub list: Option<u64>,
+    pub idx: usize,
+    pub item: u64,
+    pub info: TrackInfo,
+    pub backend: Backend,
+    pub video: bool,
+    pub station: Option<Station>,
+}
+
+/// Zapowiedziany następny utwór (przejście bez przerwy w silniku muzyki).
+#[derive(Clone, Debug)]
+pub struct Pending {
+    pub item: u64,
+    pub list: u64,
+    pub idx: usize,
+    pub from_queue: bool,
+}
+
+/// Do czego odnosi się otwarte menu.
+#[derive(Clone, Debug, Default)]
+pub enum MenuCtx {
+    #[default]
+    None,
+    Main,
+    List,
+    Lib,
+    Tab(usize),
+    Tile(String),
+    Nav(String),
+    Sleep,
+    Video,
+}
+
+#[derive(Clone, Debug, Default)]
+pub enum RenameCtx {
+    #[default]
+    None,
+    Tab(usize),
+    EqPreset,
+    RadioUrl,
+    /// Ścieżka sieciowa: 0 – muzyka, 1 – wideo.
+    NetFolder(i32),
+}
+
+#[derive(Clone, Debug)]
+pub enum SleepMode {
+    At(Instant),
+    EndOfTrack,
+    EndOfList,
+}
+
+/// Widok biblioteki: rodzaj (wykonawcy, albumy…) i stos wejść w głąb.
+#[derive(Clone, Debug, Default)]
+pub struct LibState {
+    pub kind: String,
+    pub stack: Vec<(String, String, String)>,
+    pub tracks: Vec<TrackInfo>,
+    pub sel: HashSet<usize>,
+    pub anchor: Option<usize>,
+    pub tile_keys: Vec<(String, String, String)>,
+    pub search: String,
+}
+
+pub struct Models {
+    pub bars: Rc<VecModel<f32>>,
+    pub peaks: Rc<VecModel<f32>>,
+    pub rows: Rc<VecModel<TrackRow>>,
+    pub lib_rows: Rc<VecModel<TrackRow>>,
+    pub tiles: Rc<VecModel<Tile>>,
+    pub nav: Rc<VecModel<NavItem>>,
+    pub tabs: Rc<VecModel<TabItem>>,
+    pub eq: Rc<VecModel<f32>>,
+    pub lyrics: Rc<VecModel<LyricLine>>,
+    pub stations: Rc<VecModel<Station_>>,
+}
+
+pub type Station_ = crate::Station;
+
+pub struct App {
+    pub ui: slint::Weak<AppWindow>,
+    pub s: Settings,
+    pub session: Session,
+    pub store: Store,
+    pub lib: Library,
+    pub stats: Stats,
+    pub engine: Engine,
+    pub mpv: Option<Mpv>,
+    pub mpv_err: String,
+    pub m: Models,
+    pub cur: Option<Playing>,
+    pub pending: Option<Pending>,
+    pub seq: u64,
+    pub queue: Vec<(u64, usize)>,
+    pub history: Vec<(u64, usize)>,
+    pub shuffle: Vec<usize>,
+    pub shuffle_list: u64,
+    pub shuffle_len: usize,
+    // Lista na ekranie
+    pub sel: HashSet<usize>,
+    pub anchor: Option<usize>,
+    pub row_of: HashMap<usize, usize>,
+    pub filter: String,
+    pub libv: LibState,
+    pub analyzer: Analyzer,
+    pub last_frame: Instant,
+    pub menu: MenuCtx,
+    pub rename: RenameCtx,
+    pub sleep: Option<SleepMode>,
+    pub sleep_fade: Option<f32>,
+    pub toast_until: Option<Instant>,
+    pub osd_until: Option<Instant>,
+    pub last_mouse: Instant,
+    pub hover_controls: bool,
+    pub ab: (Option<f64>, Option<f64>),
+    pub lyrics: Vec<(f64, String)>,
+    pub lyrics_text: String,
+    pub wave_raw: Vec<f32>,
+    pub music_geom: Option<(i32, i32, u32, u32)>,
+    pub dirty: bool,
+    pub last_save: Instant,
+    pub last_smtc: Instant,
+    pub stations: Vec<Station>,
+    pub saved_stations: Vec<Station>,
+    pub update: Option<openmp_core::update::Release>,
+    pub cover_bytes: Option<Vec<u8>>,
+    pub tag_paths: Vec<String>,
+    pub tag_mixed: Vec<bool>,
+    pub tag_cover: Option<Vec<u8>>,
+    pub smtc: Option<souvlaki::MediaControls>,
+    pub scan: Option<std::sync::Arc<openmp_core::library::Progress>>,
+    pub video_size: (i64, i64),
+    pub awake: bool,
+    pub icy: String,
+    pub pause_after_load: bool,
+    pub last_pos: f64,
+    pub last_dur: f64,
+}
+
+thread_local! {
+    pub static APP: RefCell<Option<App>> = const { RefCell::new(None) };
+}
+
+/// Dostęp do stanu. Wywołanie zagnieżdżone (np. z callbacku wywołanego przez zmianę właściwości)
+/// zostaje odłożone na następny obieg pętli zdarzeń.
+pub fn with<R>(f: impl FnOnce(&mut App) -> R) -> Option<R> {
+    APP.with(|a| {
+        let mut b = a.try_borrow_mut().ok()?;
+        let app = b.as_mut()?;
+        Some(f(app))
+    })
+}
+
+/// Jak `with`, ale gdy stan jest zajęty – wykonanie po bieżącym zdarzeniu.
+pub fn later(f: impl FnOnce(&mut App) + 'static) {
+    let busy = APP.with(|a| a.try_borrow_mut().is_err());
+    if busy {
+        slint::Timer::single_shot(std::time::Duration::ZERO, move || {
+            with(f);
+        });
+    } else {
+        with(f);
+    }
+}
+
+pub fn ss(s: impl AsRef<str>) -> SharedString {
+    SharedString::from(s.as_ref())
+}
+
+pub fn model<T: Clone + 'static>(v: &Rc<VecModel<T>>) -> ModelRc<T> {
+    ModelRc::from(v.clone())
+}
+
+pub fn strings(v: &[String]) -> ModelRc<SharedString> {
+    ModelRc::new(VecModel::from(v.iter().map(ss).collect::<Vec<_>>()))
+}
+
+impl App {
+    pub fn ui(&self) -> Option<AppWindow> {
+        self.ui.upgrade()
+    }
+
+    pub fn toast(&mut self, text: impl AsRef<str>) {
+        if let Some(ui) = self.ui() {
+            ui.global::<Ui>().set_toast(ss(text));
+            ui.global::<Ui>().set_toast_visible(true);
+        }
+        self.toast_until = Some(Instant::now() + std::time::Duration::from_millis(2600));
+    }
+
+    pub fn osd(&mut self, text: impl AsRef<str>) {
+        if let Some(ui) = self.ui() {
+            ui.global::<Video>().set_osd(ss(text));
+            ui.global::<Video>().set_osd_visible(true);
+        }
+        self.osd_until = Some(Instant::now() + std::time::Duration::from_millis(1300));
+    }
+
+    pub fn list_index(&self, id: u64) -> Option<usize> {
+        self.store.lists.iter().position(|l| l.id == id)
+    }
+
+    pub fn active_id(&self) -> u64 {
+        self.store.lists.get(self.store.active).map(|l| l.id).unwrap_or(0)
+    }
+
+    pub fn next_seq(&mut self) -> u64 {
+        self.seq += 1;
+        self.seq
+    }
+
+    pub fn is_video_mode(&self) -> bool {
+        self.ui().map(|u| u.global::<Ui>().get_mode() == 1).unwrap_or(false)
+    }
+}

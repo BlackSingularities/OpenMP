@@ -1,0 +1,761 @@
+// Tryb wideo: obraz na całe okno i mały, chowający się panel sterowania.
+// Miniodtwarzacz: wąski pasek na wierzchu z okładką i przyciskami.
+
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, IconBtn, HSlider, Segmented, Cover, Marquee, Btn } from "widgets.slint";
+import { SeekBar, Fmt, Visualizer } from "display.slint";
+import { WinButtons } from "views.slint";
+import { Player, Video, Ui, Prefs } from "state.slint";
+import { Opt } from "types.slint";
+
+component Pill inherits Rectangle {
+    background: #0c0e12d9;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: #ffffff14;
+    drop-shadow-blur: 24px;
+    drop-shadow-color: #00000080;
+}
+
+component OptList inherits VerticalLayout {
+    in property <[Opt]> items;
+    in property <string> empty;
+    callback picked(string);
+    spacing: 2px;
+    if root.items.length == 0: Text {
+        text: root.empty;
+        color: #ffffff80;
+        font-size: Theme.fs-sm;
+    }
+    for o in root.items: Rectangle {
+        height: o.sub != "" ? 40px : 30px;
+        border-radius: 7px;
+        background: o.selected ? #ffffff1f : ota.has-hover ? #ffffff12 : transparent;
+        HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 10px;
+            spacing: 8px;
+            Rectangle {
+                width: 14px;
+                if o.selected: Icon {
+                    icon: Icons.check;
+                    size: 14px;
+                    fill: Theme.tint.brighter(0.3);
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Text {
+                    text: o.label;
+                    color: #ffffff;
+                    font-size: Theme.fs;
+                    overflow: elide;
+                }
+                if o.sub != "": Text {
+                    text: o.sub;
+                    color: #ffffff80;
+                    font-size: Theme.fs-xs;
+                    overflow: elide;
+                }
+            }
+        }
+        ota := TouchArea {
+            mouse-cursor: pointer;
+            clicked => { root.picked(o.id); }
+        }
+    }
+}
+
+component VRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> value-text;
+    spacing: 10px;
+    height: 30px;
+    Text {
+        width: 96px;
+        text: root.label;
+        color: #ffffffb0;
+        font-size: Theme.fs-sm;
+        vertical-alignment: center;
+    }
+    @children
+    Text {
+        width: 52px;
+        text: root.value-text;
+        color: #ffffff;
+        font-size: Theme.fs-sm;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+    }
+}
+
+export component VideoView inherits Rectangle {
+    background: #000000;
+    property <bool> show: Video.controls || !Video.playing || Video.panel;
+    if Video.has-frame: Image {
+        width: 100%;
+        height: 100%;
+        source: Video.frame;
+        image-fit: fill;
+    }
+    if Video.audio-only: VerticalLayout {
+        alignment: center;
+        spacing: 14px;
+        Cover {
+            x: (parent.width - self.width) / 2;
+            width: min(root.width, root.height) * 0.42;
+            height: self.width;
+            source: Player.cover;
+            has: Player.has-cover;
+            fallback: Icons.radio;
+            background: #ffffff10;
+        }
+        Text {
+            text: Video.title;
+            color: #ffffff;
+            font-size: Theme.fs-lg;
+            horizontal-alignment: center;
+        }
+    }
+    if Video.loading: Text {
+        text: "Wczytywanie…";
+        color: #ffffffa0;
+        font-size: Theme.fs-md;
+    }
+    if Video.error != "": VerticalLayout {
+        alignment: center;
+        spacing: 12px;
+        Text {
+            text: Video.error;
+            color: #ffffffd0;
+            font-size: Theme.fs-md;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+    // Cały obszar: ruch myszy pokazuje sterowanie, klik – pauza, podwójny – pełny ekran,
+    // przeciągnięcie – przesuwa okno, kółko – głośność.
+    property <length> px;
+    property <length> py;
+    property <bool> dragged;
+    area := TouchArea {
+        mouse-cursor: root.show ? MouseCursor.default : MouseCursor.none;
+        moved => {
+            Video.mouse-moved();
+            if self.pressed && !root.dragged && !Video.fullscreen && (abs(self.mouse-x - root.px) > 6px || abs(self.mouse-y - root.py) > 6px) {
+                root.dragged = true;
+                Ui.drag();
+            }
+        }
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.move {
+                Video.mouse-moved();
+            }
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                root.px = self.mouse-x;
+                root.py = self.mouse-y;
+                root.dragged = false;
+            }
+            if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                Ui.key("video-menu", false, false, false);
+            }
+            if e.kind == PointerEventKind.up && e.button == PointerEventButton.middle {
+                Video.toggle-fullscreen();
+            }
+        }
+        clicked => {
+            if !root.dragged {
+                if Video.panel {
+                    Video.panel = false;
+                } else {
+                    Player.play-pause();
+                }
+            }
+        }
+        double-clicked => {
+            Player.play-pause();
+            Video.toggle-fullscreen();
+        }
+        scroll-event(e) => {
+            Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
+            Video.mouse-moved();
+            accept
+        }
+    }
+    // Górny pasek: tytuł i przyciski okna.
+    Rectangle {
+        y: 0;
+        height: 64px;
+        opacity: root.show ? 1 : 0;
+        animate opacity { duration: 220ms; }
+        background: @linear-gradient(180deg, #000000b0 0%, transparent 100%);
+        HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 6px;
+            padding-top: 4px;
+            alignment: stretch;
+            height: 40px;
+            IconBtn {
+                y: 4px;
+                icon: Icons.back;
+                on-dark: true;
+                icon-color: #ffffffd0;
+                hover-color: #ffffff;
+                tip: "Wróć do muzyki (Esc)";
+                clicked => { Video.back-to-music(); }
+            }
+            VerticalLayout {
+                padding-left: 8px;
+                alignment: center;
+                horizontal-stretch: 1;
+                Text {
+                    text: Video.title;
+                    color: #ffffff;
+                    font-size: Theme.fs-md;
+                    font-weight: 600;
+                    overflow: elide;
+                }
+                if Video.info != "": Text {
+                    text: Video.info;
+                    color: #ffffff90;
+                    font-size: Theme.fs-xs;
+                    overflow: elide;
+                }
+            }
+            IconBtn {
+                y: 4px;
+                icon: Icons.pin;
+                on-dark: true;
+                active: Video.ontop;
+                icon-color: Video.ontop ? Theme.tint.brighter(0.3) : #ffffffd0;
+                hover-color: #ffffff;
+                tip: "Zawsze na wierzchu (T)";
+                clicked => { Video.toggle-ontop(); }
+            }
+            if !Video.fullscreen: WinButtons {
+                on-dark: true;
+            }
+        }
+        TouchArea {
+            width: parent.width - 260px;
+            x: 60px;
+            height: 44px;
+            y: 0;
+            pointer-event(e) => {
+                if e.kind == PointerEventKind.down && e.button == PointerEventButton.left && !Video.fullscreen {
+                    Ui.drag();
+                }
+            }
+            double-clicked => { Video.toggle-fullscreen(); }
+        }
+    }
+    // Komunikat na środku (głośność, przewinięcie, prędkość).
+    Rectangle {
+        y: 70px;
+        x: (parent.width - self.width) / 2;
+        width: osdt.preferred-width + 28px;
+        height: 36px;
+        border-radius: 18px;
+        background: #000000b0;
+        opacity: Video.osd-visible ? 1 : 0;
+        animate opacity { duration: 180ms; }
+        osdt := Text {
+            text: Video.osd;
+            color: #ffffff;
+            font-size: Theme.fs-md;
+            font-weight: 600;
+        }
+    }
+    // Dolny panel sterowania.
+    bar := Pill {
+        property <length> w: min(root.width - 24px, 760px);
+        x: (root.width - self.width) / 2;
+        y: root.height - self.height - (root.show ? 14px : -10px);
+        width: w;
+        height: 82px;
+        opacity: root.show ? 1 : 0;
+        animate opacity, y { duration: 220ms; easing: ease-out; }
+        TouchArea {
+            changed has-hover => { Video.hover-controls(self.has-hover); }
+        }
+        VerticalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-top: 10px;
+            padding-bottom: 6px;
+            spacing: 4px;
+            HorizontalLayout {
+                spacing: 10px;
+                Text {
+                    text: Fmt.time(Video.pos);
+                    color: #ffffffd0;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    width: 50px;
+                }
+                SeekBar {
+                    y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 1;
+                    value: Video.duration > 0 ? Video.pos / Video.duration : 0;
+                    duration: Video.duration;
+                    chapters: Video.chapters;
+                    on-video: true;
+                    ab-a: Player.ab-a;
+                    ab-b: Player.ab-b;
+                    seek(v) => { Player.seek(v); }
+                }
+                Text {
+                    text: Video.duration > 0 ? (Prefs.remaining ? "-" + Fmt.time(Video.duration - Video.pos) : Fmt.time(Video.duration)) : "na żywo";
+                    color: #ffffffd0;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    width: 50px;
+                    TouchArea {
+                        clicked => {
+                            Prefs.remaining = !Prefs.remaining;
+                            Prefs.changed("remaining");
+                        }
+                    }
+                }
+            }
+            HorizontalLayout {
+                spacing: 2px;
+                IconBtn {
+                    icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Icons.volume;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    clicked => { Player.toggle-mute(); }
+                }
+                HSlider {
+                    y: (parent.height - self.height) / 2;
+                    width: bar.w > 560px ? 90px : 60px;
+                    value: Player.volume;
+                    fill-color: #ffffff;
+                    track-color: #ffffff33;
+                    moved(v) => { Player.set-volume(v); }
+                }
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+                IconBtn {
+                    icon: Icons.prev;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    clicked => { Player.prev(); }
+                }
+                IconBtn {
+                    icon: Icons.rewind;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    tip: "-10 s";
+                    clicked => { Player.seek-rel(-10); }
+                }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - self.height) / 2;
+                    border-radius: 20px;
+                    background: vpta.has-hover ? #ffffff : #ffffffe6;
+                    Icon {
+                        icon: Video.playing ? Icons.pause : Icons.play;
+                        size: 24px;
+                        fill: #000000;
+                    }
+                    vpta := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { Player.play-pause(); }
+                    }
+                }
+                IconBtn {
+                    icon: Icons.forward;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    tip: "+10 s";
+                    clicked => { Player.seek-rel(10); }
+                }
+                IconBtn {
+                    icon: Icons.next;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    clicked => { Player.next(); }
+                }
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+                if bar.w > 470px: IconBtn {
+                    icon: Icons.subtitles;
+                    on-dark: true;
+                    active: Video.panel && Video.panel-page == 1;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    tip: "Napisy (V)";
+                    clicked => {
+                        Video.panel = !(Video.panel && Video.panel-page == 1);
+                        Video.panel-page = 1;
+                    }
+                }
+                IconBtn {
+                    icon: Icons.tune;
+                    on-dark: true;
+                    active: Video.panel && Video.panel-page != 1;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    tip: "Dźwięk, obraz, prędkość";
+                    clicked => {
+                        Video.panel = !(Video.panel && Video.panel-page != 1);
+                        Video.panel-page = Video.panel-page == 1 ? 0 : Video.panel-page;
+                    }
+                }
+                IconBtn {
+                    icon: Video.fullscreen ? Icons.fullscreen-exit : Icons.fullscreen;
+                    on-dark: true;
+                    icon-color: #ffffffd0;
+                    hover-color: #ffffff;
+                    tip: "Pełny ekran (F)";
+                    clicked => { Video.toggle-fullscreen(); }
+                }
+            }
+        }
+    }
+    // Panel boczny: ścieżki, napisy, obraz, prędkość, rozdziały.
+    if Video.panel: Pill {
+        x: root.width - self.width - 14px;
+        y: 60px;
+        width: min(330px, root.width - 28px);
+        height: max(120px, bar.y - 74px);
+        TouchArea { }
+        VerticalLayout {
+            padding: 12px;
+            spacing: 10px;
+            Segmented {
+                small: true;
+                options: ["Dźwięk", "Napisy", "Obraz", "Rozdziały"];
+                selected <=> Video.panel-page;
+            }
+            Flickable {
+                vertical-stretch: 1;
+                content-height: inner.preferred-height;
+                inner := VerticalLayout {
+                    spacing: 8px;
+                    if Video.panel-page == 0: VerticalLayout {
+                        spacing: 6px;
+                        Text {
+                            text: "Ścieżka dźwiękowa";
+                            color: #ffffff90;
+                            font-size: Theme.fs-xs;
+                            font-weight: 700;
+                        }
+                        OptList {
+                            items: Video.audio-tracks;
+                            empty: "Brak ścieżek dźwiękowych";
+                            picked(id) => { Video.select-audio(id); }
+                        }
+                        Rectangle {
+                            height: 4px;
+                        }
+                        VRow {
+                            label: "Prędkość";
+                            value-text: round(Video.speed * 100) / 100 + "×";
+                            HSlider {
+                                horizontal-stretch: 1;
+                                y: (parent.height - self.height) / 2;
+                                minimum: 0.25;
+                                maximum: 3;
+                                step: 0.05;
+                                value: Video.speed;
+                                fill-color: #ffffff;
+                                track-color: #ffffff33;
+                                moved(v) => { Video.set-speed(v); }
+                                reset => { Video.set-speed(1); }
+                            }
+                        }
+                        VRow {
+                            label: "Opóźnienie dźwięku";
+                            value-text: round(Video.audio-delay * 1000) + " ms";
+                            HSlider {
+                                horizontal-stretch: 1;
+                                y: (parent.height - self.height) / 2;
+                                minimum: -2;
+                                maximum: 2;
+                                step: 0.05;
+                                centered: true;
+                                value: Video.audio-delay;
+                                fill-color: #ffffff;
+                                track-color: #ffffff33;
+                                moved(v) => { Video.set-audio-delay(v); }
+                                reset => { Video.set-audio-delay(0); }
+                            }
+                        }
+                    }
+                    if Video.panel-page == 1: VerticalLayout {
+                        spacing: 6px;
+                        OptList {
+                            items: Video.sub-tracks;
+                            empty: "Brak napisów";
+                            picked(id) => { Video.select-sub(id); }
+                        }
+                        Btn {
+                            text: "Wczytaj napisy z pliku…";
+                            icon: Icons.file;
+                            compact: true;
+                            clicked => { Video.load-sub(); }
+                        }
+                        VRow {
+                            label: "Opóźnienie";
+                            value-text: round(Video.sub-delay * 1000) + " ms";
+                            HSlider {
+                                horizontal-stretch: 1;
+                                y: (parent.height - self.height) / 2;
+                                minimum: -5;
+                                maximum: 5;
+                                step: 0.1;
+                                centered: true;
+                                value: Video.sub-delay;
+                                fill-color: #ffffff;
+                                track-color: #ffffff33;
+                                moved(v) => { Video.set-sub-delay(v); }
+                                reset => { Video.set-sub-delay(0); }
+                            }
+                        }
+                        VRow {
+                            label: "Wielkość";
+                            value-text: round(Video.sub-scale * 100) + "%";
+                            HSlider {
+                                horizontal-stretch: 1;
+                                y: (parent.height - self.height) / 2;
+                                minimum: 0.5;
+                                maximum: 2.5;
+                                step: 0.05;
+                                value: Video.sub-scale;
+                                fill-color: #ffffff;
+                                track-color: #ffffff33;
+                                moved(v) => { Video.set-sub-scale(v); }
+                                reset => { Video.set-sub-scale(1); }
+                            }
+                        }
+                    }
+                    if Video.panel-page == 2: VerticalLayout {
+                        spacing: 4px;
+                        for e in [
+                            { id: "brightness", l: "Jasność", v: Video.brightness },
+                            { id: "contrast", l: "Kontrast", v: Video.contrast },
+                            { id: "saturation", l: "Nasycenie", v: Video.saturation },
+                            { id: "gamma", l: "Gamma", v: Video.gamma },
+                        ]: VRow {
+                            label: e.l;
+                            value-text: round(e.v);
+                            HSlider {
+                                horizontal-stretch: 1;
+                                y: (parent.height - self.height) / 2;
+                                minimum: -100;
+                                maximum: 100;
+                                step: 1;
+                                centered: true;
+                                value: e.v;
+                                fill-color: #ffffff;
+                                track-color: #ffffff33;
+                                moved(v) => { Video.set-eq(e.id, v); }
+                                reset => { Video.set-eq(e.id, 0); }
+                            }
+                        }
+                        Text {
+                            text: "Proporcje obrazu";
+                            color: #ffffff90;
+                            font-size: Theme.fs-xs;
+                            font-weight: 700;
+                        }
+                        Segmented {
+                            small: true;
+                            options: ["Auto", "16:9", "4:3", "21:9", "Rozciągnij"];
+                            selected: Video.aspect;
+                            changed(i) => { Video.set-aspect(i); }
+                        }
+                        HorizontalLayout {
+                            spacing: 6px;
+                            padding-top: 6px;
+                            Btn {
+                                text: "Zrzut ekranu";
+                                icon: Icons.camera;
+                                compact: true;
+                                clicked => { Video.screenshot(); }
+                            }
+                            Btn {
+                                text: "Pętla A-B";
+                                icon: Icons.repeat;
+                                compact: true;
+                                clicked => { Video.ab-loop(); }
+                            }
+                        }
+                    }
+                    if Video.panel-page == 3: OptList {
+                        items: Video.chapter-list;
+                        empty: "Ten plik nie ma rozdziałów";
+                        picked(id) => { Video.goto-chapter(id); }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component MiniView inherits Rectangle {
+    background: Theme.lcd;
+    border-radius: 0;
+    if Player.has-cover: Image {
+        width: 100%;
+        height: 100%;
+        source: Player.backdrop;
+        image-fit: ImageFit.cover;
+        opacity: 0.35;
+    }
+    Rectangle {
+        background: @linear-gradient(90deg, #07090dcc 0%, #07090d99 55%, #07090dee 100%);
+    }
+    TouchArea {
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                Ui.drag();
+            }
+        }
+        double-clicked => { Ui.set-mode(0); }
+        scroll-event(e) => {
+            Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
+            accept
+        }
+    }
+    VerticalLayout {
+        padding: 10px;
+        padding-bottom: 8px;
+        spacing: 7px;
+        HorizontalLayout {
+            spacing: 12px;
+            vertical-stretch: 1;
+            Cover {
+                width: self.height;
+                source: Player.cover;
+                has: Player.has-cover;
+                fallback: Icons.note;
+                border-radius: 6px;
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 1px;
+                alignment: center;
+                Marquee {
+                    text: Player.idle ? "OpenMP" : Player.title;
+                    font-size: Theme.fs-md;
+                    font-weight: 600;
+                    text-color: Theme.lcd-text;
+                    enabled: Prefs.scroll-title;
+                }
+                Text {
+                    text: Player.artist;
+                    color: Theme.tint.brighter(0.5);
+                    font-size: Theme.fs-sm;
+                    overflow: elide;
+                }
+                HorizontalLayout {
+                    spacing: 2px;
+                    IconBtn {
+                        icon: Icons.prev;
+                        size: 28px;
+                        on-dark: true;
+                        icon-color: #ffffffc0;
+                        clicked => { Player.prev(); }
+                    }
+                    IconBtn {
+                        icon: Player.playing ? Icons.pause : Icons.play;
+                        size: 28px;
+                        icon-size: 20px;
+                        on-dark: true;
+                        icon-color: #ffffff;
+                        clicked => { Player.play-pause(); }
+                    }
+                    IconBtn {
+                        icon: Icons.next;
+                        size: 28px;
+                        on-dark: true;
+                        icon-color: #ffffffc0;
+                        clicked => { Player.next(); }
+                    }
+                    Text {
+                        text: (Prefs.remaining && Player.duration > 0 ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.pos)) + (Player.duration > 0 ? " / " + Fmt.time(Player.duration) : "");
+                        color: Theme.lcd-dim;
+                        font-size: Theme.fs-sm;
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                        horizontal-alignment: right;
+                        TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => {
+                                Prefs.remaining = !Prefs.remaining;
+                                Prefs.changed("remaining");
+                            }
+                        }
+                    }
+                }
+            }
+            // Mały analizator – ten sam tryb co na dużym wyświetlaczu; klik przełącza.
+            Rectangle {
+                width: clamp(root.width * 0.22, 70px, 160px);
+                border-radius: 6px;
+                background: #ffffff06;
+                Visualizer {
+                    x: 4px;
+                    y: 4px;
+                    width: parent.width - 8px;
+                    height: parent.height - 8px;
+                    mode: Player.viz-mode;
+                    bars: Player.bars;
+                    peaks: Player.peaks;
+                    scope-path: Player.scope-path;
+                    spectrum-path: Player.spectrum-path;
+                    vu-l: Player.vu-l;
+                    vu-r: Player.vu-r;
+                    vu-pl: Player.vu-pl;
+                    vu-pr: Player.vu-pr;
+                    active: Player.viz-active;
+                    note: "";
+                    cycle => { Player.cycle-viz(); }
+                }
+            }
+            VerticalLayout {
+                alignment: start;
+                IconBtn {
+                    icon: Icons.expand;
+                    size: 24px;
+                    icon-size: 15px;
+                    on-dark: true;
+                    icon-color: #ffffffa0;
+                    tip: "Pełne okno";
+                    clicked => { Ui.set-mode(0); }
+                }
+                IconBtn {
+                    icon: Icons.close;
+                    size: 24px;
+                    icon-size: 14px;
+                    on-dark: true;
+                    icon-color: #ffffffa0;
+                    clicked => { Ui.close(); }
+                }
+            }
+        }
+        // Ten sam pasek co w pełnym oknie: taśma utworu, znaczniki A-B, podgląd czasu.
+        SeekBar {
+            value: Player.duration > 0 ? Player.pos / Player.duration : 0;
+            duration: Player.duration;
+            wave: Player.wave;
+            show-wave: Prefs.show-waveform;
+            ab-a: Player.ab-a;
+            ab-b: Player.ab-b;
+            seek(v) => { Player.seek(v); }
+        }
+    }
+}

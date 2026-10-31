@@ -1,0 +1,504 @@
+// Wyświetlacz trybu muzyki: okładka, opis utworu, parametry techniczne, duży licznik czasu,
+// analizator (słupki, widmo, oscyloskop, wskaźniki VU) i pasek przewijania z falą utworu.
+
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, Marquee, Badge, Cover } from "widgets.slint";
+
+export global Fmt {
+    pure public function time(s: float) -> string {
+        let t = max(0, floor(s));
+        let h = floor(t / 3600);
+        let m = floor(mod(t, 3600) / 60);
+        let sec = mod(t, 60);
+        if h > 0 {
+            return h + ":" + (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec;
+        }
+        return m + ":" + (sec < 10 ? "0" : "") + sec;
+    }
+}
+
+export component SeekBar inherits Rectangle {
+    in property <float> value;
+    in property <float> duration;
+    in property <string> wave;
+    in property <bool> show-wave;
+    in property <[float]> chapters;
+    in property <bool> enabled: true;
+    in property <bool> on-video;
+    in property <float> ab-a: -1;
+    in property <float> ab-b: -1;
+    out property <bool> dragging: ta.pressed;
+    out property <float> drag-value;
+    callback seek(float);
+    height: show-wave ? 34px : 18px;
+    property <float> shown: ta.pressed ? drag-value : value;
+    property <color> c-played: Theme.tint;
+    property <color> c-rest: on-video ? #ffffff40 : #ffffff30;
+    if root.show-wave && root.wave != "": Rectangle {
+        // Fala: część odegrana w kolorze akcentu, reszta przygaszona.
+        Path {
+            width: 100%;
+            height: 100%;
+            commands: root.wave;
+            viewbox-width: 1000;
+            fit: fill;
+            viewbox-height: 100;
+            fill: root.c-rest;
+            stroke-width: 0;
+        }
+        Rectangle {
+            x: 0;
+            width: root.width * clamp(root.shown, 0, 1);
+            height: 100%;
+            clip: true;
+            Path {
+                x: 0;
+                width: root.width;
+                height: 100%;
+                commands: root.wave;
+                viewbox-width: 1000;
+                fit: fill;
+                viewbox-height: 100;
+                fill: root.c-played;
+                stroke-width: 0;
+            }
+        }
+    }
+    if !root.show-wave || root.wave == "": Rectangle {
+        height: ta.has-hover || ta.pressed ? 6px : 4px;
+        border-radius: self.height / 2;
+        background: root.c-rest;
+        animate height { duration: 100ms; }
+        Rectangle {
+            x: 0;
+            width: parent.width * clamp(root.shown, 0, 1);
+            border-radius: parent.border-radius;
+            background: root.c-played;
+        }
+    }
+    for c in root.chapters: Rectangle {
+        x: root.width * c - 1px;
+        width: 2px;
+        height: root.show-wave ? root.height : 8px;
+        background: #ffffff55;
+    }
+    if root.ab-a >= 0: Rectangle {
+        x: root.width * root.ab-a;
+        width: root.ab-b > root.ab-a ? root.width * (root.ab-b - root.ab-a) : 2px;
+        height: 100%;
+        background: Theme.tint.with-alpha(0.22);
+    }
+    if !root.show-wave || root.wave == "": Rectangle {
+        x: root.width * clamp(root.shown, 0, 1) - self.width / 2;
+        width: ta.has-hover || ta.pressed ? 13px : 0px;
+        height: self.width;
+        border-radius: self.width / 2;
+        background: #ffffff;
+        animate width { duration: 100ms; }
+    }
+    if root.show-wave && root.wave != "": Rectangle {
+        x: root.width * clamp(root.shown, 0, 1) - 1px;
+        width: 2px;
+        height: 100%;
+        background: #ffffff;
+    }
+    if (ta.has-hover || ta.pressed) && root.duration > 0: Rectangle {
+        property <float> at: ta.pressed ? root.drag-value : clamp(ta.mouse-x / root.width, 0, 1);
+        x: clamp(root.width * at - self.width / 2, 0, root.width - self.width);
+        y: -self.height - 6px;
+        height: 20px;
+        width: ht.preferred-width + 12px;
+        border-radius: 4px;
+        background: #000000d9;
+        ht := Text {
+            text: Fmt.time(parent.at * root.duration);
+            color: #ffffff;
+            font-size: Theme.fs-sm;
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled && root.duration > 0;
+        mouse-cursor: pointer;
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                root.drag-value = clamp(self.mouse-x / root.width, 0, 1);
+            }
+            if e.kind == PointerEventKind.up && e.button == PointerEventButton.left {
+                root.seek(root.drag-value);
+            }
+        }
+        moved => {
+            if self.pressed {
+                root.drag-value = clamp(self.mouse-x / root.width, 0, 1);
+            }
+        }
+    }
+}
+
+export component Visualizer inherits Rectangle {
+    in property <int> mode;
+    in property <[float]> bars;
+    in property <[float]> peaks;
+    in property <string> scope-path;
+    in property <string> spectrum-path;
+    in property <float> vu-l;
+    in property <float> vu-r;
+    in property <float> vu-pl;
+    in property <float> vu-pr;
+    in property <bool> active;
+    in property <string> note;
+    callback cycle();
+    clip: true;
+    property <int> n: bars.length;
+    property <length> slot: n > 0 ? self.width / n : 1px;
+    if root.mode == 0: Rectangle {
+        for b[i] in root.bars: Rectangle {
+            x: i * root.slot + 1px;
+            width: max(1px, root.slot - 2px);
+            y: root.height - self.height;
+            height: root.height * b;
+            border-radius: 1.5px;
+            background: @linear-gradient(0deg, Theme.tint.darker(0.25) 0%, Theme.tint 55%, Theme.tint.brighter(0.7) 100%);
+        }
+        for p[i] in root.peaks: Rectangle {
+            x: i * root.slot + 1px;
+            width: max(1px, root.slot - 2px);
+            y: root.height - root.height * p - 2px;
+            height: 2px;
+            background: p > 0.01 ? #ffffffd0 : transparent;
+        }
+    }
+    if root.mode == 1: Rectangle {
+        Path {
+            width: 100%;
+            height: 100%;
+            commands: root.spectrum-path;
+            viewbox-width: 1000;
+            fit: fill;
+            viewbox-height: 100;
+            fill: @linear-gradient(0deg, Theme.tint.with-alpha(0.05) 0%, Theme.tint.with-alpha(0.55) 100%);
+            stroke: Theme.tint.brighter(0.5);
+            stroke-width: 1.5px;
+        }
+    }
+    if root.mode == 2: Rectangle {
+        Rectangle {
+            height: 1px;
+            background: #ffffff14;
+        }
+        Path {
+            width: 100%;
+            height: 100%;
+            commands: root.scope-path;
+            viewbox-width: 1000;
+            fit: fill;
+            viewbox-height: 100;
+            stroke: Theme.tint.brighter(0.4);
+            stroke-width: 1.6px;
+            fill: transparent;
+        }
+    }
+    if root.mode == 3: VerticalLayout {
+        alignment: center;
+        spacing: 10px;
+        padding-left: 4px;
+        padding-right: 4px;
+        for ch[i] in [{ v: root.vu-l, p: root.vu-pl, l: "L" }, { v: root.vu-r, p: root.vu-pr, l: "R" }]: HorizontalLayout {
+            spacing: 8px;
+            Text {
+                text: ch.l;
+                color: Theme.lcd-dim;
+                font-size: Theme.fs-sm;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                height: 14px;
+                // Diody: zielone, żółte, czerwone.
+                property <int> leds: 32;
+                for k in 32: Rectangle {
+                    x: k * parent.width / parent.leds;
+                    width: parent.width / parent.leds - 2px;
+                    height: 100%;
+                    border-radius: 1.5px;
+                    background: (k + 1) / parent.leds <= ch.v || abs((k + 0.5) / parent.leds - ch.p) < 0.5 / parent.leds ? (k > 27 ? #ff5252 : k > 22 ? #ffc94a : Theme.tint) : #ffffff10;
+                }
+            }
+        }
+        Text {
+            text: "-48            -24             -12        -6      0 dB";
+            color: Theme.lcd-faint;
+            font-size: 9px;
+            horizontal-alignment: right;
+        }
+    }
+    if !root.active && root.note != "": Text {
+        text: root.note;
+        color: Theme.lcd-faint;
+        font-size: Theme.fs-sm;
+        horizontal-alignment: center;
+        wrap: word-wrap;
+    }
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.cycle(); }
+    }
+}
+
+export component MusicDisplay inherits Rectangle {
+    in property <string> title;
+    in property <string> artist;
+    in property <string> album;
+    in property <[string]> badges;
+    in property <string> position-text;
+    in property <string> state-text;
+    in property <image> cover;
+    in property <bool> has-cover;
+    in property <image> backdrop;
+    in property <float> pos;
+    in property <float> duration;
+    in property <bool> remaining;
+    in property <bool> playing;
+    in property <bool> idle;
+    in property <bool> fav;
+    in property <bool> compact;
+    in property <bool> scroll-title: true;
+    // Wskaźniki stanu
+    in property <bool> shuffle;
+    in property <int> repeat;
+    in property <bool> eq-on;
+    in property <bool> crossfade-on;
+    in property <bool> rg-on;
+    in property <string> sleep-text;
+    in property <string> speed-text;
+    // Analizator
+    in property <int> viz-mode;
+    in property <[float]> bars;
+    in property <[float]> peaks;
+    in property <string> scope-path;
+    in property <string> spectrum-path;
+    in property <float> vu-l;
+    in property <float> vu-r;
+    in property <float> vu-pl;
+    in property <float> vu-pr;
+    in property <bool> viz-active;
+    in property <string> viz-note;
+    // Pasek przewijania
+    in property <string> wave;
+    in property <bool> show-wave;
+    in property <float> ab-a: -1;
+    in property <float> ab-b: -1;
+    callback seek(float);
+    callback toggle-time();
+    callback cycle-viz();
+    callback cover-clicked();
+    callback toggle-fav();
+    callback title-clicked();
+    border-radius: Theme.radius-lg;
+    background: Theme.lcd;
+    clip: true;
+    if root.has-cover: Image {
+        width: 100%;
+        height: 100%;
+        source: root.backdrop;
+        image-fit: ImageFit.cover;
+        opacity: 0.32;
+    }
+    Rectangle {
+        background: @linear-gradient(90deg, #07090dcc 0%, #07090d99 45%, #07090dee 100%);
+    }
+    Rectangle {
+        // Poświata akcentu z prawego górnego rogu.
+        background: @radial-gradient(circle, Theme.tint.with-alpha(0.16) 0%, transparent 70%);
+        x: parent.width * 0.55;
+        y: -parent.height * 0.6;
+        width: parent.width * 0.7;
+        height: parent.height * 1.6;
+    }
+    VerticalLayout {
+        padding: root.compact ? 12px : 16px;
+        padding-bottom: 10px;
+        spacing: root.compact ? 8px : 12px;
+        HorizontalLayout {
+            spacing: 18px;
+            vertical-stretch: 1;
+            Cover {
+                width: root.compact ? 96px : 150px;
+                height: self.width;
+                source: root.cover;
+                has: root.has-cover;
+                fallback: Icons.note;
+                border-radius: 8px;
+                drop-shadow-blur: 18px;
+                drop-shadow-color: #000000a0;
+                background: #ffffff0d;
+                TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { root.cover-clicked(); }
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 3px;
+                min-width: 180px;
+                HorizontalLayout {
+                    spacing: 5px;
+                    height: 17px;
+                    for b[i] in root.badges: Badge {
+                        text: b;
+                        lit: i == 0;
+                    }
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+                    Text {
+                        text: root.position-text;
+                        color: Theme.lcd-dim;
+                        font-size: Theme.fs-sm;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle {
+                    height: root.compact ? 2px : 8px;
+                }
+                Marquee {
+                    text: root.idle ? "OpenMP" : root.title;
+                    font-size: root.compact ? 18px : 23px;
+                    font-weight: 600;
+                    font-family: Theme.font-display;
+                    text-color: Theme.lcd-text;
+                    enabled: root.scroll-title;
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.title-clicked(); }
+                    }
+                }
+                Marquee {
+                    text: root.idle ? "Upuść pliki albo foldery, by zacząć słuchać" : root.artist;
+                    font-size: root.compact ? 13px : 15px;
+                    text-color: Theme.tint.brighter(0.5);
+                    enabled: root.scroll-title;
+                }
+                if !root.compact: Marquee {
+                    text: root.album;
+                    font-size: Theme.fs;
+                    text-color: Theme.lcd-dim;
+                    enabled: root.scroll-title;
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+                HorizontalLayout {
+                    spacing: 10px;
+                    alignment: start;
+                    Text {
+                        text: root.remaining && root.duration > 0 ? "-" + Fmt.time(root.duration - root.pos) : Fmt.time(root.pos);
+                        font-size: root.compact ? 26px : 38px;
+                        font-weight: 300;
+                        font-family: Theme.font-display;
+                        color: Theme.lcd-text;
+                        vertical-alignment: bottom;
+                        TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { root.toggle-time(); }
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: end;
+                        padding-bottom: root.compact ? 3px : 6px;
+                        Text {
+                            text: root.duration > 0 ? "/ " + Fmt.time(root.duration) : root.state-text;
+                            font-size: Theme.fs-md;
+                            color: Theme.lcd-dim;
+                        }
+                    }
+                    Rectangle {
+                        width: 8px;
+                    }
+                    VerticalLayout {
+                        alignment: end;
+                        padding-bottom: root.compact ? 4px : 8px;
+                        HorizontalLayout {
+                            spacing: 7px;
+                            for f in [
+                                { on: root.shuffle, icon: Icons.shuffle, t: "" },
+                                { on: root.repeat > 0, icon: root.repeat == 2 ? Icons.repeat-one : Icons.repeat, t: "" },
+                                { on: root.eq-on, icon: Icons.equalizer, t: "" },
+                                { on: root.crossfade-on, icon: "", t: "XF" },
+                                { on: root.rg-on, icon: "", t: "RG" },
+                            ]: Rectangle {
+                                width: f.icon != "" ? 14px : ft.preferred-width;
+                                height: 14px;
+                                if f.icon != "": Icon {
+                                    icon: f.icon;
+                                    size: 14px;
+                                    fill: f.on ? Theme.tint.brighter(0.3) : Theme.lcd-faint;
+                                }
+                                ft := Text {
+                                    text: f.t;
+                                    font-size: 9.5px;
+                                    font-weight: 700;
+                                    color: f.on ? Theme.tint.brighter(0.3) : Theme.lcd-faint;
+                                }
+                            }
+                            if root.speed-text != "": Text {
+                                text: root.speed-text;
+                                font-size: 10px;
+                                font-weight: 700;
+                                color: Theme.tint.brighter(0.3);
+                            }
+                            if root.sleep-text != "": HorizontalLayout {
+                                spacing: 3px;
+                                Icon {
+                                    icon: Icons.timer;
+                                    size: 13px;
+                                    fill: Theme.tint.brighter(0.3);
+                                }
+                                Text {
+                                    text: root.sleep-text;
+                                    font-size: 10px;
+                                    color: Theme.tint.brighter(0.3);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Rectangle {
+                width: root.compact ? clamp(root.width * 0.3, 150px, 360px) : clamp(root.width * 0.34, 200px, 420px);
+                border-radius: 8px;
+                background: #ffffff06;
+                border-width: 1px;
+                border-color: #ffffff0c;
+                Visualizer {
+                    x: root.compact ? 6px : 10px;
+                    y: root.compact ? 6px : 10px;
+                    width: parent.width - 2 * self.x;
+                    height: parent.height - 2 * self.y;
+                    mode: root.viz-mode;
+                    bars: root.bars;
+                    peaks: root.peaks;
+                    scope-path: root.scope-path;
+                    spectrum-path: root.spectrum-path;
+                    vu-l: root.vu-l;
+                    vu-r: root.vu-r;
+                    vu-pl: root.vu-pl;
+                    vu-pr: root.vu-pr;
+                    active: root.viz-active;
+                    note: root.viz-note;
+                    cycle => { root.cycle-viz(); }
+                }
+            }
+        }
+        SeekBar {
+            value: root.duration > 0 ? root.pos / root.duration : 0;
+            duration: root.duration;
+            wave: root.wave;
+            show-wave: root.show-wave;
+            ab-a: root.ab-a;
+            ab-b: root.ab-b;
+            seek(v) => { root.seek(v); }
+        }
+    }
+}

@@ -1,0 +1,1163 @@
+// Okna dialogowe: korektor i efekty, ustawienia, edytor tagów, adres URL, o programie,
+// aktualizacja, zmiana nazwy.
+
+import { ScrollView, ComboBox, LineEdit, SpinBox } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover } from "widgets.slint";
+import { Player, Prefs, Ui } from "state.slint";
+
+// Przyciemnione tło i karta na środku; klik obok zamyka.
+export component Dialog inherits Rectangle {
+    in property <string> title;
+    in property <length> card-width: 480px;
+    in property <length> card-height: 0;
+    callback close();
+    background: Theme.scrim;
+    TouchArea {
+        clicked => { root.close(); }
+    }
+    card := Rectangle {
+        width: min(root.card-width, root.width - 32px);
+        height: root.card-height > 0 ? min(root.card-height, root.height - 40px) : min(lay.preferred-height, root.height - 40px);
+        border-radius: Theme.radius-lg + 2px;
+        background: Theme.panel;
+        border-width: 1px;
+        border-color: Theme.line2;
+        drop-shadow-blur: 40px;
+        drop-shadow-color: #00000090;
+        clip: true;
+        TouchArea { }
+        lay := VerticalLayout {
+            HorizontalLayout {
+                height: 50px;
+                padding-left: 20px;
+                padding-right: 10px;
+                Text {
+                    text: root.title;
+                    color: Theme.text;
+                    font-size: Theme.fs-lg;
+                    font-weight: 600;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+                IconBtn {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.close;
+                    clicked => { root.close(); }
+                }
+            }
+            @children
+        }
+    }
+}
+
+export component EqualizerDialog inherits Dialog {
+    title: "Korektor i efekty dźwięku";
+    card-width: 860px;
+    close => { Ui.equalizer = false; }
+    VerticalLayout {
+        padding: 20px;
+        padding-top: 4px;
+        spacing: 14px;
+        HorizontalLayout {
+            spacing: 12px;
+            Switch {
+                y: (parent.height - self.height) / 2;
+                checked <=> Prefs.eq-on;
+                toggled => { Prefs.changed("eq-on"); }
+            }
+            Text {
+                text: Prefs.eq-on ? "Korektor włączony" : "Korektor wyłączony";
+                color: Theme.text;
+                font-size: Theme.fs;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+            ComboBox {
+                width: 200px;
+                model: Prefs.presets;
+                current-index: Prefs.preset;
+                selected => { Prefs.eq-preset(self.current-index); }
+            }
+            Btn {
+                text: "Zapisz jako…";
+                icon: Icons.add;
+                clicked => { Prefs.eq-save-preset(); }
+            }
+            Btn {
+                text: "Wyzeruj";
+                clicked => { Prefs.eq-reset(); }
+            }
+        }
+        Rectangle {
+            height: 220px;
+            border-radius: Theme.radius;
+            background: Theme.panel2;
+            opacity: Prefs.eq-on ? 1 : 0.55;
+            HorizontalLayout {
+                padding: 12px;
+                spacing: 6px;
+                VSlider {
+                    label: "Wzm.";
+                    range: 20;
+                    value: Prefs.preamp;
+                    moved(v) => {
+                        Prefs.preamp = v;
+                        Prefs.changed("preamp");
+                    }
+                }
+                Rectangle {
+                    width: 1px;
+                    background: Theme.line2;
+                }
+                for g[i] in Prefs.eq: VSlider {
+                    horizontal-stretch: 1;
+                    value: g;
+                    label: ["31", "63", "87", "125", "175", "250", "350", "500", "700", "1k", "1.4k", "2k", "2.8k", "4k", "5.6k", "8k", "11k", "16k"][i];
+                    moved(v) => { Prefs.eq-band(i, v); }
+                }
+            }
+        }
+        HorizontalLayout {
+            spacing: 24px;
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 2px;
+                SectionTitle {
+                    text: "PRZESTRZEŃ";
+                }
+                SettingRow {
+                    title: "Balans";
+                    HSlider {
+                        width: 150px;
+                        minimum: -1;
+                        maximum: 1;
+                        centered: true;
+                        value: Prefs.balance;
+                        moved(v) => {
+                            Prefs.balance = v;
+                            Prefs.changed("balance");
+                        }
+                        reset => {
+                            Prefs.balance = 0;
+                            Prefs.changed("balance");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Szerokość stereo";
+                    hint: round(Prefs.width * 100) + "%";
+                    HSlider {
+                        width: 150px;
+                        minimum: 0;
+                        maximum: 2;
+                        centered: true;
+                        value: Prefs.width;
+                        moved(v) => {
+                            Prefs.width = v;
+                            Prefs.changed("width");
+                        }
+                        reset => {
+                            Prefs.width = 1;
+                            Prefs.changed("width");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Mono";
+                    checked <=> Prefs.mono;
+                    toggled => { Prefs.changed("mono"); }
+                }
+                SettingSwitch {
+                    title: "Zamiana kanałów";
+                    checked <=> Prefs.swap;
+                    toggled => { Prefs.changed("swap"); }
+                }
+                SettingSwitch {
+                    title: "Przesłuch słuchawkowy";
+                    hint: "Naturalniejsza scena w słuchawkach";
+                    checked <=> Prefs.crossfeed;
+                    toggled => { Prefs.changed("crossfeed"); }
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 2px;
+                SectionTitle {
+                    text: "ODTWARZANIE";
+                }
+                SettingRow {
+                    title: "Przenikanie utworów";
+                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : "Wyłączone – przejścia bez przerwy";
+                    HSlider {
+                        width: 150px;
+                        minimum: 0;
+                        maximum: 12;
+                        step: 0.5;
+                        value: Prefs.crossfade;
+                        moved(v) => {
+                            Prefs.crossfade = v;
+                            Prefs.changed("crossfade");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Prędkość";
+                    hint: round(Prefs.speed * 100) / 100 + "× (z tonacją, jak gramofon)";
+                    HSlider {
+                        width: 150px;
+                        minimum: 0.5;
+                        maximum: 2;
+                        step: 0.05;
+                        value: Prefs.speed;
+                        moved(v) => {
+                            Prefs.speed = v;
+                            Prefs.changed("speed");
+                        }
+                        reset => {
+                            Prefs.speed = 1;
+                            Prefs.changed("speed");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "ReplayGain";
+                    hint: "Wyrównanie głośności z tagów";
+                    Segmented {
+                        small: true;
+                        options: ["Wył.", "Utwór", "Album"];
+                        selected <=> Prefs.replaygain;
+                        changed => { Prefs.changed("replaygain"); }
+                    }
+                }
+                SettingSwitch {
+                    title: "Ogranicznik";
+                    hint: "Chroni przed przesterowaniem przy podbiciu";
+                    checked <=> Prefs.limiter;
+                    toggled => { Prefs.changed("limiter"); }
+                }
+                SettingSwitch {
+                    title: "Płynna pauza";
+                    hint: "Wyciszanie przy pauzie i wznowieniu";
+                    checked <=> Prefs.soft-pause;
+                    toggled => { Prefs.changed("soft-pause"); }
+                }
+            }
+        }
+    }
+}
+
+component Page inherits ScrollView {
+    in property <string> heading;
+    VerticalLayout {
+        padding: 22px;
+        padding-top: 16px;
+        spacing: 2px;
+        Text {
+            text: root.heading;
+            color: Theme.text;
+            font-size: Theme.fs-xl;
+            font-weight: 600;
+        }
+        Rectangle {
+            height: 10px;
+        }
+        @children
+    }
+}
+
+export component AuthorCard inherits Rectangle {
+    border-radius: Theme.radius-lg;
+    background: Theme.panel2;
+    border-width: 1px;
+    border-color: Theme.line;
+    height: lay.preferred-height;
+    lay := HorizontalLayout {
+        padding: 14px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            spacing: 3px;
+            Text {
+                text: Prefs.author-line;
+                color: Theme.text;
+                font-size: Theme.fs;
+                font-weight: 600;
+                wrap: word-wrap;
+            }
+            Text {
+                text: "OpenMP jest darmowy. Jeśli ci się przydaje, możesz wesprzeć dalszy rozwój.";
+                color: Theme.text3;
+                font-size: Theme.fs-sm;
+                wrap: word-wrap;
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            spacing: 6px;
+            Btn {
+                text: "redzikowski.com";
+                icon: Icons.link;
+                clicked => { Prefs.open-url("https://redzikowski.com"); }
+            }
+            Btn {
+                text: "Postaw kawę";
+                icon: Icons.coffee;
+                primary: true;
+                clicked => { Prefs.open-url("https://buycoffee.to/adamredzikowski"); }
+            }
+        }
+    }
+}
+
+component FolderList inherits VerticalLayout {
+    in property <int> kind;
+    in property <string> title;
+    in property <string> hint;
+    in property <[string]> folders;
+    spacing: 6px;
+    SectionTitle {
+        text: root.title;
+    }
+    Text {
+        text: root.hint;
+        color: Theme.text3;
+        font-size: Theme.fs-sm;
+        wrap: word-wrap;
+    }
+    if root.folders.length == 0: Text {
+        text: "Brak folderów.";
+        color: Theme.text3;
+        font-size: Theme.fs;
+    }
+    for f[i] in root.folders: Rectangle {
+        height: 38px;
+        border-radius: Theme.radius;
+        background: Theme.panel2;
+        HorizontalLayout {
+            padding-left: 12px;
+            padding-right: 4px;
+            spacing: 10px;
+            Icon {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.folder;
+                size: 16px;
+                fill: Theme.text3;
+            }
+            Text {
+                text: f;
+                color: Theme.text;
+                font-size: Theme.fs;
+                vertical-alignment: center;
+                overflow: elide;
+                horizontal-stretch: 1;
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.delete;
+                size: 28px;
+                icon-size: 15px;
+                tip: "Usuń folder z biblioteki";
+                clicked => { Prefs.remove-folder(root.kind, i); }
+            }
+        }
+    }
+    HorizontalLayout {
+        alignment: start;
+        spacing: 8px;
+        Btn {
+            text: "Dodaj folder…";
+            icon: Icons.add;
+            compact: true;
+            clicked => { Prefs.add-folder(root.kind); }
+        }
+        Btn {
+            text: "Dodaj ścieżkę sieciową…";
+            icon: Icons.link;
+            compact: true;
+            clicked => { Prefs.add-network-folder(root.kind); }
+        }
+    }
+}
+
+export component SettingsDialog inherits Dialog {
+    title: "Ustawienia";
+    card-width: 900px;
+    card-height: 640px;
+    close => { Ui.settings = false; }
+    HorizontalLayout {
+        vertical-stretch: 1;
+        VerticalLayout {
+            width: 200px;
+            padding: 10px;
+            spacing: 2px;
+            for p[i] in [
+                { icon: Icons.palette, l: "Wygląd" },
+                { icon: Icons.play, l: "Odtwarzanie" },
+                { icon: Icons.volume, l: "Dźwięk" },
+                { icon: Icons.movie, l: "Wideo" },
+                { icon: Icons.library, l: "Biblioteka" },
+                { icon: Icons.keyboard, l: "Skróty klawiszowe" },
+                { icon: Icons.system, l: "System" },
+                { icon: Icons.info, l: "O programie" },
+            ]: Rectangle {
+                height: 34px;
+                border-radius: Theme.radius;
+                background: Ui.settings-page == i ? Theme.sel : pta.has-hover ? Theme.hover : transparent;
+                HorizontalLayout {
+                    padding-left: 10px;
+                    spacing: 10px;
+                    Icon {
+                        y: (parent.height - self.height) / 2;
+                        icon: p.icon;
+                        size: 16px;
+                        fill: Ui.settings-page == i ? Theme.accent : Theme.text3;
+                    }
+                    Text {
+                        text: p.l;
+                        color: Ui.settings-page == i ? Theme.text : Theme.text2;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                    }
+                }
+                pta := TouchArea {
+                    clicked => { Ui.settings-page = i; }
+                }
+            }
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+        Rectangle {
+            width: 1px;
+            background: Theme.line;
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            if Ui.settings-page == 0: Page {
+                heading: "Wygląd";
+                SettingRow {
+                    title: "Motyw";
+                    Segmented {
+                        options: ["Ciemny", "Jasny"];
+                        selected: Prefs.dark ? 0 : 1;
+                        changed(i) => {
+                            Prefs.dark = i == 0;
+                            Prefs.changed("dark");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Kolor akcentu";
+                    HorizontalLayout {
+                        spacing: 6px;
+                        for c in [{ h: "#4f8cff", c: #4f8cff }, { h: "#8b5cf6", c: #8b5cf6 }, { h: "#ec4899", c: #ec4899 }, { h: "#ef4444", c: #ef4444 }, { h: "#f59e0b", c: #f59e0b }, { h: "#22c55e", c: #22c55e }, { h: "#14b8a6", c: #14b8a6 }, { h: "#06b6d4", c: #06b6d4 }]: Rectangle {
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 11px;
+                            background: c.c;
+                            border-width: Prefs.accent == c.h ? 2px : 0;
+                            border-color: Theme.text;
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    Prefs.accent = c.h;
+                                    Prefs.changed("accent");
+                                }
+                            }
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Kolor wyświetlacza z okładki";
+                    hint: "Wyświetlacz i pasek przewijania przyjmują barwę albumu";
+                    checked <=> Prefs.accent-from-cover;
+                    toggled => { Prefs.changed("accent-from-cover"); }
+                }
+                SettingRow {
+                    title: "Liczba słupków analizatora";
+                    hint: Prefs.viz-bands + "";
+                    HSlider {
+                        width: 180px;
+                        minimum: 16;
+                        maximum: 96;
+                        step: 4;
+                        value: Prefs.viz-bands;
+                        moved(v) => {
+                            Prefs.viz-bands = v;
+                            Prefs.changed("viz-bands");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Czułość analizatora";
+                    HSlider {
+                        width: 180px;
+                        minimum: -12;
+                        maximum: 12;
+                        step: 1;
+                        centered: true;
+                        value: Prefs.viz-sensitivity;
+                        moved(v) => {
+                            Prefs.viz-sensitivity = v;
+                            Prefs.changed("viz-sensitivity");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Fala utworu na pasku przewijania";
+                    checked <=> Prefs.show-waveform;
+                    toggled => { Prefs.changed("show-waveform"); }
+                }
+                if Prefs.show-waveform: SettingRow {
+                    title: "Styl taśmy utworu";
+                    Segmented {
+                        small: true;
+                        options: ["Fala", "Słupki", "Od dołu", "Kontur"];
+                        selected <=> Prefs.wave-style;
+                        changed => { Prefs.changed("wave-style"); }
+                    }
+                }
+                SettingSwitch {
+                    title: "Pobieraj brakujące teksty z LRCLIB";
+                    hint: "Wysyła tylko wykonawcę, tytuł, album i czas trwania";
+                    checked <=> Prefs.online-lyrics;
+                    toggled => { Prefs.changed("online-lyrics"); }
+                }
+                SettingSwitch {
+                    title: "Grupuj listę według albumów";
+                    hint: "Nagłówki z okładką nad każdym albumem";
+                    checked <=> Prefs.group-albums;
+                    toggled => { Prefs.changed("group-albums"); }
+                }
+                SettingSwitch {
+                    title: "Przewijaj długie tytuły";
+                    checked <=> Prefs.scroll-title;
+                    toggled => { Prefs.changed("scroll-title"); }
+                }
+                SettingSwitch {
+                    title: "Pokazuj czas pozostały";
+                    checked <=> Prefs.remaining;
+                    toggled => { Prefs.changed("remaining"); }
+                }
+                SettingSwitch {
+                    title: "Panel nawigacji";
+                    checked <=> Prefs.show-sidebar;
+                    toggled => { Prefs.changed("show-sidebar"); }
+                }
+            }
+            if Ui.settings-page == 1: Page {
+                heading: "Odtwarzanie";
+                SettingSwitch {
+                    title: "Wznów po uruchomieniu";
+                    hint: "Ostatni utwór od miejsca, w którym skończyłeś";
+                    checked <=> Prefs.resume-on-start;
+                    toggled => { Prefs.changed("resume-on-start"); }
+                }
+                SettingSwitch {
+                    title: "Podążaj za odtwarzanym utworem";
+                    hint: "Lista przewija się do bieżącego utworu";
+                    checked <=> Prefs.follow-playing;
+                    toggled => { Prefs.changed("follow-playing"); }
+                }
+                SettingRow {
+                    title: "Krok przewijania strzałkami";
+                    hint: round(Prefs.seek-step) + " s";
+                    HSlider {
+                        width: 180px;
+                        minimum: 2;
+                        maximum: 30;
+                        step: 1;
+                        value: Prefs.seek-step;
+                        moved(v) => {
+                            Prefs.seek-step = v;
+                            Prefs.changed("seek-step");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Przenikanie utworów";
+                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : "Wyłączone – przejścia bez przerwy (gapless)";
+                    HSlider {
+                        width: 180px;
+                        minimum: 0;
+                        maximum: 12;
+                        step: 0.5;
+                        value: Prefs.crossfade;
+                        moved(v) => {
+                            Prefs.crossfade = v;
+                            Prefs.changed("crossfade");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Płynna pauza";
+                    hint: "Krótkie wyciszanie przy pauzie i wznowieniu";
+                    checked <=> Prefs.soft-pause;
+                    toggled => { Prefs.changed("soft-pause"); }
+                }
+            }
+            if Ui.settings-page == 2: Page {
+                heading: "Dźwięk";
+                SettingRow {
+                    title: "Urządzenie wyjściowe";
+                    ComboBox {
+                        width: 280px;
+                        model: Prefs.devices;
+                        current-index: Prefs.device;
+                        selected => {
+                            Prefs.device = self.current-index;
+                            Prefs.changed("device");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "ReplayGain";
+                    hint: "Wyrównuje głośność utworów na podstawie tagów";
+                    Segmented {
+                        options: ["Wyłączone", "Utwór", "Album"];
+                        selected <=> Prefs.replaygain;
+                        changed => { Prefs.changed("replaygain"); }
+                    }
+                }
+                SettingRow {
+                    title: "Wzmocnienie ReplayGain";
+                    hint: (Prefs.rg-preamp > 0 ? "+" : "") + round(Prefs.rg-preamp) + " dB";
+                    HSlider {
+                        width: 180px;
+                        minimum: -12;
+                        maximum: 12;
+                        step: 0.5;
+                        centered: true;
+                        value: Prefs.rg-preamp;
+                        moved(v) => {
+                            Prefs.rg-preamp = v;
+                            Prefs.changed("rg-preamp");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Ogranicznik";
+                    hint: "Zapobiega przesterowaniu przy podbitym korektorze";
+                    checked <=> Prefs.limiter;
+                    toggled => { Prefs.changed("limiter"); }
+                }
+                SettingRow {
+                    title: "Korektor i efekty";
+                    hint: "18 pasm, gotowe ustawienia, balans, szerokość stereo, przesłuch";
+                    Btn {
+                        text: "Otwórz korektor";
+                        icon: Icons.equalizer;
+                        clicked => {
+                            Ui.settings = false;
+                            Ui.equalizer = true;
+                        }
+                    }
+                }
+            }
+            if Ui.settings-page == 3: Page {
+                heading: "Wideo";
+                SettingSwitch {
+                    title: "Dekodowanie sprzętowe";
+                    hint: "Karta graficzna dekoduje obraz – mniej obciążenia procesora";
+                    checked <=> Prefs.hwdec;
+                    toggled => { Prefs.changed("hwdec"); }
+                }
+                SettingSwitch {
+                    title: "Wznawiaj filmy";
+                    hint: "Film zaczyna się tam, gdzie go przerwałeś";
+                    checked <=> Prefs.video-resume;
+                    toggled => { Prefs.changed("video-resume"); }
+                }
+                SettingSwitch {
+                    title: "Dopasuj okno do filmu";
+                    checked <=> Prefs.video-fit;
+                    toggled => { Prefs.changed("video-fit"); }
+                }
+                SettingRow {
+                    title: "Ukrywanie sterowania";
+                    hint: "Po " + round(Prefs.autohide-ms / 100) / 10 + " s bez ruchu myszy";
+                    HSlider {
+                        width: 180px;
+                        minimum: 1000;
+                        maximum: 8000;
+                        step: 250;
+                        value: Prefs.autohide-ms;
+                        moved(v) => {
+                            Prefs.autohide-ms = v;
+                            Prefs.changed("autohide-ms");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Wielkość napisów";
+                    hint: Prefs.sub-size + "";
+                    HSlider {
+                        width: 180px;
+                        minimum: 24;
+                        maximum: 90;
+                        step: 1;
+                        value: Prefs.sub-size;
+                        moved(v) => {
+                            Prefs.sub-size = v;
+                            Prefs.changed("sub-size");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Preferowane języki napisów";
+                    hint: "Kody oddzielone przecinkami, np. pol,eng";
+                    LineEdit {
+                        width: 180px;
+                        text <=> Prefs.sub-lang;
+                        edited => { Prefs.changed("sub-lang"); }
+                    }
+                }
+                SettingRow {
+                    title: "Preferowane języki dźwięku";
+                    LineEdit {
+                        width: 180px;
+                        text <=> Prefs.audio-lang;
+                        edited => { Prefs.changed("audio-lang"); }
+                    }
+                }
+                SettingSwitch {
+                    title: "Usuwanie przeplotu";
+                    checked <=> Prefs.deinterlace;
+                    toggled => { Prefs.changed("deinterlace"); }
+                }
+                SettingRow {
+                    title: "Folder zrzutów ekranu";
+                    hint: Prefs.screenshot-dir;
+                    Btn {
+                        text: "Zmień…";
+                        clicked => { Prefs.pick-screenshot-dir(); }
+                    }
+                }
+                SettingRow {
+                    title: "Silnik wideo";
+                    hint: Prefs.mpv-info;
+                    Text {
+                        text: Prefs.mpv-ok ? "gotowy" : "niedostępny";
+                        color: Prefs.mpv-ok ? Theme.ok : Theme.danger;
+                        font-size: Theme.fs;
+                    }
+                }
+            }
+            if Ui.settings-page == 4: Page {
+                heading: "Biblioteka";
+                FolderList {
+                    kind: 0;
+                    title: "MUZYKA";
+                    hint: "Foldery z muzyką – wykonawcy, albumy, gatunki, lata i foldery.";
+                    folders: Prefs.folders;
+                }
+                Rectangle {
+                    height: 18px;
+                }
+                FolderList {
+                    kind: 1;
+                    title: "WIDEO";
+                    hint: "Foldery z filmami i serialami – wszystkie filmy, foldery, kontynuowanie oglądania.";
+                    folders: Prefs.video-folders;
+                }
+                Rectangle {
+                    height: 18px;
+                }
+                Text {
+                    text: "Dyski sieciowe: dodaj folder na dysku zmapowanym (np. Z:\\Muzyka) albo ścieżkę udziału (\\\\NAS\\Muzyka). Gdy serwer jest wyłączony, biblioteka zachowuje jego pliki i odświeży je przy następnym skanowaniu.";
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                HorizontalLayout {
+                    alignment: start;
+                    Btn {
+                        text: "Skanuj bibliotekę teraz";
+                        icon: Icons.refresh;
+                        clicked => { Prefs.changed("rescan"); }
+                    }
+                }
+            }
+            if Ui.settings-page == 5: Page {
+                heading: "Skróty klawiszowe";
+                for k in Prefs.keys: HorizontalLayout {
+                    height: 30px;
+                    spacing: 12px;
+                    Rectangle {
+                        width: 190px;
+                        HorizontalLayout {
+                            alignment: start;
+                            Rectangle {
+                                y: (parent.height - self.height) / 2;
+                                height: 22px;
+                                width: kt.preferred-width + 14px;
+                                border-radius: 5px;
+                                background: Theme.panel2;
+                                border-width: 1px;
+                                border-color: Theme.line2;
+                                kt := Text {
+                                    text: k.keys;
+                                    color: Theme.text;
+                                    font-size: Theme.fs-sm;
+                                    font-family: Theme.mono;
+                                }
+                            }
+                        }
+                    }
+                    Text {
+                        text: k.action;
+                        color: Theme.text2;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            if Ui.settings-page == 6: Page {
+                heading: "System";
+                SettingSwitch {
+                    title: "Jedno okno programu";
+                    hint: "Otwierane pliki trafiają do działającego OpenMP";
+                    checked <=> Prefs.single-instance;
+                    toggled => { Prefs.changed("single-instance"); }
+                }
+                SettingSwitch {
+                    title: "Klawisze multimedialne i panel Windows";
+                    hint: "Sterowanie z klawiatury, słuchawek i nakładki głośności";
+                    checked <=> Prefs.media-keys;
+                    toggled => { Prefs.changed("media-keys"); }
+                }
+                SettingSwitch {
+                    title: "Nie usypiaj komputera podczas filmu";
+                    checked <=> Prefs.prevent-sleep;
+                    toggled => { Prefs.changed("prevent-sleep"); }
+                }
+                SettingRow {
+                    title: "Skojarzenia plików";
+                    hint: "Ustaw OpenMP jako domyślny odtwarzacz w ustawieniach Windows";
+                    Btn {
+                        text: "Aplikacje domyślne…";
+                        clicked => { Prefs.associate(); }
+                    }
+                }
+                SettingSwitch {
+                    title: "Sprawdzaj aktualizacje";
+                    hint: "Przy uruchomieniu, przez redzikowski.com";
+                    checked <=> Prefs.check-updates;
+                    toggled => { Prefs.changed("check-updates"); }
+                }
+                SettingRow {
+                    title: "Wersja " + Prefs.version;
+                    Btn {
+                        text: "Sprawdź teraz";
+                        icon: Icons.refresh;
+                        clicked => { Prefs.check-update(); }
+                    }
+                }
+            }
+            if Ui.settings-page == 7: Page {
+                heading: "O programie";
+                HorizontalLayout {
+                    spacing: 16px;
+                    alignment: start;
+                    Image {
+                        source: @image-url("../icon.png");
+                        width: 64px;
+                        height: 64px;
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        Text {
+                            text: "OpenMP";
+                            color: Theme.text;
+                            font-size: 24px;
+                            font-weight: 700;
+                        }
+                        Text {
+                            text: "Open Media Player · wersja " + Prefs.version;
+                            color: Theme.text3;
+                            font-size: Theme.fs;
+                        }
+                    }
+                }
+                Rectangle {
+                    height: 14px;
+                }
+                Text {
+                    text: "Odtwarzacz muzyki i wideo dla Windows: własny silnik dźwięku z przejściami bez przerwy, przenikaniem, 18-pasmowym korektorem i ReplayGain, biblioteka muzyki, radio internetowe, teksty piosenek oraz odtwarzanie filmów z napisami i dekodowaniem sprzętowym (mpv).";
+                    color: Theme.text2;
+                    font-size: Theme.fs;
+                    wrap: word-wrap;
+                }
+                Rectangle {
+                    height: 16px;
+                }
+                AuthorCard { }
+                Rectangle {
+                    height: 16px;
+                }
+                Text {
+                    text: "Wykorzystuje: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv i FFmpeg.";
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+            }
+        }
+    }
+}
+
+export component AboutDialog inherits Dialog {
+    title: "O programie";
+    card-width: 520px;
+    close => { Ui.about = false; }
+    VerticalLayout {
+        padding: 22px;
+        padding-top: 4px;
+        spacing: 14px;
+        HorizontalLayout {
+            spacing: 16px;
+            alignment: start;
+            Image {
+                source: @image-url("../icon.png");
+                width: 64px;
+                height: 64px;
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 3px;
+                Text {
+                    text: "OpenMP";
+                    color: Theme.text;
+                    font-size: 24px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: "Open Media Player · wersja " + Prefs.version;
+                    color: Theme.text3;
+                    font-size: Theme.fs;
+                }
+            }
+        }
+        Text {
+            text: "Odtwarzacz muzyki i wideo dla Windows – rozbudowany wyświetlacz w trybie muzyki i minimalistyczny, chowający się interfejs w trybie wideo.";
+            color: Theme.text2;
+            font-size: Theme.fs;
+            wrap: word-wrap;
+        }
+        AuthorCard { }
+    }
+}
+
+export component UrlDialog inherits Dialog {
+    title: "Otwórz adres";
+    card-width: 560px;
+    close => { Ui.url-dialog = false; }
+    VerticalLayout {
+        padding: 20px;
+        padding-top: 4px;
+        spacing: 12px;
+        Text {
+            text: "Strumień radia, plik w sieci albo lista odtwarzania (http, https, rtsp, m3u8). Filmy z serwisów wideo działają, gdy w systemie jest yt-dlp.";
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            wrap: word-wrap;
+        }
+        f := Field {
+            text <=> Ui.url-text;
+            placeholder: "https://…";
+            icon: Icons.link;
+            accepted(t) => { Ui.url-accepted(t); }
+            escape => { Ui.url-dialog = false; }
+            init => { self.focus-input(); }
+        }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            Btn {
+                text: "Anuluj";
+                clicked => { Ui.url-dialog = false; }
+            }
+            Btn {
+                text: "Odtwórz";
+                primary: true;
+                enabled: Ui.url-text != "";
+                clicked => { Ui.url-accepted(Ui.url-text); }
+            }
+        }
+    }
+}
+
+export component RenameDialog inherits Dialog {
+    title: Ui.rename-title;
+    card-width: 420px;
+    close => { Ui.rename-dialog = false; }
+    VerticalLayout {
+        padding: 20px;
+        padding-top: 4px;
+        spacing: 12px;
+        Field {
+            text <=> Ui.rename-text;
+            clearable: false;
+            accepted(t) => { Ui.rename-accepted(t); }
+            escape => { Ui.rename-dialog = false; }
+            init => { self.focus-input(); }
+        }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            Btn {
+                text: "Anuluj";
+                clicked => { Ui.rename-dialog = false; }
+            }
+            Btn {
+                text: "Zapisz";
+                primary: true;
+                enabled: Ui.rename-text != "";
+                clicked => { Ui.rename-accepted(Ui.rename-text); }
+            }
+        }
+    }
+}
+
+export component TagEditor inherits Dialog {
+    title: "Edycja tagów";
+    card-width: 680px;
+    close => { Ui.tag-editor = false; }
+    in-out property <[string]> v: Ui.tag-values;
+    VerticalLayout {
+        padding: 20px;
+        padding-top: 0px;
+        spacing: 12px;
+        Text {
+            text: Ui.tag-title;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            overflow: elide;
+        }
+        HorizontalLayout {
+            spacing: 18px;
+            VerticalLayout {
+                spacing: 8px;
+                width: 150px;
+                Cover {
+                    width: 150px;
+                    height: 150px;
+                    source: Ui.tag-cover;
+                    has: Ui.tag-has-cover;
+                }
+                Btn {
+                    text: "Zmień okładkę…";
+                    compact: true;
+                    clicked => { Ui.tag-pick-cover(); }
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 6px;
+                for f[i] in ["Tytuł", "Wykonawca", "Album", "Wykonawca albumu", "Gatunek", "Rok", "Nr utworu", "Nr płyty", "Kompozytor", "Komentarz"]: HorizontalLayout {
+                    spacing: 10px;
+                    Text {
+                        width: 130px;
+                        text: f;
+                        color: Theme.text2;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                    }
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        height: 30px;
+                        text: root.v[i];
+                        placeholder-text: Ui.tag-mixed[i] ? "(różne wartości – bez zmian)" : "";
+                        edited(t) => { root.v[i] = t; }
+                    }
+                }
+            }
+        }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            Btn {
+                text: "Anuluj";
+                clicked => { Ui.tag-editor = false; }
+            }
+            Btn {
+                text: Ui.tag-busy ? "Zapisywanie…" : "Zapisz";
+                primary: true;
+                enabled: !Ui.tag-busy;
+                clicked => { Ui.tag-save(root.v); }
+            }
+        }
+    }
+}
+
+export component UpdateDialog inherits Dialog {
+    title: "Dostępna aktualizacja";
+    card-width: 520px;
+    close => { Ui.update-dialog = false; }
+    VerticalLayout {
+        padding: 20px;
+        padding-top: 4px;
+        spacing: 12px;
+        Text {
+            text: "OpenMP " + Ui.update-version + " jest gotowy do pobrania (masz " + Prefs.version + ").";
+            color: Theme.text;
+            font-size: Theme.fs;
+            wrap: word-wrap;
+        }
+        if Ui.update-notes != "": Rectangle {
+            height: min(180px, nt.preferred-height + 20px);
+            border-radius: Theme.radius;
+            background: Theme.panel2;
+            ScrollView {
+                nt := Text {
+                    x: 10px;
+                    width: parent.width - 20px;
+                    text: Ui.update-notes;
+                    color: Theme.text2;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+            }
+        }
+        if Ui.update-progress >= 0: Rectangle {
+            height: 6px;
+            border-radius: 3px;
+            background: Theme.hover;
+            Rectangle {
+                x: 0;
+                width: parent.width * Ui.update-progress;
+                border-radius: 3px;
+                background: Theme.accent;
+            }
+        }
+        if Ui.update-status != "": Text {
+            text: Ui.update-status;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            wrap: word-wrap;
+        }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            Btn {
+                text: "Pomiń tę wersję";
+                clicked => { Ui.update-skip(); }
+            }
+            Btn {
+                text: Ui.update-portable ? "Otwórz stronę pobierania" : "Zainstaluj i uruchom ponownie";
+                primary: true;
+                enabled: Ui.update-progress < 0;
+                clicked => { Ui.update-install(); }
+            }
+        }
+    }
+}

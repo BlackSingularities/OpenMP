@@ -1,0 +1,28 @@
+[package]
+name = "openmp-core"
+version = "1.0.0"
+description = "OpenMP – silnik odtwarzania, biblioteka i playlisty"
+authors = ["Adam Rędzikowski"]
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "openmp_core"
+
+[dependencies]
+symphonia = { version = "0.5", features = ["all", "opt-simd"] }
+cpal = "0.16"
+rubato = "0.16"
+rustfft = "6"
+lofty = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+parking_lot = "0.12"
+crossbeam-channel = "0.5"
+dirs = "6"
+walkdir = "2"
+ureq = { version = "2", features = ["json"] }
+sha2 = "0.10"
+libloading = "0.8"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "bmp", "gif"] }
+rand = "0.9"

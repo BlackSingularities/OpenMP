@@ -1,0 +1,102 @@
+name: Build & Release
+
+# Budowanie i wydanie wyłącznie po wypchnięciu tagu wersji (np. v1.2.3).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Wersja
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Testy rdzenia
+        run: cargo test --release -p openmp-core
+
+      - name: Budowanie OpenMP
+        env:
+          OPENMP_VERSION: ${{ steps.ver.outputs.version }}
+        run: cargo build --release -p openmp
+
+      # libmpv (wideo) z kompilacji shinchiro/mpv-winbuild-cmake – wersja x86_64 zgodna z każdym procesorem 64-bit.
+      - name: libmpv
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory mpv, dist | Out-Null
+          gh release download --repo shinchiro/mpv-winbuild-cmake --pattern 'mpv-dev-x86_64-2*.7z' --dir mpv
+          7z e (Get-ChildItem mpv/*.7z | Select-Object -First 1).FullName -ompv libmpv-2.dll -y | Out-Null
+          if (-not (Test-Path mpv/libmpv-2.dll)) { throw "Brak libmpv-2.dll w paczce mpv" }
+          Copy-Item mpv/libmpv-2.dll dist/
+          Copy-Item target/release/OpenMP.exe dist/
+
+      - name: Podpis cyfrowy
+        shell: pwsh
+        env:
+          WIN_CERT: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WIN_CERT_PASS: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          # Tylko gdy w sekretach jest certyfikat: WINDOWS_CERTIFICATE (.pfx w base64) i WINDOWS_CERTIFICATE_PASSWORD.
+          if (-not $env:WIN_CERT) { exit 0 }
+          $pfx = Join-Path $env:RUNNER_TEMP "cert.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WIN_CERT))
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName | Select-Object -Last 1
+          & $signtool.FullName sign /f $pfx /p $env:WIN_CERT_PASS /fd sha256 /tr http://timestamp.digicert.com /td sha256 /d "OpenMP" dist/OpenMP.exe
+          if ($LASTEXITCODE -ne 0) { throw "Podpisywanie nie powiodło się" }
+          Remove-Item $pfx
+
+      - name: Instalator i wersja przenośna
+        shell: pwsh
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          $iscc = Get-Command iscc -ErrorAction SilentlyContinue
+          if (-not $iscc) {
+            if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress | Out-Null }
+            $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          } else { $iscc = $iscc.Source }
+          New-Item -ItemType Directory out | Out-Null
+          & $iscc "/DAppVersion=$v" installer/OpenMP.iss
+          if ($LASTEXITCODE -ne 0) { throw "Instalator nie powstał" }
+          Compress-Archive -Path dist/OpenMP.exe, dist/libmpv-2.dll -DestinationPath "out/OpenMP-$v-portable.zip"
+          Get-FileHash out/* -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content out/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenMP-${{ steps.ver.outputs.version }}
+          path: out/*
+
+      - name: Publikacja wydania
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          $notes = ""
+          if (Test-Path CHANGELOG.md) {
+            # Sekcja tej wersji z CHANGELOG.md.
+            $text = Get-Content CHANGELOG.md -Raw -Encoding utf8
+            $m = [regex]::Match($text, "(?ms)^## \[?$([regex]::Escape($v))\]?[^\n]*\n(.*?)(?=^## |\z)")
+            if ($m.Success) { $notes = $m.Groups[1].Value.Trim() }
+          }
+          $notes += "`n`n**OpenMP-Setup-$v.exe** – instalator dla bieżącego użytkownika (bez uprawnień administratora); kolejne wersje program pobiera sam.`n**OpenMP-$v-portable.zip** – wersja przenośna.`n`nPomysł i wykonanie: Adam Rędzikowski · [redzikowski.com](https://redzikowski.com) · [Postaw kawę](https://buycoffee.to/adamredzikowski)"
+          gh release create "${{ github.ref_name }}" out/* --title "OpenMP $v" --notes $notes

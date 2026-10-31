@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP</title>
+<meta name="description" content="OpenMP – odtwarzacz muzyki i wideo dla Windows: własny silnik dźwięku, wizualizacje, biblioteka także na dyskach sieciowych, minimalistyczny tryb wideo.">
+<link rel="icon" href="icon.png">
+<style>
+:root { --bg:#0b0d12; --card:#141822; --line:#232a38; --text:#e8ecf3; --dim:#98a2b5; --accent:#4f8cff; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 "Segoe UI", system-ui, sans-serif; }
+main { max-width:960px; margin:0 auto; padding:56px 16px 40px; }
+header { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+header img { width:84px; height:84px; }
+h1 { margin:0; font-size:40px; letter-spacing:-.5px; }
+.lead { color:var(--dim); margin:4px 0 0; font-size:18px; }
+.cta { display:inline-block; margin-top:28px; padding:12px 22px; border-radius:24px; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:40px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+.card h2 { margin:0 0 8px; font-size:17px; }
+.card h2::after { content:""; display:block; width:28px; height:2px; margin-top:8px; background:var(--accent); border-radius:1px; }
+.card ul { margin:0; padding-left:18px; color:var(--dim); font-size:15px; }
+footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--line); color:var(--dim); font-size:14px; display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; }
+footer a { color:var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icon.png" alt="">
+    <div>
+      <h1>OpenMP</h1>
+      <p class="lead">Odtwarzacz muzyki i wideo dla Windows 10 i 11.</p>
+    </div>
+  </header>
+  <a class="cta" href="https://redzikowski.com">Pobierz z redzikowski.com</a>
+  <section class="grid">
+    <div class="card"><h2>Muzyka</h2><ul>
+      <li>wyświetlacz z okładką, parametrami i dużym licznikiem</li>
+      <li>słupki, widmo, oscyloskop i VU na żywo</li>
+      <li>taśma utworu w czterech stylach</li>
+      <li>teksty z .lrc, tagów i LRCLIB</li></ul></div>
+    <div class="card"><h2>Dźwięk</h2><ul>
+      <li>przejścia bez przerw i przenikanie</li>
+      <li>korektor 18-pasmowy z presetami</li>
+      <li>ReplayGain z ogranicznikiem</li>
+      <li>szybkość i wysokość dźwięku</li></ul></div>
+    <div class="card"><h2>Wideo</h2><ul>
+      <li>mały panel, który sam się chowa</li>
+      <li>dekodowanie sprzętowe, napisy, ścieżki, rozdziały</li>
+      <li>wznawianie i zrzuty klatek</li></ul></div>
+    <div class="card"><h2>Biblioteka</h2><ul>
+      <li>osobno muzyka i wideo</li>
+      <li>dyski sieciowe: UNC i zmapowane</li>
+      <li>statystyki, ulubione, historia</li></ul></div>
+    <div class="card"><h2>Widoki</h2><ul>
+      <li>pełne okno z listami i biblioteką</li>
+      <li>kompaktowy z analizatorem</li>
+      <li>miniodtwarzacz na wierzchu</li></ul></div>
+    <div class="card"><h2>Windows</h2><ul>
+      <li>klawisze multimedialne i nakładka systemowa</li>
+      <li>skojarzenia plików, jedna instancja</li>
+      <li>samoaktualizacja</li></ul></div>
+  </section>
+  <footer>
+    <span>Pomysł i wykonanie: Adam Rędzikowski · <a href="https://redzikowski.com">redzikowski.com</a></span>
+    <a href="https://buycoffee.to/adamredzikowski">Postaw kawę</a>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,281 @@
+// Okno OpenMP: tryb muzyki (wyświetlacz + listy/biblioteka), tryb wideo, miniodtwarzacz.
+
+import { Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon } from "widgets.slint";
+import { MusicDisplay } from "display.slint";
+import { TitleBar, ControlsBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
+import { VideoView, MiniView } from "video.slint";
+import { EqualizerDialog, SettingsDialog, AboutDialog, UrlDialog, TagEditor, UpdateDialog, RenameDialog } from "dialogs.slint";
+import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
+import { TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
+
+export { Theme, Player, Lists, Lib, Video, Prefs, Ui, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
+
+export component AppWindow inherits Window {
+    title: Player.idle ? "OpenMP" : Player.title + " – OpenMP";
+    icon: @image-url("../icon.png");
+    no-frame: true;
+    background: Ui.mode == 1 ? #000000 : Theme.bg;
+    min-width: Ui.mode == 2 ? 340px : 420px;
+    min-height: Ui.mode == 2 ? 118px : 240px;
+    preferred-width: 1180px;
+    preferred-height: 780px;
+    default-font-family: Theme.font;
+    default-font-size: Theme.fs;
+    init => {
+        Palette.color-scheme = Theme.dark ? ColorScheme.dark : ColorScheme.light;
+    }
+    property <bool> dark: Theme.dark;
+    changed dark => {
+        Palette.color-scheme = Theme.dark ? ColorScheme.dark : ColorScheme.light;
+    }
+
+    public function open-menu() {
+        menu-popup.show();
+    }
+    public function focus-keys() {
+        keys.focus();
+    }
+
+    keys := FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape {
+                if Ui.settings || Ui.equalizer || Ui.about || Ui.url-dialog || Ui.tag-editor || Ui.update-dialog || Ui.rename-dialog {
+                    Ui.settings = false;
+                    Ui.equalizer = false;
+                    Ui.about = false;
+                    Ui.url-dialog = false;
+                    Ui.tag-editor = false;
+                    Ui.update-dialog = false;
+                    Ui.rename-dialog = false;
+                    return accept;
+                }
+            }
+            Ui.key(e.text, e.modifiers.control, e.modifiers.shift, e.modifiers.alt);
+            accept
+        }
+
+        if Ui.mode == 1: VideoView { }
+
+        if Ui.mode == 2: MiniView { }
+
+        if Ui.mode == 0: Rectangle {
+            VerticalLayout {
+                TitleBar {
+                    subtitle: Player.idle ? "" : Player.artist != "" ? Player.artist + " – " + Player.title : Player.title;
+                }
+                VerticalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    padding-bottom: 10px;
+                    spacing: 8px;
+                    MusicDisplay {
+                        // W widoku kompaktowym wyświetlacz wypełnia okno, a sterowanie zostaje przy dolnej krawędzi.
+                        min-height: Prefs.compact ? 168px : 236px;
+                        max-height: Prefs.compact ? 1000px : 236px;
+                        vertical-stretch: Prefs.compact ? 1 : 0;
+                        compact: Prefs.compact;
+                        title: Player.title;
+                        artist: Player.artist;
+                        album: Player.album;
+                        badges: Player.badges;
+                        position-text: Player.position-text;
+                        state-text: Player.state-text;
+                        cover: Player.cover;
+                        has-cover: Player.has-cover;
+                        backdrop: Player.backdrop;
+                        pos: Player.pos;
+                        duration: Player.duration;
+                        remaining: Prefs.remaining;
+                        playing: Player.playing;
+                        idle: Player.idle;
+                        fav: Player.fav;
+                        scroll-title: Prefs.scroll-title;
+                        shuffle: Player.shuffle;
+                        repeat: Player.repeat;
+                        eq-on: Prefs.eq-on;
+                        crossfade-on: Prefs.crossfade > 0;
+                        rg-on: Prefs.replaygain > 0;
+                        sleep-text: Player.sleep-text;
+                        speed-text: Player.speed-text;
+                        viz-mode: Player.viz-mode;
+                        bars: Player.bars;
+                        peaks: Player.peaks;
+                        scope-path: Player.scope-path;
+                        spectrum-path: Player.spectrum-path;
+                        vu-l: Player.vu-l;
+                        vu-r: Player.vu-r;
+                        vu-pl: Player.vu-pl;
+                        vu-pr: Player.vu-pr;
+                        viz-active: Player.viz-active;
+                        viz-note: Player.viz-note;
+                        wave: Player.wave;
+                        show-wave: Prefs.show-waveform;
+                        ab-a: Player.ab-a;
+                        ab-b: Player.ab-b;
+                        seek(v) => { Player.seek(v); }
+                        toggle-time => {
+                            Prefs.remaining = !Prefs.remaining;
+                            Prefs.changed("remaining");
+                        }
+                        cycle-viz => { Player.cycle-viz(); }
+                        cover-clicked => {
+                            Prefs.side-panel = 2;
+                            Prefs.changed("side-panel");
+                        }
+                        title-clicked => { Player.show-current(); }
+                    }
+                    ControlsBar { }
+                    if !Prefs.compact: HorizontalLayout {
+                        vertical-stretch: 1;
+                        spacing: 8px;
+                        if Prefs.show-sidebar: Sidebar { }
+                        if Lib.view == 0: PlaylistView {
+                            horizontal-stretch: 1;
+                        }
+                        if Lib.view == 1: LibraryView {
+                            horizontal-stretch: 1;
+                        }
+                        if Lib.view == 2: RadioView {
+                            horizontal-stretch: 1;
+                        }
+                        if Prefs.side-panel > 0: SidePanel { }
+                    }
+                }
+            }
+        }
+
+        if Ui.mode != 1 && Ui.drop-hint: Rectangle {
+            background: Theme.accent.with-alpha(0.12);
+            border-width: 2px;
+            border-color: Theme.accent;
+            border-radius: 10px;
+            Text {
+                text: "Upuść, by dodać do listy";
+                color: Theme.text;
+                font-size: Theme.fs-lg;
+                font-weight: 600;
+            }
+        }
+
+        if Ui.equalizer: EqualizerDialog { }
+        if Ui.settings: SettingsDialog { }
+        if Ui.about: AboutDialog { }
+        if Ui.url-dialog: UrlDialog { }
+        if Ui.tag-editor: TagEditor { }
+        if Ui.update-dialog: UpdateDialog { }
+        if Ui.rename-dialog: RenameDialog { }
+
+        // Krótki komunikat u dołu okna.
+        if Ui.mode != 1: Rectangle {
+            y: parent.height - self.height - 46px;
+            x: (parent.width - self.width) / 2;
+            width: tt.preferred-width + 30px;
+            height: 34px;
+            border-radius: 17px;
+            background: Theme.dark ? #2a303ce8 : #1c2028e8;
+            opacity: Ui.toast-visible ? 1 : 0;
+            animate opacity { duration: 200ms; }
+            drop-shadow-blur: 14px;
+            drop-shadow-color: #00000060;
+            tt := Text {
+                text: Ui.toast;
+                color: #ffffff;
+                font-size: Theme.fs;
+            }
+        }
+    }
+
+    // Uchwyty zmiany rozmiaru okna bez ramki.
+    if !Ui.maximized && !Video.fullscreen: Rectangle {
+        property <length> e: 5px;
+        for h in [
+            { x: 0px, y: e, w: e, hh: root.height - 2 * e, d: 3, c: MouseCursor.ew-resize },
+            { x: root.width - e, y: e, w: e, hh: root.height - 2 * e, d: 4, c: MouseCursor.ew-resize },
+            { x: e, y: 0px, w: root.width - 2 * e, hh: e, d: 1, c: MouseCursor.ns-resize },
+            { x: e, y: root.height - e, w: root.width - 2 * e, hh: e, d: 2, c: MouseCursor.ns-resize },
+            { x: 0px, y: 0px, w: e * 2, hh: e * 2, d: 5, c: MouseCursor.nwse-resize },
+            { x: root.width - e * 2, y: 0px, w: e * 2, hh: e * 2, d: 6, c: MouseCursor.nesw-resize },
+            { x: 0px, y: root.height - e * 2, w: e * 2, hh: e * 2, d: 7, c: MouseCursor.nesw-resize },
+            { x: root.width - e * 2, y: root.height - e * 2, w: e * 2, hh: e * 2, d: 8, c: MouseCursor.nwse-resize },
+        ]: TouchArea {
+            x: h.x;
+            y: h.y;
+            width: h.w;
+            height: h.hh;
+            mouse-cursor: h.c;
+            pointer-event(ev) => {
+                if ev.kind == PointerEventKind.down && ev.button == PointerEventButton.left {
+                    Ui.resize(h.d);
+                }
+            }
+        }
+    }
+
+    menu-popup := PopupWindow {
+        x: min(Ui.menu-x, root.width - 270px);
+        y: min(Ui.menu-y, max(0px, root.height - mbox.preferred-height - 8px));
+        close-policy: PopupClosePolicy.close-on-click-outside;
+        mbox := Rectangle {
+            width: 260px;
+            border-radius: 10px;
+            background: Theme.raised;
+            border-width: 1px;
+            border-color: Theme.line2;
+            drop-shadow-blur: 22px;
+            drop-shadow-color: #00000080;
+            VerticalLayout {
+                padding: 5px;
+                for m in Ui.menu: Rectangle {
+                    height: m.sep ? 9px : 30px;
+                    if m.sep: Rectangle {
+                        height: 1px;
+                        x: 8px;
+                        width: parent.width - 16px;
+                        background: Theme.line;
+                    }
+                    if !m.sep: Rectangle {
+                        border-radius: 6px;
+                        background: mta.has-hover && m.enabled ? Theme.sel : transparent;
+                        HorizontalLayout {
+                            padding-left: 9px;
+                            padding-right: 10px;
+                            spacing: 10px;
+                            Rectangle {
+                                width: 16px;
+                                if m.icon != "" || m.checked: Icon {
+                                    icon: m.checked ? Icons.check : Icons.get(m.icon);
+                                    size: 15px;
+                                    fill: m.checked ? Theme.accent : m.enabled ? Theme.text2 : Theme.text3.with-alpha(0.5);
+                                }
+                            }
+                            Text {
+                                text: m.label;
+                                color: m.enabled ? Theme.text : Theme.text3;
+                                font-size: Theme.fs;
+                                vertical-alignment: center;
+                                overflow: elide;
+                                horizontal-stretch: 1;
+                            }
+                            Text {
+                                text: m.shortcut;
+                                color: Theme.text3;
+                                font-size: Theme.fs-xs;
+                                vertical-alignment: center;
+                            }
+                        }
+                        mta := TouchArea {
+                            enabled: m.enabled;
+                            clicked => {
+                                menu-popup.close();
+                                Ui.menu-activated(m.id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

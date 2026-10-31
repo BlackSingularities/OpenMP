@@ -1,0 +1,85 @@
+// Struktury danych wymieniane z Rustem.
+
+export struct TrackRow {
+    header: bool,
+    idx: int,
+    num: string,
+    title: string,
+    artist: string,
+    album: string,
+    dur: string,
+    info: string,
+    playing: bool,
+    selected: bool,
+    fav: bool,
+    queued: string,
+    missing: bool,
+    video: bool,
+    h-title: string,
+    h-sub: string,
+    h-cover: image,
+    h-has-cover: bool,
+}
+
+export struct NavItem {
+    id: string,
+    label: string,
+    icon: string,
+    count: string,
+    section: bool,
+}
+
+export struct Tile {
+    key: string,
+    name: string,
+    sub: string,
+    count: string,
+    cover: image,
+    has-cover: bool,
+}
+
+export struct MenuEntry {
+    id: string,
+    label: string,
+    icon: string,
+    shortcut: string,
+    checked: bool,
+    enabled: bool,
+    sep: bool,
+}
+
+export struct TabItem {
+    label: string,
+    count: string,
+}
+
+export struct LyricLine {
+    text: string,
+    active: bool,
+}
+
+export struct Opt {
+    id: string,
+    label: string,
+    sub: string,
+    selected: bool,
+}
+
+export struct Station {
+    name: string,
+    url: string,
+    info: string,
+    saved: bool,
+}
+
+export struct KeyHelp {
+    keys: string,
+    action: string,
+}
+
+export struct Toast {
+    text: string,
+    visible: bool,
+}
+
+export enum ViewKind { playlist, library, radio }

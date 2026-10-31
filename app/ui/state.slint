@@ -1,0 +1,316 @@
+// Stan programu wymieniany z Rustem – globalne obiekty zamiast setek właściwości okna.
+
+import { TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
+
+// Odtwarzanie, wyświetlacz i analizator.
+export global Player {
+    in-out property <string> title;
+    in-out property <string> artist;
+    in-out property <string> album;
+    in-out property <[string]> badges;
+    in-out property <string> position-text;
+    in-out property <string> state-text;
+    in-out property <image> cover;
+    in-out property <bool> has-cover;
+    in-out property <image> backdrop;
+    in-out property <float> pos;
+    in-out property <float> duration;
+    in-out property <bool> playing;
+    in-out property <bool> idle: true;
+    in-out property <bool> fav;
+    in-out property <float> volume: 0.8;
+    in-out property <bool> muted;
+    in-out property <bool> shuffle;
+    in-out property <int> repeat;
+    in-out property <bool> eq-on;
+    in-out property <bool> crossfade-on;
+    in-out property <bool> rg-on;
+    in-out property <string> sleep-text;
+    in-out property <string> speed-text;
+    in-out property <bool> stop-after;
+    in-out property <float> ab-a: -1;
+    in-out property <float> ab-b: -1;
+    // Analizator
+    in-out property <int> viz-mode;
+    in-out property <[float]> bars;
+    in-out property <[float]> peaks;
+    in-out property <string> scope-path;
+    in-out property <string> spectrum-path;
+    in-out property <float> vu-l;
+    in-out property <float> vu-r;
+    in-out property <float> vu-pl;
+    in-out property <float> vu-pr;
+    in-out property <bool> viz-active;
+    in-out property <string> viz-note;
+    in-out property <string> wave;
+    // Tekst piosenki i informacje
+    in-out property <[LyricLine]> lyrics;
+    in-out property <bool> lyrics-synced;
+    in-out property <int> lyrics-active: -1;
+    in-out property <string> lyrics-source;
+    callback save-lyrics();
+    in-out property <[Opt]> details;
+    in-out property <[TrackRow]> queue;
+
+    callback play-pause();
+    callback stop();
+    callback next();
+    callback prev();
+    callback seek(float);
+    callback seek-rel(float);
+    callback set-volume(float);
+    callback toggle-mute();
+    callback toggle-shuffle();
+    callback cycle-repeat();
+    callback cycle-viz();
+    callback toggle-fav();
+    callback show-current();
+    callback open-cover();
+    callback queue-remove(int);
+    callback queue-clear();
+}
+
+// Listy odtwarzania.
+export global Lists {
+    in-out property <[TabItem]> tabs;
+    in-out property <int> active;
+    in-out property <[TrackRow]> rows;
+    in-out property <string> summary;
+    in-out property <string> filter;
+    in-out property <bool> grouped: true;
+    in-out property <length> scroll-y;
+    in-out property <int> scroll-gen;
+    callback tab-clicked(int);
+    callback tab-menu(int, length, length);
+    callback tab-add();
+    callback tab-close(int);
+    callback tab-rename(int, string);
+    callback row-clicked(int, bool, bool);
+    callback row-double(int);
+    callback row-menu(int, length, length);
+    callback header-clicked(int);
+    callback header-double(int);
+    callback filter-changed(string);
+    callback fav-toggle(int);
+    callback key(string, bool, bool);
+    callback open-files();
+}
+
+// Biblioteka, zbiory i radio.
+export global Lib {
+    in-out property <[NavItem]> nav;
+    in-out property <string> nav-selected: "playlist";
+    in-out property <int> view;
+    in-out property <string> title;
+    in-out property <string> subtitle;
+    in-out property <bool> grid;
+    in-out property <bool> show-tiles;
+    in-out property <[Tile]> tiles;
+    in-out property <[TrackRow]> rows;
+    in-out property <bool> can-back;
+    in-out property <string> search;
+    in-out property <bool> scanning;
+    in-out property <string> scan-text;
+    in-out property <float> scan-progress;
+    in-out property <string> empty-text;
+    // Radio
+    in-out property <[Station]> stations;
+    in-out property <int> radio-source;
+    in-out property <string> radio-query;
+    in-out property <bool> radio-busy;
+    callback nav-clicked(string);
+    callback nav-menu(string, length, length);
+    callback tile-clicked(string);
+    callback tile-double(string);
+    callback tile-menu(string, length, length);
+    callback back();
+    callback play-all();
+    callback shuffle-all();
+    callback add-all();
+    callback row-clicked(int, bool, bool);
+    callback row-double(int);
+    callback row-menu(int, length, length);
+    callback search-changed(string);
+    callback rescan();
+    callback radio-search(string);
+    callback radio-source-changed(int);
+    callback radio-play(int);
+    callback radio-save(int);
+    callback radio-add-url();
+}
+
+// Tryb wideo.
+export global Video {
+    in-out property <image> frame;
+    in-out property <bool> has-frame;
+    in-out property <bool> controls: true;
+    in-out property <bool> fullscreen;
+    in-out property <bool> ontop;
+    in-out property <string> title;
+    in-out property <string> info;
+    in-out property <float> pos;
+    in-out property <float> duration;
+    in-out property <float> buffered;
+    in-out property <bool> playing;
+    in-out property <[float]> chapters;
+    in-out property <[Opt]> audio-tracks;
+    in-out property <[Opt]> sub-tracks;
+    in-out property <[Opt]> chapter-list;
+    in-out property <string> osd;
+    in-out property <bool> osd-visible;
+    in-out property <bool> panel;
+    in-out property <int> panel-page;
+    in-out property <float> speed: 1;
+    in-out property <float> sub-delay;
+    in-out property <float> audio-delay;
+    in-out property <float> brightness;
+    in-out property <float> contrast;
+    in-out property <float> saturation;
+    in-out property <float> gamma;
+    in-out property <float> sub-scale: 1;
+    in-out property <int> aspect;
+    in-out property <bool> loading;
+    in-out property <bool> audio-only;
+    in-out property <string> error;
+    callback mouse-moved();
+    callback toggle-fullscreen();
+    callback toggle-ontop();
+    callback back-to-music();
+    callback select-audio(string);
+    callback select-sub(string);
+    callback load-sub();
+    callback goto-chapter(string);
+    callback set-speed(float);
+    callback set-sub-delay(float);
+    callback set-audio-delay(float);
+    callback set-eq(string, float);
+    callback set-sub-scale(float);
+    callback set-aspect(int);
+    callback screenshot();
+    callback frame-step(bool);
+    callback ab-loop();
+    callback hover-controls(bool);
+}
+
+// Ustawienia (lustro settings.json).
+export global Prefs {
+    in-out property <bool> dark: true;
+    in-out property <string> accent: "#4f8cff";
+    in-out property <bool> accent-from-cover: true;
+    in-out property <int> viz-bands: 48;
+    in-out property <float> viz-sensitivity;
+    in-out property <bool> show-waveform: true;
+    in-out property <int> wave-style;
+    in-out property <bool> online-lyrics: true;
+    in-out property <bool> group-albums: true;
+    in-out property <bool> remaining;
+    in-out property <bool> compact;
+    in-out property <bool> ontop;
+    in-out property <bool> show-sidebar: true;
+    in-out property <int> side-panel;
+    in-out property <bool> scroll-title: true;
+    in-out property <[string]> devices;
+    in-out property <int> device;
+    in-out property <float> crossfade;
+    in-out property <bool> soft-pause: true;
+    in-out property <int> replaygain: 1;
+    in-out property <float> rg-preamp;
+    in-out property <float> speed: 1;
+    in-out property <bool> eq-on;
+    in-out property <[float]> eq;
+    in-out property <float> preamp;
+    in-out property <float> balance;
+    in-out property <float> width: 1;
+    in-out property <bool> mono;
+    in-out property <bool> swap;
+    in-out property <bool> crossfeed;
+    in-out property <bool> limiter: true;
+    in-out property <[string]> presets;
+    in-out property <int> preset;
+    in-out property <bool> resume-on-start: true;
+    in-out property <bool> follow-playing: true;
+    in-out property <float> seek-step: 5;
+    in-out property <bool> hwdec: true;
+    in-out property <bool> video-resume: true;
+    in-out property <int> autohide-ms: 2200;
+    in-out property <bool> video-fit: true;
+    in-out property <int> sub-size: 46;
+    in-out property <string> sub-lang;
+    in-out property <string> audio-lang;
+    in-out property <string> screenshot-dir;
+    in-out property <bool> deinterlace;
+    in-out property <bool> single-instance: true;
+    in-out property <bool> media-keys: true;
+    in-out property <bool> prevent-sleep: true;
+    in-out property <bool> check-updates: true;
+    in-out property <[string]> folders;
+    in-out property <[string]> video-folders;
+    in-out property <string> version;
+    in-out property <string> author-line;
+    in-out property <bool> mpv-ok;
+    in-out property <string> mpv-info;
+    in-out property <[KeyHelp]> keys;
+    callback changed(string);
+    callback eq-band(int, float);
+    callback eq-preset(int);
+    callback eq-save-preset();
+    callback eq-reset();
+    callback add-folder(int);
+    callback add-network-folder(int);
+    callback remove-folder(int, int);
+    callback pick-screenshot-dir();
+    callback check-update();
+    callback open-url(string);
+    callback associate();
+}
+
+// Okna, menu i komunikaty.
+export global Ui {
+    in-out property <int> mode;
+    in-out property <bool> maximized;
+    in-out property <bool> settings;
+    in-out property <int> settings-page;
+    in-out property <bool> equalizer;
+    in-out property <bool> about;
+    in-out property <bool> url-dialog;
+    in-out property <string> url-text;
+    in-out property <bool> tag-editor;
+    in-out property <[string]> tag-values;
+    in-out property <[bool]> tag-mixed;
+    in-out property <string> tag-title;
+    in-out property <image> tag-cover;
+    in-out property <bool> tag-has-cover;
+    in-out property <bool> tag-busy;
+    in-out property <bool> update-dialog;
+    in-out property <string> update-version;
+    in-out property <string> update-notes;
+    in-out property <float> update-progress: -1;
+    in-out property <string> update-status;
+    in-out property <bool> update-portable;
+    in-out property <bool> rename-dialog;
+    in-out property <string> rename-text;
+    in-out property <string> rename-title;
+    in-out property <[MenuEntry]> menu;
+    in-out property <length> menu-x;
+    in-out property <length> menu-y;
+    in-out property <string> toast;
+    in-out property <bool> toast-visible;
+    in-out property <bool> drop-hint;
+    callback drag();
+    callback minimize();
+    callback toggle-maximize();
+    callback close();
+    callback resize(int);
+    callback menu-activated(string);
+    callback open-main-menu(length, length);
+    callback set-mode(int);
+    callback toggle-compact();
+    callback url-accepted(string);
+    callback tag-save([string]);
+    callback tag-pick-cover();
+    callback update-install();
+    callback update-skip();
+    callback rename-accepted(string);
+    callback key(string, bool, bool, bool);
+    callback sleep-menu(length, length);
+}

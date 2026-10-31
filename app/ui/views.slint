@@ -1,0 +1,999 @@
+// Części okna trybu muzyki: pasek tytułu, sterowanie, panel boczny, listy, biblioteka, radio,
+// panel tekstu/informacji i pasek stanu.
+
+import { ScrollView, ListView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, IconBtn, Btn, HSlider, Field, Cover, Segmented, SectionTitle, Divider } from "widgets.slint";
+import { TrackList } from "tracklist.slint";
+import { Player, Lists, Lib, Prefs, Ui } from "state.slint";
+import { Fmt } from "display.slint";
+
+export component WinButtons inherits HorizontalLayout {
+    in property <bool> on-dark;
+    spacing: 0;
+    for b[i] in [
+        { icon: Icons.minimize, id: 0 },
+        { icon: Ui.maximized ? Icons.restore : Icons.maximize, id: 1 },
+        { icon: Icons.close, id: 2 },
+    ]: Rectangle {
+        width: 44px;
+        height: 32px;
+        border-radius: 6px;
+        background: wta.has-hover ? (b.id == 2 ? #e81123 : (root.on-dark ? #ffffff1f : Theme.hover)) : transparent;
+        Icon {
+            icon: b.icon;
+            size: 15px;
+            fill: wta.has-hover && b.id == 2 ? #ffffff : root.on-dark ? #ffffffd0 : Theme.text2;
+        }
+        wta := TouchArea {
+            clicked => {
+                if b.id == 0 {
+                    Ui.minimize();
+                } else if b.id == 1 {
+                    Ui.toggle-maximize();
+                } else {
+                    Ui.close();
+                }
+            }
+        }
+    }
+}
+
+export component TitleBar inherits Rectangle {
+    in property <string> subtitle;
+    height: 38px;
+    background: transparent;
+    TouchArea {
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                Ui.drag();
+            }
+        }
+        double-clicked => { Ui.toggle-maximize(); }
+    }
+    HorizontalLayout {
+        padding-left: 6px;
+        padding-right: 4px;
+        spacing: 2px;
+        menu-btn := IconBtn {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.menu;
+            size: 30px;
+            tip: "Menu";
+            clicked => { Ui.open-main-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
+        }
+        Rectangle {
+            width: 6px;
+        }
+        Image {
+            y: (parent.height - self.height) / 2;
+            source: @image-url("../icon.png");
+            width: 18px;
+            height: 18px;
+        }
+        Text {
+            text: "OpenMP";
+            color: Theme.text;
+            font-size: Theme.fs;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+        Text {
+            text: root.subtitle != "" ? "  ·  " + root.subtitle : "";
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            overflow: elide;
+            horizontal-stretch: 1;
+        }
+        IconBtn {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.pip;
+            size: 30px;
+            icon-size: 16px;
+            tip: "Miniodtwarzacz";
+            clicked => { Ui.set-mode(2); }
+        }
+        IconBtn {
+            y: (parent.height - self.height) / 2;
+            icon: Prefs.compact ? Icons.expand : Icons.compact;
+            size: 30px;
+            icon-size: 16px;
+            tip: Prefs.compact ? "Pełny widok" : "Widok kompaktowy";
+            clicked => { Ui.toggle-compact(); }
+        }
+        IconBtn {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.pin;
+            active: Prefs.ontop;
+            size: 30px;
+            icon-size: 15px;
+            tip: "Zawsze na wierzchu";
+            clicked => {
+                Prefs.ontop = !Prefs.ontop;
+                Prefs.changed("ontop");
+            }
+        }
+        Rectangle {
+            width: 6px;
+        }
+        WinButtons { }
+    }
+}
+
+// Przyciski odtwarzania, głośność i przełączniki.
+export component ControlsBar inherits Rectangle {
+    height: 56px;
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 4px;
+        alignment: stretch;
+        HorizontalLayout {
+            spacing: 4px;
+            alignment: start;
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.prev;
+                size: 38px;
+                icon-size: 22px;
+                tip: "Poprzedni (Ctrl+←)";
+                clicked => { Player.prev(); }
+            }
+            Rectangle {
+                y: (parent.height - self.height) / 2;
+                width: 46px;
+                height: 46px;
+                border-radius: 23px;
+                background: pta.pressed ? Theme.accent.darker(0.2) : pta.has-hover ? Theme.accent.brighter(0.15) : Theme.accent;
+                drop-shadow-blur: 12px;
+                drop-shadow-color: Theme.accent.with-alpha(0.45);
+                animate background { duration: 120ms; }
+                Icon {
+                    icon: Player.playing ? Icons.pause : Icons.play;
+                    size: 26px;
+                    fill: Theme.on-accent;
+                }
+                pta := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { Player.play-pause(); }
+                }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.next;
+                size: 38px;
+                icon-size: 22px;
+                tip: "Następny (Ctrl+→)";
+                clicked => { Player.next(); }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.stop;
+                size: 34px;
+                icon-size: 18px;
+                active: Player.stop-after;
+                tip: "Zatrzymaj (prawy przycisk – po bieżącym)";
+                clicked => { Player.stop(); }
+                right-clicked => { Ui.key("stop-after", false, false, false); }
+            }
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+        }
+        HorizontalLayout {
+            spacing: 2px;
+            alignment: end;
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.shuffle;
+                active: Player.shuffle;
+                tip: "Losowo (S)";
+                clicked => { Player.toggle-shuffle(); }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Player.repeat == 2 ? Icons.repeat-one : Icons.repeat;
+                active: Player.repeat > 0;
+                tip: Player.repeat == 0 ? "Powtarzanie wyłączone (R)" : Player.repeat == 1 ? "Powtarzaj listę (R)" : "Powtarzaj utwór (R)";
+                clicked => { Player.cycle-repeat(); }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.equalizer;
+                active: Ui.equalizer || Prefs.eq-on;
+                tip: "Korektor i efekty (E)";
+                clicked => { Ui.equalizer = !Ui.equalizer; }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.timer;
+                active: Player.sleep-text != "";
+                tip: "Wyłącznik czasowy";
+                clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.lyrics;
+                active: Prefs.side-panel > 0;
+                tip: "Tekst, informacje, kolejka (L)";
+                clicked => {
+                    Prefs.side-panel = Prefs.side-panel > 0 ? 0 : 1;
+                    Prefs.changed("side-panel");
+                }
+            }
+            Rectangle {
+                width: 10px;
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
+                tip: "Wycisz (M)";
+                clicked => { Player.toggle-mute(); }
+            }
+            HSlider {
+                y: (parent.height - self.height) / 2;
+                width: 110px;
+                value: Player.volume;
+                fill-color: Player.muted ? Theme.text3 : Theme.accent;
+                moved(v) => { Player.set-volume(v); }
+            }
+            Text {
+                width: 36px;
+                text: round(Player.volume * 100) + "%";
+                color: Theme.text3;
+                font-size: Theme.fs-sm;
+                vertical-alignment: center;
+                horizontal-alignment: right;
+            }
+        }
+    }
+}
+
+// Panel nawigacji: listy, biblioteka, zbiory, radio.
+export component Sidebar inherits Rectangle {
+    width: 214px;
+    background: Theme.panel;
+    border-radius: Theme.radius-lg;
+    VerticalLayout {
+        padding: 8px;
+        padding-top: 10px;
+        ListView {
+            for n in Lib.nav: Rectangle {
+                height: n.section ? 30px : 32px;
+                if n.section: HorizontalLayout {
+                    padding-left: 10px;
+                    padding-top: 10px;
+                    SectionTitle {
+                        text: n.label;
+                        vertical-alignment: center;
+                    }
+                    if n.id == "sec-lists": IconBtn {
+                        icon: Icons.add;
+                        size: 22px;
+                        icon-size: 15px;
+                        tip: "Nowa lista";
+                        clicked => { Lists.tab-add(); }
+                    }
+                }
+                if !n.section: Rectangle {
+                    border-radius: Theme.radius;
+                    background: Lib.nav-selected == n.id ? Theme.sel : nta.has-hover ? Theme.hover : transparent;
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        spacing: 10px;
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: n.icon;
+                            size: 16px;
+                            fill: Lib.nav-selected == n.id ? Theme.accent : Theme.text3;
+                        }
+                        Text {
+                            text: n.label;
+                            color: Lib.nav-selected == n.id ? Theme.text : Theme.text2;
+                            font-weight: Lib.nav-selected == n.id ? 600 : 400;
+                            font-size: Theme.fs;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: n.count;
+                            color: Theme.text3;
+                            font-size: Theme.fs-xs;
+                            vertical-alignment: center;
+                        }
+                    }
+                    nta := TouchArea {
+                        clicked => { Lib.nav-clicked(n.id); }
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                                Lib.nav-menu(n.id, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if Lib.scanning: VerticalLayout {
+            padding: 8px;
+            spacing: 6px;
+            Text {
+                text: Lib.scan-text;
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                overflow: elide;
+            }
+            Rectangle {
+                height: 3px;
+                border-radius: 2px;
+                background: Theme.hover;
+                Rectangle {
+                    x: 0;
+                    width: parent.width * Lib.scan-progress;
+                    border-radius: 2px;
+                    background: Theme.accent;
+                }
+            }
+        }
+    }
+}
+
+export component PlaylistView inherits Rectangle {
+    background: Theme.panel;
+    border-radius: Theme.radius-lg;
+    clip: true;
+    VerticalLayout {
+        HorizontalLayout {
+            height: 44px;
+            padding-left: 8px;
+            padding-right: 8px;
+            spacing: 6px;
+            Flickable {
+                horizontal-stretch: 1;
+                content-width: tabrow.preferred-width;
+                interactive: false;
+                tabrow := HorizontalLayout {
+                    spacing: 2px;
+                    alignment: start;
+                    for t[i] in Lists.tabs: Rectangle {
+                        y: (parent.height - self.height) / 2;
+                        height: 30px;
+                        width: tl.preferred-width + 18px + (i == Lists.active ? 22px : 0px);
+                        border-radius: Theme.radius;
+                        background: i == Lists.active ? Theme.sel : tta.has-hover ? Theme.hover : transparent;
+                        tta := TouchArea {
+                            clicked => { Lists.tab-clicked(i); }
+                            double-clicked => { Lists.tab-menu(i, -1px, -1px); }
+                            pointer-event(e) => {
+                                if e.kind == PointerEventKind.up && e.button == PointerEventButton.middle {
+                                    Lists.tab-close(i);
+                                }
+                                if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                                    Lists.tab-menu(i, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                                }
+                            }
+                        }
+                        HorizontalLayout {
+                            padding-left: 9px;
+                            padding-right: 6px;
+                            spacing: 4px;
+                            tl := Text {
+                                text: t.label + (t.count != "" ? "  " + t.count : "");
+                                color: i == Lists.active ? Theme.text : Theme.text2;
+                                font-weight: i == Lists.active ? 600 : 400;
+                                font-size: Theme.fs;
+                                vertical-alignment: center;
+                            }
+                            if i == Lists.active: IconBtn {
+                                y: (parent.height - self.height) / 2;
+                                icon: Icons.close;
+                                size: 20px;
+                                icon-size: 12px;
+                                clicked => { Lists.tab-close(i); }
+                            }
+                        }
+                    }
+                    IconBtn {
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.add;
+                        size: 28px;
+                        icon-size: 16px;
+                        tip: "Nowa lista (Ctrl+N)";
+                        clicked => { Lists.tab-add(); }
+                    }
+                }
+            }
+            Field {
+                y: (parent.height - self.height) / 2;
+                width: 210px;
+                icon: Icons.search;
+                placeholder: "Szukaj na liście (Ctrl+F)";
+                text <=> Lists.filter;
+                edited(t) => { Lists.filter-changed(t); }
+                escape => {
+                    Lists.filter = "";
+                    Lists.filter-changed("");
+                }
+            }
+        }
+        Divider { }
+        TrackList {
+            vertical-stretch: 1;
+            rows: Lists.rows;
+            show-album: !Lists.grouped;
+            scroll-y: Lists.scroll-y;
+            scroll-gen: Lists.scroll-gen;
+            empty-text: Lists.filter != "" ? "Nic nie pasuje do „" + Lists.filter + "”" : "Lista jest pusta.\nPrzeciągnij tu pliki lub foldery albo kliknij dwukrotnie, by je wybrać.";
+            clicked(i, c, s) => { Lists.row-clicked(i, c, s); }
+            double(i) => { Lists.row-double(i); }
+            menu(i, x, y) => { Lists.row-menu(i, x, y); }
+            header-clicked(i) => { Lists.header-clicked(i); }
+            header-double(i) => { Lists.header-double(i); }
+            fav(i) => { Lists.fav-toggle(i); }
+            empty-clicked => { Lists.open-files(); }
+        }
+        Divider { }
+        HorizontalLayout {
+            height: 28px;
+            padding-left: 14px;
+            padding-right: 14px;
+            Text {
+                text: Lists.summary;
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+        }
+    }
+}
+
+export component LibraryView inherits Rectangle {
+    background: Theme.panel;
+    border-radius: Theme.radius-lg;
+    clip: true;
+    VerticalLayout {
+        HorizontalLayout {
+            height: 56px;
+            padding-left: 12px;
+            padding-right: 10px;
+            spacing: 8px;
+            if Lib.can-back: IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.back;
+                tip: "Wstecz (Backspace)";
+                clicked => { Lib.back(); }
+            }
+            VerticalLayout {
+                alignment: center;
+                horizontal-stretch: 1;
+                Text {
+                    text: Lib.title;
+                    color: Theme.text;
+                    font-size: Theme.fs-lg;
+                    font-weight: 600;
+                    overflow: elide;
+                }
+                if Lib.subtitle != "": Text {
+                    text: Lib.subtitle;
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    overflow: elide;
+                }
+            }
+            if !Lib.show-tiles && Lib.rows.length > 0: HorizontalLayout {
+                spacing: 6px;
+                Btn {
+                    y: (parent.height - self.height) / 2;
+                    text: "Odtwórz";
+                    icon: Icons.play;
+                    primary: true;
+                    clicked => { Lib.play-all(); }
+                }
+                Btn {
+                    y: (parent.height - self.height) / 2;
+                    text: "Losowo";
+                    icon: Icons.shuffle;
+                    clicked => { Lib.shuffle-all(); }
+                }
+                Btn {
+                    y: (parent.height - self.height) / 2;
+                    text: "Do listy";
+                    icon: Icons.add;
+                    clicked => { Lib.add-all(); }
+                }
+            }
+            Field {
+                y: (parent.height - self.height) / 2;
+                width: 200px;
+                icon: Icons.search;
+                placeholder: "Szukaj w bibliotece";
+                text <=> Lib.search;
+                edited(t) => { Lib.search-changed(t); }
+                escape => {
+                    Lib.search = "";
+                    Lib.search-changed("");
+                }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.refresh;
+                tip: "Odśwież bibliotekę";
+                enabled: !Lib.scanning;
+                clicked => { Lib.rescan(); }
+            }
+        }
+        Divider { }
+        if Lib.show-tiles && Lib.grid: ScrollView {
+            vertical-stretch: 1;
+            property <int> cols: max(1, floor((self.visible-width - 24px) / 168px));
+            property <length> cell: (self.visible-width - 24px) / cols;
+            content-height: ceil(Lib.tiles.length / cols) * (cell + 46px) + 24px;
+            for t[i] in Lib.tiles: Rectangle {
+                x: 12px + mod(i, parent.cols) * parent.cell;
+                y: 12px + floor(i / parent.cols) * (parent.cell + 46px);
+                width: parent.cell;
+                height: parent.cell + 46px;
+                Rectangle {
+                    x: 6px;
+                    y: 6px;
+                    width: parent.width - 12px;
+                    height: parent.height - 12px;
+                    border-radius: Theme.radius;
+                    background: gta.has-hover ? Theme.hover : transparent;
+                    Cover {
+                        x: 6px;
+                        y: 6px;
+                        width: parent.width - 12px;
+                        height: self.width;
+                        source: t.cover;
+                        has: t.has-cover;
+                    }
+                    Text {
+                        x: 8px;
+                        y: parent.width;
+                        width: parent.width - 16px;
+                        text: t.name;
+                        color: Theme.text;
+                        font-size: Theme.fs;
+                        font-weight: 600;
+                        overflow: elide;
+                    }
+                    Text {
+                        x: 8px;
+                        y: parent.width + 17px;
+                        width: parent.width - 16px;
+                        text: t.sub;
+                        color: Theme.text3;
+                        font-size: Theme.fs-sm;
+                        overflow: elide;
+                    }
+                    if gta.has-hover: Rectangle {
+                        x: parent.width - 46px;
+                        y: parent.width - 46px;
+                        width: 34px;
+                        height: 34px;
+                        border-radius: 17px;
+                        background: Theme.accent;
+                        drop-shadow-blur: 8px;
+                        drop-shadow-color: #00000080;
+                        Icon {
+                            icon: Icons.play;
+                            size: 20px;
+                            fill: #ffffff;
+                        }
+                        TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { Lib.tile-double(t.key); }
+                        }
+                    }
+                }
+                gta := TouchArea {
+                    clicked => { Lib.tile-clicked(t.key); }
+                    double-clicked => { Lib.tile-double(t.key); }
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                            Lib.tile-menu(t.key, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                        }
+                    }
+                }
+            }
+        }
+        if Lib.show-tiles && !Lib.grid: ListView {
+            vertical-stretch: 1;
+            for t in Lib.tiles: Rectangle {
+                height: 44px;
+                Rectangle {
+                    x: 8px;
+                    width: parent.width - 16px;
+                    border-radius: Theme.radius;
+                    background: lta.has-hover ? Theme.hover : transparent;
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 12px;
+                        spacing: 12px;
+                        Cover {
+                            y: (parent.height - self.height) / 2;
+                            width: 32px;
+                            height: 32px;
+                            source: t.cover;
+                            has: t.has-cover;
+                            fallback: Lib.nav-selected == "artist" ? Icons.artist : Lib.nav-selected == "genre" ? Icons.tag : Lib.nav-selected == "year" ? Icons.calendar : Icons.folder;
+                            border-radius: Lib.nav-selected == "artist" ? 16px : 5px;
+                        }
+                        Text {
+                            text: t.name;
+                            color: Theme.text;
+                            font-size: Theme.fs;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: t.sub;
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: t.count;
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            vertical-alignment: center;
+                            width: 80px;
+                            horizontal-alignment: right;
+                        }
+                    }
+                    lta := TouchArea {
+                        clicked => { Lib.tile-clicked(t.key); }
+                        double-clicked => { Lib.tile-double(t.key); }
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                                Lib.tile-menu(t.key, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if !Lib.show-tiles: TrackList {
+            vertical-stretch: 1;
+            rows: Lib.rows;
+            show-album: true;
+            empty-text: Lib.empty-text;
+            empty-icon: Icons.library;
+            clicked(i, c, s) => { Lib.row-clicked(i, c, s); }
+            double(i) => { Lib.row-double(i); }
+            menu(i, x, y) => { Lib.row-menu(i, x, y); }
+            fav(i) => { Lists.fav-toggle(-1 - i); }
+        }
+        if Lib.show-tiles && Lib.tiles.length == 0: Text {
+            vertical-stretch: 1;
+            text: Lib.empty-text;
+            color: Theme.text3;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+}
+
+export component RadioView inherits Rectangle {
+    background: Theme.panel;
+    border-radius: Theme.radius-lg;
+    clip: true;
+    VerticalLayout {
+        HorizontalLayout {
+            height: 56px;
+            padding-left: 14px;
+            padding-right: 10px;
+            spacing: 10px;
+            VerticalLayout {
+                alignment: center;
+                Text {
+                    text: "Radio internetowe";
+                    color: Theme.text;
+                    font-size: Theme.fs-lg;
+                    font-weight: 600;
+                }
+                Text {
+                    text: "Katalog radio-browser.info – dziesiątki tysięcy stacji z całego świata";
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+            Segmented {
+                y: (parent.height - self.height) / 2;
+                options: ["Polska", "Świat", "Zapisane"];
+                selected <=> Lib.radio-source;
+                changed(i) => { Lib.radio-source-changed(i); }
+            }
+            Field {
+                y: (parent.height - self.height) / 2;
+                width: 210px;
+                icon: Icons.search;
+                placeholder: "Szukaj stacji lub gatunku";
+                text <=> Lib.radio-query;
+                accepted(t) => { Lib.radio-search(t); }
+                escape => {
+                    Lib.radio-query = "";
+                    Lib.radio-search("");
+                }
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.link;
+                tip: "Dodaj stację z adresu";
+                clicked => { Lib.radio-add-url(); }
+            }
+        }
+        Divider { }
+        if Lib.radio-busy: Text {
+            vertical-stretch: 1;
+            text: "Wczytywanie stacji…";
+            color: Theme.text3;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        if !Lib.radio-busy && Lib.stations.length == 0: Text {
+            vertical-stretch: 1;
+            text: Lib.radio-source == 2 ? "Brak zapisanych stacji – kliknij gwiazdkę przy stacji, by ją zapisać." : "Brak stacji. Sprawdź połączenie z internetem.";
+            color: Theme.text3;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            wrap: word-wrap;
+        }
+        if !Lib.radio-busy && Lib.stations.length > 0: ListView {
+            vertical-stretch: 1;
+            for s[i] in Lib.stations: Rectangle {
+                height: 46px;
+                Rectangle {
+                    x: 8px;
+                    width: parent.width - 16px;
+                    border-radius: Theme.radius;
+                    background: sta.has-hover ? Theme.hover : transparent;
+                    sta := TouchArea {
+                        double-clicked => { Lib.radio-play(i); }
+                    }
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        padding-right: 8px;
+                        spacing: 12px;
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.radio;
+                            size: 18px;
+                            fill: Theme.text3;
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            horizontal-stretch: 1;
+                            Text {
+                                text: s.name;
+                                color: Theme.text;
+                                font-size: Theme.fs;
+                                font-weight: 500;
+                                overflow: elide;
+                            }
+                            Text {
+                                text: s.info;
+                                color: Theme.text3;
+                                font-size: Theme.fs-xs;
+                                overflow: elide;
+                            }
+                        }
+                        IconBtn {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.star;
+                            active: s.saved;
+                            icon-color: s.saved ? #ffc94a : Theme.text3;
+                            tip: s.saved ? "Usuń z zapisanych" : "Zapisz stację";
+                            clicked => { Lib.radio-save(i); }
+                        }
+                        IconBtn {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.play;
+                            tip: "Słuchaj";
+                            clicked => { Lib.radio-play(i); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Panel po prawej: tekst piosenki, informacje o utworze, kolejka.
+export component SidePanel inherits Rectangle {
+    width: 300px;
+    background: Theme.panel;
+    border-radius: Theme.radius-lg;
+    clip: true;
+    VerticalLayout {
+        HorizontalLayout {
+            height: 46px;
+            padding-left: 10px;
+            padding-right: 6px;
+            spacing: 4px;
+            Segmented {
+                y: (parent.height - self.height) / 2;
+                small: true;
+                options: ["Tekst", "Informacje", "Kolejka"];
+                selected: Prefs.side-panel - 1;
+                changed(i) => {
+                    Prefs.side-panel = i + 1;
+                    Prefs.changed("side-panel");
+                }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.close;
+                size: 26px;
+                icon-size: 14px;
+                clicked => {
+                    Prefs.side-panel = 0;
+                    Prefs.changed("side-panel");
+                }
+            }
+        }
+        Divider { }
+        if Prefs.side-panel == 1: Rectangle {
+            vertical-stretch: 1;
+            if Player.lyrics.length == 0: Text {
+                text: "Brak tekstu dla tego utworu.\nOpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach.";
+                color: Theme.text3;
+                font-size: Theme.fs;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                wrap: word-wrap;
+                width: parent.width - 40px;
+            }
+            if Player.lyrics.length > 0: lyr := Flickable {
+                property <length> line-h: 30px;
+                content-height: Player.lyrics.length * line-h + self.height;
+                property <int> act: Player.lyrics-active;
+                changed act => {
+                    if Player.lyrics-synced && self.act >= 0 {
+                        self.content-y = -(self.act * self.line-h);
+                    }
+                }
+                animate content-y { duration: 350ms; easing: ease-out; }
+                for l[i] in Player.lyrics: Text {
+                    x: 16px;
+                    y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h : 16px) + i * lyr.line-h;
+                    width: lyr.width - 32px;
+                    height: lyr.line-h;
+                    text: l.text;
+                    color: !Player.lyrics-synced ? Theme.text : l.active ? Theme.text : Theme.text3;
+                    font-size: l.active ? Theme.fs-md + 1px : Theme.fs-md;
+                    font-weight: l.active ? 700 : 400;
+                    horizontal-alignment: Player.lyrics-synced ? center : left;
+                    vertical-alignment: center;
+                    overflow: elide;
+                    animate color { duration: 250ms; }
+                }
+            }
+            if Player.lyrics-source == "LRCLIB": Rectangle {
+                x: parent.width - self.width - 10px;
+                y: parent.height - self.height - 10px;
+                width: lsrc.preferred-width + 20px;
+                height: 26px;
+                border-radius: 13px;
+                background: lsa.has-hover ? Theme.sel : Theme.raised;
+                border-width: 1px;
+                border-color: Theme.line2;
+                lsrc := Text {
+                    text: "LRCLIB · zapisz obok utworu";
+                    color: Theme.text2;
+                    font-size: Theme.fs-xs;
+                }
+                lsa := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { Player.save-lyrics(); }
+                }
+            }
+        }
+        if Prefs.side-panel == 2: ScrollView {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 10px;
+                Cover {
+                    height: self.width;
+                    source: Player.cover;
+                    has: Player.has-cover;
+                    fallback: Icons.note;
+                    border-radius: 10px;
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { Player.open-cover(); }
+                    }
+                }
+                for d in Player.details: VerticalLayout {
+                    spacing: 1px;
+                    Text {
+                        text: d.label;
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                    }
+                    Text {
+                        text: d.sub;
+                        color: Theme.text;
+                        font-size: Theme.fs;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+        }
+        if Prefs.side-panel == 3: VerticalLayout {
+            vertical-stretch: 1;
+            if Player.queue.length == 0: Text {
+                vertical-stretch: 1;
+                text: "Kolejka jest pusta.\nPrawy przycisk na utworze → „Odtwórz jako następny”.";
+                color: Theme.text3;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                wrap: word-wrap;
+            }
+            if Player.queue.length > 0: ListView {
+                vertical-stretch: 1;
+                for q[i] in Player.queue: Rectangle {
+                    height: 40px;
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 6px;
+                        spacing: 8px;
+                        Text {
+                            text: (i + 1) + ".";
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            vertical-alignment: center;
+                            width: 20px;
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            horizontal-stretch: 1;
+                            Text {
+                                text: q.title;
+                                color: Theme.text;
+                                font-size: Theme.fs;
+                                overflow: elide;
+                            }
+                            Text {
+                                text: q.artist;
+                                color: Theme.text3;
+                                font-size: Theme.fs-xs;
+                                overflow: elide;
+                            }
+                        }
+                        IconBtn {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.close;
+                            size: 24px;
+                            icon-size: 13px;
+                            clicked => { Player.queue-remove(i); }
+                        }
+                    }
+                }
+            }
+            if Player.queue.length > 0: HorizontalLayout {
+                padding: 10px;
+                alignment: end;
+                Btn {
+                    text: "Wyczyść kolejkę";
+                    compact: true;
+                    clicked => { Player.queue-clear(); }
+                }
+            }
+        }
+    }
+}
