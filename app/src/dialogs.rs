@@ -145,6 +145,25 @@ pub fn rename_accepted(app: &mut App, text: &str) {
         }
         RenameCtx::RadioUrl => crate::radio::add_url(app, &text),
         RenameCtx::NetFolder(kind) => crate::prefs::add_folder_path(app, kind, text),
+        ctx @ (RenameCtx::SmartName(_) | RenameCtx::SmartQuery(_)) => {
+            let (i, query) = match ctx {
+                RenameCtx::SmartQuery(i) => (i, true),
+                RenameCtx::SmartName(i) => (i, false),
+                _ => return,
+            };
+            if let Some(s) = app.s.smart_lists.get_mut(i) {
+                if query {
+                    s.1 = text;
+                } else {
+                    s.0 = text;
+                }
+                app.dirty = true;
+            }
+            crate::libview::rebuild_nav(app);
+            if app.libv.kind == format!("smart:{i}") {
+                crate::libview::show(app);
+            }
+        }
         RenameCtx::None => {}
     }
 }

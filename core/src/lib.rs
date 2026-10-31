@@ -1,6 +1,7 @@
 //! OpenMP – rdzeń: silnik muzyki, warstwa mpv, metadane, biblioteka, playlisty, ustawienia, aktualizacje.
 
 pub mod audio;
+pub mod coverart;
 pub mod instance;
 pub mod library;
 pub mod listenbrainz;

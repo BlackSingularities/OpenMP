@@ -239,3 +239,169 @@ pub fn popup_style(w: &slint::Window) {
         let _ = DwmSetWindowAttribute(hw, DWMWA_WINDOW_CORNER_PREFERENCE, &pref as *const _ as *const _, std::mem::size_of_val(&pref) as u32);
     }
 }
+
+// Przyciski miniatury na pasku zadań: poprzedni, odtwórz/pauza, następny.
+
+const THUMB_PREV: u32 = 1;
+const THUMB_PLAY: u32 = 2;
+const THUMB_NEXT: u32 = 3;
+const THUMB_SIZE: i32 = 16;
+
+thread_local! {
+    static THUMB: std::cell::RefCell<Option<Thumb>> = const { std::cell::RefCell::new(None) };
+}
+
+struct Thumb {
+    hwnd: isize,
+    list: windows::Win32::UI::Shell::ITaskbarList3,
+    icons: [windows::Win32::UI::WindowsAndMessaging::HICON; 4],
+    added: bool,
+    playing: bool,
+    created_msg: u32,
+}
+
+/// Ikona 16×16 z prostych kształtów: 0 – poprzedni, 1 – odtwórz, 2 – pauza, 3 – następny.
+fn thumb_icon(kind: u8) -> windows::Win32::UI::WindowsAndMessaging::HICON {
+    use windows::Win32::Graphics::Gdi::{CreateBitmap, DeleteObject};
+    use windows::Win32::UI::WindowsAndMessaging::{CreateIconIndirect, HICON, ICONINFO};
+    let n = THUMB_SIZE;
+    let mut px = vec![0u32; (n * n) as usize];
+    let tri = |x: f32, y: f32, x0: f32, x1: f32, right: bool| {
+        // Trójkąt od x0 do x1, wierzchołek w prawo albo w lewo, wysokość 3..13.
+        if x < x0 || x > x1 {
+            return false;
+        }
+        let t = if right { (x - x0) / (x1 - x0) } else { (x1 - x) / (x1 - x0) };
+        let half = 5.0 * (1.0 - t);
+        (y - 8.0).abs() <= half
+    };
+    for y in 0..n {
+        for x in 0..n {
+            let (fx, fy) = (x as f32 + 0.5, y as f32 + 0.5);
+            let on = match kind {
+                0 => (fx >= 3.0 && fx <= 5.0 && fy >= 3.0 && fy <= 13.0) || tri(fx, fy, 5.0, 13.0, false),
+                1 => tri(fx, fy, 4.0, 13.0, true),
+                2 => fy >= 3.0 && fy <= 13.0 && ((fx >= 4.0 && fx <= 7.0) || (fx >= 9.0 && fx <= 12.0)),
+                _ => (fx >= 11.0 && fx <= 13.0 && fy >= 3.0 && fy <= 13.0) || tri(fx, fy, 3.0, 11.0, true),
+            };
+            if on {
+                px[(y * n + x) as usize] = 0xffff_ffff;
+            }
+        }
+    }
+    let mask = vec![0u8; (n * n / 8) as usize];
+    unsafe {
+        let color = CreateBitmap(n, n, 1, 32, Some(px.as_ptr() as *const _));
+        let hmask = CreateBitmap(n, n, 1, 1, Some(mask.as_ptr() as *const _));
+        let info = ICONINFO { fIcon: true.into(), xHotspot: 0, yHotspot: 0, hbmMask: hmask, hbmColor: color };
+        let icon = CreateIconIndirect(&info).unwrap_or(HICON::default());
+        let _ = DeleteObject(color.into());
+        let _ = DeleteObject(hmask.into());
+        icon
+    }
+}
+
+fn thumb_button(id: u32, icon: windows::Win32::UI::WindowsAndMessaging::HICON, tip: &str) -> windows::Win32::UI::Shell::THUMBBUTTON {
+    use windows::Win32::UI::Shell::{THBF_ENABLED, THB_FLAGS, THB_ICON, THB_TOOLTIP, THUMBBUTTON};
+    let mut sz = [0u16; 260];
+    for (i, c) in tip.encode_utf16().take(259).enumerate() {
+        sz[i] = c;
+    }
+    THUMBBUTTON { dwMask: THB_ICON | THB_TOOLTIP | THB_FLAGS, iId: id, iBitmap: 0, hIcon: icon, szTip: sz, dwFlags: THBF_ENABLED }
+}
+
+fn thumb_add(t: &mut Thumb) {
+    use windows::Win32::Foundation::HWND;
+    if t.added {
+        return;
+    }
+    let play = if t.playing { (t.icons[2], "Pauza") } else { (t.icons[1], "Odtwórz") };
+    let buttons = [thumb_button(THUMB_PREV, t.icons[0], "Poprzedni"), thumb_button(THUMB_PLAY, play.0, play.1), thumb_button(THUMB_NEXT, t.icons[3], "Następny")];
+    unsafe {
+        if t.list.ThumbBarAddButtons(HWND(t.hwnd as *mut _), &buttons).is_ok() {
+            t.added = true;
+        }
+    }
+}
+
+unsafe extern "system" fn thumb_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    msg: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _id: usize,
+    _data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::UI::Shell::{DefSubclassProc, THBN_CLICKED};
+    use windows::Win32::UI::WindowsAndMessaging::WM_COMMAND;
+    if msg == WM_COMMAND && ((wparam.0 >> 16) & 0xffff) as u32 == THBN_CLICKED {
+        match (wparam.0 & 0xffff) as u32 {
+            THUMB_PREV => later(crate::player::prev),
+            THUMB_PLAY => later(crate::player::play_pause),
+            THUMB_NEXT => later(crate::player::next),
+            _ => {}
+        }
+        return windows::Win32::Foundation::LRESULT(0);
+    }
+    // Explorer utworzył (albo odtworzył po restarcie) przycisk na pasku zadań.
+    // try_borrow: wywołania WinAPI w thumb_state mogą wrócić tu synchronicznie.
+    let created = THUMB.with(|t| t.try_borrow().ok().and_then(|t| t.as_ref().map(|t| t.created_msg)).unwrap_or(0));
+    if created != 0 && msg == created {
+        THUMB.with(|t| {
+            if let Ok(mut b) = t.try_borrow_mut() {
+                if let Some(t) = b.as_mut() {
+                    t.added = false;
+                    thumb_add(t);
+                }
+            }
+        });
+    }
+    DefSubclassProc(hwnd, msg, wparam, lparam)
+}
+
+/// Przyciski miniatury głównego okna – wołane raz po pokazaniu okna.
+pub fn thumb_init(ui: &AppWindow) {
+    use windows::core::w;
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED};
+    use windows::Win32::UI::Shell::{ITaskbarList3, SetWindowSubclass, TaskbarList};
+    use windows::Win32::UI::WindowsAndMessaging::RegisterWindowMessageW;
+    let h = hwnd(ui);
+    if h == 0 || THUMB.with(|t| t.borrow().is_some()) {
+        return;
+    }
+    unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        let Ok(list) = CoCreateInstance::<_, ITaskbarList3>(&TaskbarList, None, CLSCTX_INPROC_SERVER) else { return };
+        if list.HrInit().is_err() {
+            return;
+        }
+        let created_msg = RegisterWindowMessageW(w!("TaskbarButtonCreated"));
+        let mut t = Thumb { hwnd: h, list, icons: [thumb_icon(0), thumb_icon(1), thumb_icon(2), thumb_icon(3)], added: false, playing: false, created_msg };
+        thumb_add(&mut t);
+        THUMB.with(|c| *c.borrow_mut() = Some(t));
+        let _ = SetWindowSubclass(HWND(h as *mut _), Some(thumb_proc), 0x4f4d50, 0);
+    }
+}
+
+/// Ikona odtwórz/pauza zgodna ze stanem odtwarzania.
+pub fn thumb_state(app: &App) {
+    use windows::Win32::Foundation::HWND;
+    let playing = crate::player::is_playing(app);
+    THUMB.with(|t| {
+        let Ok(mut b) = t.try_borrow_mut() else { return };
+        let Some(t) = b.as_mut() else { return };
+        if !t.added {
+            thumb_add(t);
+        }
+        if t.playing == playing || !t.added {
+            t.playing = playing;
+            return;
+        }
+        t.playing = playing;
+        let btn = if playing { thumb_button(THUMB_PLAY, t.icons[2], "Pauza") } else { thumb_button(THUMB_PLAY, t.icons[1], "Odtwórz") };
+        unsafe {
+            let _ = t.list.ThumbBarUpdateButtons(HWND(t.hwnd as *mut _), &[btn]);
+        }
+    });
+}

@@ -39,7 +39,12 @@ fn worker() -> &'static crossbeam_channel::Sender<(String, String)> {
                     let bytes = if openmp_core::meta::is_video(p) {
                         openmp_core::meta::folder_cover(p).and_then(|c| std::fs::read(c).ok())
                     } else {
-                        openmp_core::meta::cover(p)
+                        // Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
+                        openmp_core::meta::cover(p).or_else(|| {
+                            let t = openmp_core::meta::read(p);
+                            let artist = if t.album_artist.trim().is_empty() { &t.artist } else { &t.album_artist };
+                            openmp_core::coverart::fetch(artist, &t.album)
+                        })
                     };
                     let buf = bytes.and_then(|b| decode(&b, 200));
                     let _ = slint::invoke_from_event_loop(move || {

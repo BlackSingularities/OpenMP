@@ -124,7 +124,12 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
         return;
     }
     if id.starts_with("smart:") {
-        let items = vec![crate::menu::item("smart-del", "Usuń inteligentną listę", "delete", "")];
+        let items = vec![
+            crate::menu::item("smart-rename", "Zmień nazwę…", "edit", ""),
+            crate::menu::item("smart-query", "Zmień filtry…", "edit", ""),
+            crate::menu::sep(),
+            crate::menu::item("smart-del", "Usuń inteligentną listę", "delete", ""),
+        ];
         crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
         return;
     }
@@ -137,6 +142,15 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
 
 pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
     match cmd {
+        "smart-rename" | "smart-query" => {
+            let Some(i) = id.strip_prefix("smart:").and_then(|s| s.parse::<usize>().ok()) else { return };
+            let Some((name, query)) = app.s.smart_lists.get(i).cloned() else { return };
+            if cmd == "smart-rename" {
+                crate::dialogs::rename(app, RenameCtx::SmartName(i), "Nazwa inteligentnej listy", &name);
+            } else {
+                crate::dialogs::rename(app, RenameCtx::SmartQuery(i), "Filtry, np. ocena>=4 rok:1990-1999 gatunek:rock", &query);
+            }
+        }
         "smart-del" => {
             if let Some(i) = id.strip_prefix("smart:").and_then(|s| s.parse::<usize>().ok()) {
                 if i < app.s.smart_lists.len() {

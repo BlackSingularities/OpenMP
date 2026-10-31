@@ -52,6 +52,8 @@ pub fn publish(app: &mut App) {
     p.set_auto_eq(s.auto_eq);
     p.set_wave_style(s.wave_style);
     p.set_online_lyrics(s.online_lyrics);
+    p.set_online_covers(s.online_covers);
+    openmp_core::coverart::set_enabled(s.online_covers);
     p.set_group_albums(s.group_albums);
     p.set_remaining(s.show_remaining);
     p.set_compact(s.compact);
@@ -260,6 +262,10 @@ pub fn changed(app: &mut App, key: &str) {
             if let Some(m) = &app.mpv {
                 m.set("sub-font-size", &app.s.sub_size.to_string());
             }
+        }
+        "online-covers" => {
+            app.s.online_covers = p.get_online_covers();
+            openmp_core::coverart::set_enabled(app.s.online_covers);
         }
         "lb-token" => app.s.listenbrainz_token = p.get_lb_token().trim().to_string(),
         "sub-lang" => {

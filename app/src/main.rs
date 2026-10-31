@@ -217,6 +217,9 @@ fn main() {
                 win::set_ontop(app, app.s.always_on_top);
             }
             win::smtc_init(app);
+            if let Some(ui) = app.ui() {
+                win::thumb_init(&ui);
+            }
             libview::watch(app);
             let stale = library::now().saturating_sub(app.lib.scanned) > 6 * 3600;
             let has_folders = !app.s.library_folders.is_empty() || !app.s.video_folders.is_empty();
@@ -253,6 +256,7 @@ fn main() {
                 radio::icy_tick(app);
                 libview::scan_tick(app);
                 player::scrobble_tick(app);
+                win::thumb_state(app);
                 if app.last_smtc.elapsed() > Duration::from_secs(2) {
                     app.last_smtc = Instant::now();
                     win::smtc_state(app);

@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.2.1
+
+- Przyciski na miniaturze w pasku zadań: poprzedni, odtwórz/pauza, następny.
+- Brakujące okładki albumów pobierane z MusicBrainz i Cover Art Archive (można wyłączyć w ustawieniach).
+- Inteligentne listy: zmiana nazwy i filtrów z menu w panelu.
+
 ## 1.2.0
 
 - Mocniejszy, pełniejszy dźwięk: ReplayGain domyślnie wyłączony (ściszał głośne nagrania o 6–10 dB), łagodniejsza krzywa głośności, ogranicznik tylko przy realnym przesterowaniu.

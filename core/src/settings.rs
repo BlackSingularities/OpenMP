@@ -24,6 +24,8 @@ pub struct Settings {
     pub show_lyrics: bool,
     /// Pobieranie brakujących tekstów z LRCLIB.
     pub online_lyrics: bool,
+    /// Pobieranie brakujących okładek z MusicBrainz / Cover Art Archive.
+    pub online_covers: bool,
     /// Token ListenBrainz – pusty wyłącza scrobbling.
     pub listenbrainz_token: String,
     pub show_sidebar: bool,
@@ -97,6 +99,7 @@ impl Default for Settings {
             always_on_top: false,
             show_lyrics: false,
             online_lyrics: true,
+            online_covers: true,
             listenbrainz_token: String::new(),
             show_sidebar: true,
             scroll_title: true,

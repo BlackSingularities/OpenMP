@@ -542,6 +542,12 @@ export component SettingsDialog inherits Dialog {
                     checked <=> Prefs.online-lyrics;
                     toggled => { Prefs.changed("online-lyrics"); }
                 }
+                SettingSwitch {
+                    title: "Pobieraj brakujące okładki";
+                    hint: "Z MusicBrainz i Cover Art Archive – wysyła tylko wykonawcę i album";
+                    checked <=> Prefs.online-covers;
+                    toggled => { Prefs.changed("online-covers"); }
+                }
                 SettingRow {
                     title: "Token ListenBrainz";
                     hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";

@@ -70,6 +70,9 @@ pub enum RenameCtx {
     RadioUrl,
     /// Ścieżka sieciowa: 0 – muzyka, 1 – wideo.
     NetFolder(i32),
+    /// Inteligentna lista: nazwa albo zapytanie.
+    SmartName(usize),
+    SmartQuery(usize),
 }
 
 #[derive(Clone, Debug)]

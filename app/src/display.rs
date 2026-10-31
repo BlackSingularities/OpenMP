@@ -95,6 +95,8 @@ pub fn show_track(app: &mut App) {
     let station_icon = c.station.as_ref().map(|s| s.favicon.clone()).filter(|f| !f.is_empty());
     let from_cover = app.s.accent_from_cover;
     let weak = app.ui.clone();
+    let artist = if t.album_artist.trim().is_empty() { t.artist.clone() } else { t.album_artist.clone() };
+    let album = t.album.clone();
     std::thread::spawn(move || {
         let bytes = match station_icon {
             Some(url) => ureq::get(&url).timeout(std::time::Duration::from_secs(6)).call().ok().and_then(|r| {
@@ -104,7 +106,7 @@ pub fn show_track(app: &mut App) {
             }),
             None if meta::is_url(&path) => None,
             None if meta::is_video(Path::new(&path)) => meta::folder_cover(Path::new(&path)).and_then(|p| std::fs::read(p).ok()),
-            None => meta::cover(Path::new(&path)),
+            None => meta::cover(Path::new(&path)).or_else(|| openmp_core::coverart::fetch(&artist, &album)),
         };
         let decoded = bytes.as_ref().and_then(|b| image::load_from_memory(b).ok());
         let (big, back, tint) = match &decoded {
