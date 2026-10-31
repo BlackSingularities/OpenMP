@@ -36,6 +36,8 @@ export global Player {
     in-out property <[float]> peaks;
     in-out property <string> scope-path;
     in-out property <string> spectrum-path;
+    // Ścieżka nowych wizualizacji (tryby 5–10).
+    in-out property <string> viz-path;
     in-out property <float> vu-l;
     in-out property <float> vu-r;
     in-out property <float> vu-pl;
@@ -43,10 +45,16 @@ export global Player {
     in-out property <bool> viz-active;
     in-out property <string> viz-note;
     in-out property <string> wave;
+    // Druga warstwa taśmy (0 – jaśniejsza, 1 – przygaszona) i żywa część przy znaczniku.
+    in-out property <string> wave2;
+    in-out property <int> wave2-kind;
+    in-out property <string> wave-live;
     // Tekst piosenki i informacje
     in-out property <[LyricLine]> lyrics;
     in-out property <bool> lyrics-synced;
     in-out property <int> lyrics-active: -1;
+    // Tekst widoczny obok opisu utworu (szerokie okno) – wtedy bez karty w panelu bocznym.
+    in-out property <bool> hero-lyrics;
     in-out property <string> lyrics-source;
     callback save-lyrics();
     in-out property <[Opt]> details;
@@ -64,6 +72,7 @@ export global Player {
     callback cycle-repeat();
     callback cycle-viz();
     callback toggle-fav();
+    callback reveal-current();
     callback show-current();
     callback open-cover();
     callback queue-remove(int);

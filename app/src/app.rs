@@ -157,6 +157,8 @@ pub struct App {
     pub lyrics: Vec<(f64, String)>,
     pub lyrics_text: String,
     pub wave_raw: Vec<f32>,
+    /// Ostatnie widma do widma 3D.
+    pub viz_hist: std::collections::VecDeque<Vec<f32>>,
     pub music_geom: Option<(i32, i32, u32, u32)>,
     pub dirty: bool,
     /// Element (`Playing::item`) już wysłany do ListenBrainz.

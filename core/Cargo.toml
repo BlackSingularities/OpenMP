@@ -1,6 +1,6 @@
 [package]
 name = "openmp-core"
-version = "1.2.6"
+version = "1.2.7"
 description = "OpenMP – silnik odtwarzania, biblioteka i playlisty"
 authors = ["Adam Rędzikowski"]
 edition = "2021"
@@ -28,3 +28,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 rand = "0.9"
 wasapi = "0.19"
 ebur128 = "0.1"
+
+[dependencies.windows]
+version = "0.61"
+features = ["Win32_Foundation", "Win32_Media_Audio", "Win32_Media_Audio_Endpoints", "Win32_System_Com"]

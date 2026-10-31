@@ -89,9 +89,10 @@ impl Exclusive {
                     let ev = client.set_get_eventhandle().map_err(|e| e.to_string())?;
                     let frames = client.get_buffer_size().map_err(|e| e.to_string())? as usize;
                     let rc = client.get_audiorenderclient().map_err(|e| e.to_string())?;
-                    Ok((client, ev, rc, fmt, rate, frames, wf.get_blockalign() as usize))
+                    let id = dev.get_id().unwrap_or_default();
+                    Ok((client, ev, rc, fmt, rate, frames, wf.get_blockalign() as usize, id))
                 };
-                let (client, ev, rc, fmt, rate, frames, block) = match init() {
+                let (client, ev, rc, fmt, rate, frames, block, id) = match init() {
                     Ok(v) => v,
                     Err(e) => {
                         let _ = tx.send(Err(e));
@@ -106,9 +107,19 @@ impl Exclusive {
                 let mut bytes = vec![0u8; frames * block];
                 let mut fade = 0.0f32;
                 let mut dither = Dither::default();
+                // Mikser Windows nie działa w trybie wyłącznym – głośność systemu stosujemy sami.
+                let sysvol = endpoint_volume(&id);
                 // Pierwszy okres trzeba wpisać przed startem strumienia.
                 let mut fill = |tmp: &mut Vec<f32>, bytes: &mut Vec<u8>, fade: &mut f32| {
                     render(&sh, tmp, frames, rate, fade);
+                    if let Some(v) = &sysvol {
+                        let g = system_gain(v);
+                        if g < 0.9999 {
+                            for s in tmp.iter_mut() {
+                                *s *= g;
+                            }
+                        }
+                    }
                     encode(tmp, fmt, &mut dither, bytes);
                 };
                 fill(&mut tmp, &mut bytes, &mut fade);
@@ -157,6 +168,41 @@ fn encode(src: &[f32], fmt: Fmt, d: &mut Dither, out: &mut [u8]) {
                 let v = if store == 4 && valid < 32 { v << (32 - valid) } else { v };
                 o.copy_from_slice(&v.to_le_bytes()[..store]);
             }
+        }
+    }
+}
+
+/// Regulacja głośności Windows dla urządzenia – gdy karta nie robi tego sprzętowo.
+fn endpoint_volume(id: &str) -> Option<windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume> {
+    use windows::core::PCWSTR;
+    use windows::Win32::Media::Audio::Endpoints::{IAudioEndpointVolume, ENDPOINT_HARDWARE_SUPPORT_VOLUME};
+    use windows::Win32::Media::Audio::{IMMDeviceEnumerator, MMDeviceEnumerator};
+    use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_ALL};
+    if id.is_empty() {
+        return None;
+    }
+    unsafe {
+        let en: IMMDeviceEnumerator = CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).ok()?;
+        let w: Vec<u16> = id.encode_utf16().chain(std::iter::once(0)).collect();
+        let dev = en.GetDevice(PCWSTR(w.as_ptr())).ok()?;
+        let v: IAudioEndpointVolume = dev.Activate(CLSCTX_ALL, None).ok()?;
+        // Karta ścisza sama (sprzętowo) – nie mnożymy drugi raz.
+        if v.QueryHardwareSupport().ok()? & ENDPOINT_HARDWARE_SUPPORT_VOLUME != 0 {
+            return None;
+        }
+        Some(v)
+    }
+}
+
+/// Bieżąca głośność systemu jako mnożnik (wyciszenie – zero).
+fn system_gain(v: &windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume) -> f32 {
+    unsafe {
+        if v.GetMute().map(|m| m.as_bool()).unwrap_or(false) {
+            return 0.0;
+        }
+        match v.GetMasterVolumeLevel() {
+            Ok(db) => 10f32.powf(db / 20.0).min(1.0),
+            Err(_) => 1.0,
         }
     }
 }

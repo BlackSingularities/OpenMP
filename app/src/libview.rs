@@ -79,6 +79,16 @@ pub fn rebuild_nav(app: &mut App) {
         let root = root.trim_end_matches(['\\', '/']).to_string();
         nav_tree(app, &mut v, &root, &folder_name(&root), count, 0);
     }
+    // Zwinięte sekcje: sam nagłówek, bez pozycji pod nim.
+    let mut hidden = false;
+    v.retain_mut(|it| {
+        if it.section {
+            hidden = app.s.nav_collapsed.iter().any(|c| c.as_str() == it.id.as_str());
+            it.expander = if hidden { 1 } else { 2 };
+            return true;
+        }
+        !hidden
+    });
     app.m.nav.set_vec(v);
 }
 
@@ -108,6 +118,17 @@ fn nav_tree(app: &App, v: &mut Vec<NavItem>, dir: &str, label: &str, count: usiz
 
 /// Strzałka przy folderze w panelu: rozwija albo zwija podfoldery.
 pub fn nav_toggle(app: &mut App, id: &str) {
+    if id.starts_with("sec-") {
+        // Nagłówek sekcji: zwija albo rozwija całą sekcję (zapamiętane w ustawieniach).
+        if let Some(i) = app.s.nav_collapsed.iter().position(|c| c == id) {
+            app.s.nav_collapsed.remove(i);
+        } else {
+            app.s.nav_collapsed.push(id.to_string());
+        }
+        app.dirty = true;
+        rebuild_nav(app);
+        return;
+    }
     let Some(dir) = id.strip_prefix("root:") else { return };
     let key = dir.to_lowercase();
     if !app.libv.expanded.remove(&key) {

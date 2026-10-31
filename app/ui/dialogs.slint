@@ -530,11 +530,14 @@ export component SettingsDialog inherits Dialog {
                 }
                 if Prefs.show-waveform: SettingRow {
                     title: "Styl taśmy utworu";
-                    Segmented {
-                        small: true;
-                        options: ["Fala", "Słupki", "Od dołu", "Kontur"];
-                        selected <=> Prefs.wave-style;
-                        changed => { Prefs.changed("wave-style"); }
+                    ComboBox {
+                        width: 200px;
+                        model: ["Fala", "Słupki", "Od dołu", "Kontur", "Gęste słupki", "Lustro", "Diody", "Słupki 3D", "Fala 3D", "Linia", "Kropki"];
+                        current-index: Prefs.wave-style;
+                        selected => {
+                            Prefs.wave-style = self.current-index;
+                            Prefs.changed("wave-style");
+                        }
                     }
                 }
                 SettingSwitch {

@@ -87,6 +87,8 @@ pub fn show_track(app: &mut App) {
     }));
     p.set_state_text(ss(if c.station.is_some() { "na żywo" } else { "" }));
     p.set_wave(ss(""));
+    p.set_wave2(ss(""));
+    p.set_wave_live(ss(""));
     p.set_viz_note(ss(""));
     ui.global::<Video>().set_title(ss(&title));
     // Okładka, tło i barwa – w tle.
@@ -159,18 +161,15 @@ pub fn show_track(app: &mut App) {
     app.wave_raw.clear();
     if app.s.show_waveform && !meta::is_url(&t.path) && !c.video {
         let path = t.path.clone();
-        let style = app.s.wave_style;
-        let weak = app.ui.clone();
         std::thread::spawn(move || {
             let cancel = || GEN.load(Ordering::SeqCst) != gen;
             let Some(w) = openmp_core::audio::viz::waveform(Path::new(&path), 500, &cancel) else { return };
-            let s = wave_path(&w, style);
             let _ = slint::invoke_from_event_loop(move || {
                 if GEN.load(Ordering::SeqCst) == gen {
-                    if let Some(ui) = weak.upgrade() {
-                        ui.global::<Player>().set_wave(ss(s));
-                    }
-                    later(move |app| app.wave_raw = w);
+                    later(move |app| {
+                        app.wave_raw = w;
+                        restyle_wave(app);
+                    });
                 }
             });
         });
@@ -332,69 +331,14 @@ pub fn save_lyrics(app: &mut App) {
     }
 }
 
-/// Ścieżka taśmy utworu w układzie 1000×100 w wybranym stylu.
-pub fn wave_path(w: &[f32], style: i32) -> String {
-    let n = w.len();
-    if n < 2 {
-        return String::new();
-    }
-    let x_of = |i: usize| i as f32 * 1000.0 / (n - 1) as f32;
-    let mut s = String::with_capacity(n * 24);
-    match style {
-        // Słupki z przerwami (segmenty).
-        1 => {
-            let count = 120usize;
-            let step = 1000.0 / count as f32;
-            for k in 0..count {
-                let a = k * n / count;
-                let b = ((k + 1) * n / count).max(a + 1).min(n);
-                let v = w[a..b].iter().cloned().fold(0.0f32, f32::max).max(0.04);
-                let x = k as f32 * step + step * 0.18;
-                let bw = step * 0.64;
-                let h = v * 46.0;
-                s.push_str(&format!("M {x:.1} {:.1} h {bw:.1} v {:.1} h {:.1} Z ", 50.0 - h, h * 2.0, -bw));
-            }
-        }
-        // Fala jednostronna, od dołu.
-        2 => {
-            s.push_str("M 0 100");
-            for (i, v) in w.iter().enumerate() {
-                s.push_str(&format!(" L {:.1} {:.1}", x_of(i), 100.0 - v.max(0.06) * 94.0));
-            }
-            s.push_str(" L 1000 100 Z");
-        }
-        // Kontur: cienka wstęga po górnej krawędzi fali i linia środka.
-        3 => {
-            for (i, v) in w.iter().enumerate() {
-                s.push_str(&format!("{}{:.1} {:.1}", if i == 0 { "M " } else { " L " }, x_of(i), 50.0 - v.max(0.06) * 46.0));
-            }
-            for (i, v) in w.iter().enumerate().rev() {
-                s.push_str(&format!(" L {:.1} {:.1}", x_of(i), 50.0 - v.max(0.06) * 46.0 + 5.0));
-            }
-            s.push_str(" Z M 0 49 L 1000 49 L 1000 51 L 0 51 Z");
-        }
-        // Fala symetryczna względem środka.
-        _ => {
-            for (i, v) in w.iter().enumerate() {
-                s.push_str(&format!("{}{:.1} {:.1}", if i == 0 { "M " } else { " L " }, x_of(i), 50.0 - v.max(0.06) * 46.0));
-            }
-            for (i, v) in w.iter().enumerate().rev() {
-                s.push_str(&format!(" L {:.1} {:.1}", x_of(i), 50.0 + v.max(0.06) * 46.0));
-            }
-            s.push_str(" Z");
-        }
-    }
-    s
-}
-
 /// Nowy styl taśmy bez ponownego dekodowania utworu.
 pub fn restyle_wave(app: &mut App) {
-    if app.wave_raw.is_empty() {
-        return;
-    }
-    let s = wave_path(&app.wave_raw, app.s.wave_style);
+    let (a, b, kind) = crate::wave::paths(&app.wave_raw, app.s.wave_style);
     if let Some(ui) = app.ui() {
-        ui.global::<Player>().set_wave(ss(s));
+        let p = ui.global::<Player>();
+        p.set_wave(ss(a));
+        p.set_wave2(ss(b));
+        p.set_wave2_kind(kind);
     }
 }
 
@@ -450,6 +394,13 @@ pub fn frame(app: &mut App) {
     let total = if playing { total } else { 0 };
     let bands = app.s.viz_bands.clamp(8, 128) as usize;
     app.analyzer.update(bands, app.engine.rate(), total, dt, app.s.viz_sensitivity);
+    // Żywa część taśmy przy znaczniku odtwarzania.
+    if app.s.show_waveform && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {
+        let pos = p.get_pos() / p.get_duration();
+        p.set_wave_live(ss(crate::wave::live(&app.wave_raw, pos, &app.analyzer.bars)));
+    } else if !p.get_wave_live().is_empty() {
+        p.set_wave_live(ss(""));
+    }
     let viz = app.s.viz;
     if viz == 0 || viz == 1 {
         if app.m.bars.row_count() != bands {
@@ -466,6 +417,24 @@ pub fn frame(app: &mut App) {
         }
     } else if viz == 2 {
         p.set_scope_path(ss(app.analyzer.scope_path(220)));
+    } else if viz >= 5 {
+        use crate::vizpaths as vp;
+        let path = match viz {
+            vp::MIRROR => vp::mirror(&app.analyzer.bars),
+            vp::RADIAL => vp::radial(&app.analyzer.bars),
+            vp::WATERFALL => {
+                app.viz_hist.push_front(app.analyzer.bars.clone());
+                app.viz_hist.truncate(18);
+                vp::waterfall(&app.viz_hist)
+            }
+            vp::LEDS => vp::leds(&app.analyzer.bars),
+            vp::LISSAJOUS => {
+                let s = app.analyzer.input().clone();
+                vp::lissajous(&s)
+            }
+            _ => vp::dots(&app.analyzer.bars),
+        };
+        p.set_viz_path(ss(path));
     } else if viz == 3 {
         p.set_vu_l(app.analyzer.vu[0]);
         p.set_vu_r(app.analyzer.vu[1]);
@@ -497,12 +466,12 @@ pub fn frame(app: &mut App) {
 }
 
 pub fn cycle_viz(app: &mut App) {
-    app.s.viz = (app.s.viz + 1) % 5;
+    app.s.viz = crate::vizpaths::next(app.s.viz);
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_viz_mode(app.s.viz);
     }
-    let names = ["Wizualizacja: słupki", "Wizualizacja: widmo", "Wizualizacja: oscyloskop", "Wizualizacja: wskaźniki VU", "Wizualizacja wyłączona"];
-    let n = names[app.s.viz as usize % 5];
-    app.toast(n);
+    let names = ["słupki", "widmo", "oscyloskop", "wskaźniki VU", "", "lustro", "okrąg", "widmo 3D", "diody", "stereo (Lissajous)", "kropki"];
+    let n = names.get(app.s.viz as usize).copied().unwrap_or("");
+    app.toast(if n.is_empty() { "Wizualizacja wyłączona".to_string() } else { format!("Wizualizacja: {n}") });
     app.dirty = true;
 }

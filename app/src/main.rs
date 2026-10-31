@@ -19,6 +19,8 @@ mod prefs;
 mod radio;
 mod sleep;
 mod video;
+mod vizpaths;
+mod wave;
 mod win;
 
 use std::cell::RefCell;
@@ -133,6 +135,7 @@ fn main() {
         lyrics: Vec::new(),
         lyrics_text: String::new(),
         wave_raw: Vec::new(),
+        viz_hist: Default::default(),
         music_geom: None,
         menu_win: None,
         dialogs: None,
@@ -437,6 +440,13 @@ fn wire(ui: &AppWindow) {
     p.on_cycle_repeat(|| later(keys::cycle_repeat));
     p.on_cycle_viz(|| later(display::cycle_viz));
     p.on_save_lyrics(|| later(display::save_lyrics));
+    p.on_reveal_current(|| later(|app| {
+        if let Some(c) = &app.cur {
+            if !openmp_core::meta::is_url(&c.info.path) {
+                win::reveal(&c.info.path);
+            }
+        }
+    }));
     p.on_toggle_fav(|| later(|app| {
         if let Some(c) = app.cur.clone() {
             let s = app.stats.entry(&c.info.path);

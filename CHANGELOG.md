@@ -1,5 +1,14 @@
 # Zmiany
 
+## 1.2.7
+
+- Tryb wyłączny reaguje na głośność Windows (i wyciszenie) – program stosuje ją sam, gdy karta nie robi tego sprzętowo.
+- Taśma utworu: 11 stylów (m.in. gęste słupki, lustro, diody, słupki 3D, fala 3D, linia, kropki), gradienty, poświata i znacznik z kropkami, podgląd miejsca pod kursorem, a przy znaczniku żywe słupki poruszające się z muzyką.
+- Nowe wizualizacje: lustro, okrąg, widmo 3D, diody, stereo (Lissajous), kropki.
+- Tekst piosenki obok tytułu w szerokim oknie – wiersz po wierszu przy znacznikach czasu, ręcznie przewijany bez nich; karta „Tekst” w panelu znika wtedy.
+- Zwijane sekcje panelu nawigacji (zapamiętywane), logo na środku, przycisk chowania panelu i przywracania go z paska tytułu.
+- Przycisk „Pokaż plik w Eksploratorze” przy bieżącym utworze.
+
 ## 1.2.6
 
 - Podpowiedź po najechaniu na każdym przycisku z ikoną (zamykanie, poprzedni/następny w wideo, wyciszanie, usuwanie z kolejki, czyszczenie pola).

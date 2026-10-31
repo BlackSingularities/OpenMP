@@ -9,7 +9,7 @@ import { SeekBar, Visualizer, Fmt } from "display.slint";
 import { Player, Prefs, Ui } from "state.slint";
 
 export global VizNames {
-    out property <[string]> names: ["Słupki", "Widmo", "Oscyloskop", "Wskaźniki VU", "Wyłączona"];
+    out property <[string]> names: ["Słupki", "Widmo", "Oscyloskop", "Wskaźniki VU", "Wyłączona", "Lustro", "Okrąg", "Widmo 3D", "Diody", "Stereo", "Kropki"];
 }
 
 // Okładka z poświatą w kolorze akcentu i wizualizacją na dolnej części obrazu.
@@ -50,6 +50,7 @@ export component CoverArt inherits Rectangle {
             peaks: Player.peaks;
             scope-path: Player.scope-path;
             spectrum-path: Player.spectrum-path;
+            viz-path: Player.viz-path;
             vu-l: Player.vu-l;
             vu-r: Player.vu-r;
             vu-pl: Player.vu-pl;
@@ -176,7 +177,7 @@ export component NowInfo inherits VerticalLayout {
             tip: "Ulubiony";
             clicked => { Player.toggle-fav(); }
         }
-        IconBtn {
+        if !Player.hero-lyrics: IconBtn {
             icon: Icons.lyrics;
             size: 30px;
             icon-size: 17px;
@@ -197,6 +198,13 @@ export component NowInfo inherits VerticalLayout {
                 Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
                 Prefs.changed("side-panel");
             }
+        }
+        IconBtn {
+            icon: Icons.folder-open;
+            size: 30px;
+            icon-size: 17px;
+            tip: "Pokaż plik w Eksploratorze";
+            clicked => { Player.reveal-current(); }
         }
         IconBtn {
             icon: Icons.queue;
@@ -259,9 +267,43 @@ export component NowInfo inherits VerticalLayout {
     }
 }
 
+// Tekst piosenki obok opisu utworu: wiersz po wierszu przy znacznikach czasu,
+// bez nich – przewijany ręcznie kółkiem myszy.
+component HeroLyrics inherits Rectangle {
+    clip: true;
+    lyr := Flickable {
+        property <length> line-h: 34px;
+        content-height: Player.lyrics.length * line-h + (Player.lyrics-synced ? self.height : 32px);
+        property <int> act: Player.lyrics-active;
+        changed act => {
+            if Player.lyrics-synced && self.act >= 0 {
+                self.content-y = -(self.act * self.line-h);
+            }
+        }
+        animate content-y { duration: 400ms; easing: ease-out; }
+        for l[i] in Player.lyrics: Text {
+            x: 0;
+            y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px) + i * lyr.line-h;
+            width: lyr.width;
+            height: lyr.line-h;
+            text: l.text;
+            color: !Player.lyrics-synced ? Theme.text2 : l.active ? Theme.text : Theme.text2.with-alpha(max(0.22, 0.85 - abs(i - Player.lyrics-active) * 0.16));
+            font-size: l.active ? 22px : 17px;
+            font-weight: l.active ? 700 : 400;
+            vertical-alignment: center;
+            overflow: elide;
+            animate color { duration: 250ms; }
+        }
+    }
+}
+
 // Okładka i opis obok siebie – górna część pełnego okna i cały widok pomniejszony.
 export component Hero inherits Rectangle {
     in property <bool> small;
+    // Szerokie okno i tekst dostępny – kolumna z tekstem obok opisu.
+    property <bool> show-lyrics: !root.small && root.width >= 1050px && !Player.idle && Player.lyrics.length > 0;
+    init => { Player.hero-lyrics = self.show-lyrics; }
+    changed show-lyrics => { Player.hero-lyrics = self.show-lyrics; }
     HorizontalLayout {
         spacing: root.small ? 18px : 36px;
         padding-left: root.small ? 4px : 8px;
@@ -278,6 +320,9 @@ export component Hero inherits Rectangle {
         NowInfo {
             horizontal-stretch: 1;
             small: root.small;
+        }
+        if root.show-lyrics: HeroLyrics {
+            width: min(root.width * 0.34, 520px);
         }
     }
 }
@@ -320,6 +365,9 @@ export component BottomBar inherits Rectangle {
             value: Player.duration > 0 ? Player.pos / Player.duration : 0;
             duration: Player.duration;
             wave: Player.wave;
+            wave2: Player.wave2;
+            wave2-kind: Player.wave2-kind;
+            wave-live: Player.wave-live;
             show-wave: Prefs.show-waveform;
             ab-a: Player.ab-a;
             ab-b: Player.ab-b;

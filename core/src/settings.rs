@@ -77,6 +77,8 @@ pub struct Settings {
     pub custom_eq: Vec<(String, Vec<f32>)>,
     /// Inteligentne listy: nazwa i zapytanie z filtrami (`library::Query`).
     pub smart_lists: Vec<(String, String)>,
+    /// Zwinięte sekcje panelu nawigacji (identyfikatory „sec-…”).
+    pub nav_collapsed: Vec<String>,
     pub skip_version: String,
     /// Wersja ustawień dźwięku – stare domyślne (ReplayGain ściszający utwory) są poprawiane raz.
     #[serde(default)]
@@ -140,6 +142,7 @@ impl Default for Settings {
             library_folders: dirs::audio_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
             video_folders: dirs::video_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
             custom_eq: Vec::new(),
+            nav_collapsed: Vec::new(),
             smart_lists: vec![
                 ("Najlepiej oceniane".into(), "ocena>=4".into()),
                 ("Często słuchane".into(), "odtworzenia>=5".into()),

@@ -22,6 +22,10 @@ export component SeekBar inherits Rectangle {
     in property <float> value;
     in property <float> duration;
     in property <string> wave;
+    // Druga warstwa (0 – jaśniejsze wierzchy 3D, 1 – przygaszone odbicie) i żywa część przy znaczniku.
+    in property <string> wave2;
+    in property <int> wave2-kind;
+    in property <string> wave-live;
     in property <bool> show-wave;
     in property <[float]> chapters;
     in property <bool> enabled: true;
@@ -36,8 +40,17 @@ export component SeekBar inherits Rectangle {
     property <float> shown: ta.pressed ? drag-value : value;
     property <color> c-played: Theme.tint;
     property <color> c-rest: on-video ? #ffffff40 : #ffffff30;
+    property <brush> b-played: @linear-gradient(0deg, Theme.tint.darker(0.15) 0%, Theme.tint 45%, Theme.tint.brighter(0.55) 100%);
+    property <brush> b-rest: @linear-gradient(0deg, root.c-rest.with-alpha(0.12) 0%, root.c-rest 60%, root.c-rest.brighter(0.4) 100%);
+    property <brush> b2-played: root.wave2-kind == 1 ? Theme.tint.with-alpha(0.32) : Theme.tint.brighter(0.75);
+    property <brush> b2-rest: root.wave2-kind == 1 ? root.c-rest.with-alpha(0.1) : root.c-rest.brighter(0.9);
     if root.show-wave && root.wave != "": Rectangle {
-        // Fala: część odegrana w kolorze akcentu, reszta przygaszona.
+        // Tło taśmy: delikatna płyta z linią środka.
+        Rectangle {
+            border-radius: 6px;
+            background: @linear-gradient(180deg, #ffffff05 0%, #ffffff0a 50%, #ffffff03 100%);
+        }
+        // Reszta utworu: przygaszona.
         Path {
             width: 100%;
             height: 100%;
@@ -45,9 +58,20 @@ export component SeekBar inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            fill: root.c-rest;
+            fill: root.b-rest;
             stroke-width: 0;
         }
+        if root.wave2 != "": Path {
+            width: 100%;
+            height: 100%;
+            commands: root.wave2;
+            viewbox-width: 1000;
+            fit: fill;
+            viewbox-height: 100;
+            fill: root.b2-rest;
+            stroke-width: 0;
+        }
+        // Część odegrana: w kolorze akcentu, z gradientem.
         Rectangle {
             x: 0;
             width: root.width * clamp(root.shown, 0, 1);
@@ -61,9 +85,44 @@ export component SeekBar inherits Rectangle {
                 viewbox-width: 1000;
                 fit: fill;
                 viewbox-height: 100;
-                fill: root.c-played;
+                fill: root.b-played;
                 stroke-width: 0;
             }
+            if root.wave2 != "": Path {
+                x: 0;
+                width: root.width;
+                height: 100%;
+                commands: root.wave2;
+                viewbox-width: 1000;
+                fit: fill;
+                viewbox-height: 100;
+                fill: root.b2-played;
+                stroke-width: 0;
+            }
+        }
+        // Poświata za znacznikiem.
+        Rectangle {
+            x: root.width * clamp(root.shown, 0, 1) - self.width / 2;
+            width: 90px;
+            background: @radial-gradient(circle, Theme.tint.with-alpha(0.38) 0%, Theme.tint.with-alpha(0.12) 40%, transparent 70%);
+        }
+        // Żywa część: słupki z bieżącego widma wokół znacznika.
+        if root.wave-live != "": Path {
+            width: 100%;
+            height: 100%;
+            commands: root.wave-live;
+            viewbox-width: 1000;
+            fit: fill;
+            viewbox-height: 100;
+            fill: @linear-gradient(0deg, Theme.tint.brighter(0.3) 0%, #ffffff 100%);
+            opacity: 0.9;
+            stroke-width: 0;
+        }
+        // Podgląd miejsca pod kursorem.
+        if ta.has-hover && !ta.pressed: Rectangle {
+            x: clamp(ta.mouse-x, 0, root.width) - 0.5px;
+            width: 1px;
+            background: #ffffff60;
         }
     }
     if !root.show-wave || root.wave == "": Rectangle {
@@ -99,10 +158,23 @@ export component SeekBar inherits Rectangle {
         animate width { duration: 100ms; }
     }
     if root.show-wave && root.wave != "": Rectangle {
+        // Znacznik: linia z poświatą i kropki na krańcach.
         x: root.width * clamp(root.shown, 0, 1) - 1px;
         width: 2px;
         height: 100%;
         background: #ffffff;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: Theme.tint.brighter(0.4);
+        for k in 2: Rectangle {
+            x: -3px;
+            y: k == 0 ? -4px : parent.height - 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: #ffffff;
+            drop-shadow-blur: 6px;
+            drop-shadow-color: Theme.tint;
+        }
     }
     if (ta.has-hover || ta.pressed) && root.duration > 0: Rectangle {
         property <float> at: ta.pressed ? root.drag-value : clamp(ta.mouse-x / root.width, 0, 1);
@@ -143,6 +215,7 @@ export component Visualizer inherits Rectangle {
     in property <[float]> peaks;
     in property <string> scope-path;
     in property <string> spectrum-path;
+    in property <string> viz-path;
     in property <float> vu-l;
     in property <float> vu-r;
     in property <float> vu-pl;
@@ -237,6 +310,55 @@ export component Visualizer inherits Rectangle {
             font-size: 9px;
             horizontal-alignment: right;
         }
+    }
+    // Lustro, diody, kropki: wypełnione kształty w układzie 1000×100.
+    if root.mode == 5 || root.mode == 8 || root.mode == 10: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 100;
+        fit: fill;
+        fill: root.mode == 5
+            ? @linear-gradient(0deg, Theme.tint.brighter(0.5) 0%, Theme.tint 30%, Theme.tint.darker(0.2) 50%, Theme.tint 70%, Theme.tint.brighter(0.5) 100%)
+            : @linear-gradient(0deg, Theme.tint 0%, Theme.tint.brighter(0.4) 65%, #ffd166 85%, #ff5c5c 100%);
+        opacity: root.overlay ? 0.9 : 1;
+        stroke-width: 0;
+    }
+    // Okrąg: promienie wokół środka (kwadratowy układ).
+    if root.mode == 6: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 1000;
+        fit: contain;
+        fill: @radial-gradient(circle, Theme.tint.brighter(0.8) 0%, Theme.tint 45%, Theme.tint.darker(0.2) 100%);
+        stroke-width: 0;
+    }
+    // Widmo 3D: linie kolejnych widm w głąb.
+    if root.mode == 7: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 100;
+        fit: fill;
+        fill: transparent;
+        stroke: Theme.tint.brighter(0.35);
+        stroke-width: 1.2px;
+    }
+    // Stereo (Lissajous): obraz przestrzeni dźwięku.
+    if root.mode == 9: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 1000;
+        fit: contain;
+        fill: transparent;
+        stroke: Theme.tint.brighter(0.5);
+        stroke-width: 1.2px;
     }
     if !root.active && root.note != "": Text {
         text: root.note;
