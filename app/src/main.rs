@@ -38,7 +38,14 @@ thread_local! {
 }
 
 fn main() {
+    // Awaria w dowolnym wątku trafia do dziennika – bez konsoli komunikat inaczej by zniknął.
+    std::panic::set_hook(Box::new(|info| {
+        let bt = std::backtrace::Backtrace::force_capture();
+        openmp_core::paths::log(&format!("PANIC {info}
+{bt}"));
+    }));
     let argv: Vec<String> = std::env::args().skip(1).collect();
+    openmp_core::paths::log(&format!("start {} {:?}", openmp_core::version(), argv));
     let add_only = argv.iter().any(|a| a == "--add");
     let files: Vec<String> = argv.iter().filter(|a| !a.starts_with("--")).cloned().collect();
     let settings = Settings::load();
@@ -124,6 +131,7 @@ fn main() {
         lyrics_text: String::new(),
         wave_raw: Vec::new(),
         music_geom: None,
+        dialog_geom: None,
         dirty: false,
         last_save: Instant::now(),
         last_smtc: Instant::now(),
@@ -253,9 +261,16 @@ fn main() {
         });
     });
 
-    let _ = ui.run();
+    let r = ui.run();
+    openmp_core::paths::log(&format!("koniec pętli zdarzeń: {r:?}"));
     with(|app| keys::save_all(app));
     drop(timer);
+    // Stan jest zapisany. Kończymy od razu: zwalnianie bibliotek (mpv, sterowniki dźwięku i grafiki)
+    // potrafiło zawiesić proces z widocznym, martwym oknem.
+    openmp_core::paths::log("wyjście");
+    unsafe {
+        let _ = windows::Win32::System::Threading::TerminateProcess(windows::Win32::System::Threading::GetCurrentProcess(), 0);
+    }
 }
 
 use openmp_core::library;
@@ -366,6 +381,7 @@ fn wire(ui: &AppWindow) {
     u.on_menu_activated(|id| later(move |app| menu::activated(app, &id)));
     u.on_open_main_menu(|x, y| later(move |app| menu::main_menu(app, x, y)));
     u.on_sleep_menu(|x, y| later(move |app| menu::sleep_menu(app, x, y)));
+    u.on_dialog_shown(|shown, need| later(move |app| win::fit_dialog(app, shown, need)));
     u.on_set_mode(|m| later(move |app| keys::set_mode(app, m)));
     u.on_toggle_compact(|| later(keys::toggle_compact));
     u.on_url_accepted(|t| later(move |app| {

@@ -201,6 +201,7 @@ export global Prefs {
     in-out property <float> viz-sensitivity;
     in-out property <bool> show-waveform: true;
     in-out property <int> wave-style;
+    in-out property <bool> auto-eq;
     in-out property <bool> online-lyrics: true;
     in-out property <bool> group-albums: true;
     in-out property <bool> remaining;
@@ -313,4 +314,6 @@ export global Ui {
     callback rename-accepted(string);
     callback key(string, bool, bool, bool);
     callback sleep-menu(length, length);
+    // Okno dialogowe otwarte/zamknięte – za niskie okno programu powiększa się na ten czas.
+    callback dialog-shown(bool, length);
 }

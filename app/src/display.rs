@@ -174,6 +174,7 @@ pub fn show_track(app: &mut App) {
         });
     }
     load_lyrics(app);
+    crate::prefs::auto_eq(app, true);
     details(app);
     crate::win::smtc_meta(app);
 }

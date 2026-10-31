@@ -32,6 +32,11 @@ export component AppWindow inherits Window {
         Palette.color-scheme = Theme.dark ? ColorScheme.dark : ColorScheme.light;
     }
 
+    property <bool> any-dialog: Ui.settings || Ui.equalizer || Ui.about || Ui.url-dialog || Ui.tag-editor || Ui.update-dialog || Ui.rename-dialog;
+    changed any-dialog => {
+        Ui.dialog-shown(self.any-dialog, Ui.settings || Ui.equalizer ? 700px : Ui.tag-editor ? 640px : 460px);
+    }
+
     public function open-menu() {
         menu-popup.show();
     }

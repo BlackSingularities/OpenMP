@@ -74,6 +74,20 @@ export component EqualizerDialog inherits Dialog {
                 vertical-alignment: center;
             }
             Rectangle {
+                width: 14px;
+            }
+            Switch {
+                y: (parent.height - self.height) / 2;
+                checked <=> Prefs.auto-eq;
+                toggled => { Prefs.changed("auto-eq"); }
+            }
+            Text {
+                text: "Dopasuj do gatunku";
+                color: Prefs.auto-eq ? Theme.text : Theme.text2;
+                font-size: Theme.fs;
+                vertical-alignment: center;
+            }
+            Rectangle {
                 horizontal-stretch: 1;
             }
             ComboBox {

@@ -1,6 +1,6 @@
 //! Jedna instancja: kolejne uruchomienia (podwójne kliknięcie pliku) oddają ścieżki działającemu oknu.
 
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 
@@ -23,7 +23,19 @@ pub fn send(args: &[String]) -> bool {
     }
     msg.push_str(END);
     msg.push('\n');
-    s.write_all(msg.as_bytes()).is_ok()
+    if s.write_all(msg.as_bytes()).is_err() {
+        return false;
+    }
+    // Działająca instancja odpowiada „OK”. Zawieszony proces (np. w trakcie zamykania) może jeszcze
+    // trzymać gniazdo, ale nie odpowie – wtedy uruchamiamy nowe okno zamiast oddawać mu pliki.
+    let _ = s.set_read_timeout(Some(Duration::from_millis(1500)));
+    let mut buf = [0u8; 2];
+    matches!(s.read_exact(&mut buf), Ok(()) if &buf == b"OK")
+}
+
+/// Zwolnienie miejsca przy zamykaniu – kolejne uruchomienie nie będzie szukać tego okna.
+pub fn release() {
+    let _ = std::fs::remove_file(port_file());
 }
 
 /// Nasłuch; `on_args` dostaje listę ścieżek (pusta – tylko „pokaż okno”).
@@ -34,6 +46,7 @@ pub fn listen(on_args: impl Fn(Vec<String>) + Send + 'static) {
     std::thread::spawn(move || {
         for s in l.incoming().flatten() {
             let _ = s.set_read_timeout(Some(Duration::from_secs(2)));
+            let Ok(mut reply) = s.try_clone() else { continue };
             let mut lines = BufReader::new(s).lines();
             if lines.next().and_then(|l| l.ok()).as_deref() != Some("OPENMP") {
                 continue;
@@ -45,6 +58,7 @@ pub fn listen(on_args: impl Fn(Vec<String>) + Send + 'static) {
                 }
                 args.push(l);
             }
+            let _ = reply.write_all(b"OK");
             on_args(args);
         }
     });

@@ -67,6 +67,30 @@ pub fn presets() -> Vec<(&'static str, [f32; 18])> {
     ]
 }
 
+/// Preset dla gatunku z tagu – dopasowanie po słowach kluczowych (jak w OpenAMP).
+pub fn preset_for_genre(genre: &str) -> Option<&'static str> {
+    let g = genre.to_lowercase();
+    if g.trim().is_empty() {
+        return None;
+    }
+    let map: [(&[&str], &str); 13] = [
+        (&["podcast", "speech", "audiobook", "spoken", "mowa", "audiobook", "słuchowisko"], "Podcast i mowa"),
+        (&["metal", "hardcore", "grindcore"], "Metal"),
+        (&["hip", "rap", "trap", "r&b", "rnb", "grime"], "Hip-hop"),
+        (&["rock", "punk", "grunge", "alternative", "indie"], "Rock"),
+        (&["dance", "disco", "eurodance", "disco polo"], "Taneczna"),
+        (&["electr", "edm", "house", "techno", "trance", "dubstep", "drum", "synth"], "Elektronika"),
+        (&["jazz", "blues", "swing", "soul", "funk"], "Jazz"),
+        (&["classic", "klasycz", "orchestr", "baroque", "barok", "opera", "symphon", "symfon"], "Klasyka"),
+        (&["acoustic", "akust", "folk", "country", "singer"], "Akustyczne"),
+        (&["vocal", "wokal", "a cappella", "chanson", "poezja"], "Wokal"),
+        (&["reggae", "dub", "ska"], "Mocny bas"),
+        (&["ambient", "chill", "lo-fi", "lofi", "downtempo", "new age"], "Głośność nocna"),
+        (&["pop"], "Pop"),
+    ];
+    map.iter().find(|(keys, _)| keys.iter().any(|k| g.contains(k))).map(|(_, p)| *p)
+}
+
 #[derive(Clone, Copy, Default)]
 struct Biquad {
     b0: f32,

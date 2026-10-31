@@ -145,6 +145,8 @@ pub struct App {
     pub lyrics_text: String,
     pub wave_raw: Vec<f32>,
     pub music_geom: Option<(i32, i32, u32, u32)>,
+    /// Rozmiar okna sprzed powiększenia pod okno dialogowe.
+    pub dialog_geom: Option<(i32, i32, u32, u32)>,
     pub dirty: bool,
     pub last_save: Instant,
     pub last_smtc: Instant,

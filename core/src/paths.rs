@@ -29,3 +29,16 @@ pub fn load_json<T: serde::de::DeserializeOwned + Default>(name: &str) -> T {
 pub fn save_json<T: serde::Serialize>(name: &str, v: &T) {
     write_atomic(&data().join(name), &serde_json::to_vec(v).unwrap_or_default());
 }
+
+/// Dziennik programu (awarie, zamknięcie) w %LOCALAPPDATA%\OpenMP\openmp.log – ostatnie ~256 KB.
+pub fn log(msg: &str) {
+    use std::io::Write;
+    let path = cache().join("openmp.log");
+    if std::fs::metadata(&path).map(|m| m.len() > 256 * 1024).unwrap_or(false) {
+        let _ = std::fs::rename(&path, path.with_extension("log.old"));
+    }
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+        let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        let _ = writeln!(f, "[{t}] [{}] {msg}", std::process::id());
+    }
+}

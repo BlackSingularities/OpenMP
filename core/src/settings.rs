@@ -38,6 +38,8 @@ pub struct Settings {
     pub speed: f64,
     pub dsp: DspSettings,
     pub eq_preset: String,
+    /// Korektor dobierany do gatunku bieżącego utworu.
+    pub auto_eq: bool,
     // Odtwarzanie
     pub shuffle: bool,
     /// 0 – bez powtarzania, 1 – lista, 2 – utwór.
@@ -96,6 +98,7 @@ impl Default for Settings {
             speed: 1.0,
             dsp: DspSettings::default(),
             eq_preset: "Płasko".into(),
+            auto_eq: false,
             shuffle: false,
             repeat: 0,
             resume_on_start: true,

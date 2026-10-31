@@ -1,5 +1,12 @@
 # Zmiany
 
+## 1.1.1
+
+- Naprawione zawieszanie przy zamykaniu: proces potrafił utknąć z widocznym, martwym oknem, w którym nie działał żaden przycisk ani ustawienia, a kolejne uruchomienia trafiały do niego i nic się nie otwierało. Program kończy się teraz od razu po zapisaniu stanu, a nowe uruchomienie oddaje pliki tylko działającemu oknu, które to potwierdzi.
+- Korektor dopasowany do gatunku (jak w OpenAMP): przełącznik „Dopasuj do gatunku” w oknie korektora dobiera preset z tagu gatunku przy każdej zmianie utworu.
+- Okna dialogowe (ustawienia, korektor, edytor tagów) zawsze w całości: w widoku pomniejszonym i w miniodtwarzaczu okno programu rośnie na czas dialogu i potem wraca do swojego rozmiaru.
+- Dziennik programu w `%LOCALAPPDATA%\OpenMP\openmp.log` (awarie z miejscem wystąpienia, start i zamknięcie).
+
 ## 1.1.0
 
 - Nowy wygląd całego programu: głęboka czerń i jeden akcent, który płynie z okładki bieżącego utworu przez wszystkie widoki (przyciski, zaznaczenia, taśma, poświata).

@@ -49,6 +49,7 @@ pub fn publish(app: &mut App) {
     p.set_viz_bands(s.viz_bands);
     p.set_viz_sensitivity(s.viz_sensitivity);
     p.set_show_waveform(s.show_waveform);
+    p.set_auto_eq(s.auto_eq);
     p.set_wave_style(s.wave_style);
     p.set_online_lyrics(s.online_lyrics);
     p.set_group_albums(s.group_albums);
@@ -158,6 +159,12 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.show_waveform = p.get_show_waveform();
             if app.s.show_waveform {
                 crate::display::show_track(app);
+            }
+        }
+        "auto-eq" => {
+            app.s.auto_eq = p.get_auto_eq();
+            if app.s.auto_eq {
+                auto_eq(app, true);
             }
         }
         "wave-style" => {
@@ -311,6 +318,26 @@ pub fn eq_preset(app: &mut App, i: usize) {
     crate::video::apply_audio_filters(app);
     publish_presets(app);
     app.s.save();
+}
+
+/// Korektor dopasowany do gatunku bieżącego utworu (gdy włączony i gatunek jest rozpoznany).
+pub fn auto_eq(app: &mut App, announce: bool) {
+    if !app.s.auto_eq {
+        return;
+    }
+    let Some(c) = &app.cur else { return };
+    if c.video {
+        return;
+    }
+    let Some(name) = dsp::preset_for_genre(&c.info.genre) else { return };
+    if app.s.eq_preset == name && app.s.dsp.eq_on {
+        return;
+    }
+    let Some(i) = presets(app).iter().position(|(n, _)| n == name) else { return };
+    eq_preset(app, i);
+    if announce {
+        app.toast(format!("Korektor: {name} (gatunek {})", app.cur.as_ref().map(|c| c.info.genre.clone()).unwrap_or_default()));
+    }
 }
 
 pub fn eq_reset(app: &mut App) {

@@ -120,6 +120,8 @@ pub fn set_mode(app: &mut App, mode: i32) {
 }
 
 pub fn quit(app: &mut App) {
+    openmp_core::paths::log("zamknięcie programu");
+    openmp_core::instance::release();
     crate::player::save_resume(app);
     save_all(app);
     app.engine.stop();
