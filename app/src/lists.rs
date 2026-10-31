@@ -310,8 +310,7 @@ pub fn switch_tab(app: &mut App, i: usize) {
     if let Some(ui) = app.ui() {
         ui.global::<Lists>().set_filter(ss(""));
         ui.global::<Lib>().set_view(0);
-        let id = app.store.lists[i].id;
-        ui.global::<Lib>().set_nav_selected(ss(format!("list:{id}")));
+        ui.global::<Lib>().set_nav_selected(ss("playlist"));
     }
     app.dirty = true;
     rebuild(app);

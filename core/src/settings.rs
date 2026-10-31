@@ -77,7 +77,7 @@ impl Default for Settings {
             viz_bands: 48,
             viz_sensitivity: 0.0,
             show_waveform: true,
-            wave_style: 0,
+            wave_style: 1,
             group_albums: true,
             show_remaining: false,
             compact: false,

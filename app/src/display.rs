@@ -487,12 +487,12 @@ pub fn frame(app: &mut App) {
 }
 
 pub fn cycle_viz(app: &mut App) {
-    app.s.viz = (app.s.viz + 1) % 4;
+    app.s.viz = (app.s.viz + 1) % 5;
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_viz_mode(app.s.viz);
     }
-    let names = ["Analizator: słupki", "Analizator: widmo", "Analizator: oscyloskop", "Analizator: wskaźniki VU"];
-    let n = names[app.s.viz as usize % 4];
+    let names = ["Wizualizacja: słupki", "Wizualizacja: widmo", "Wizualizacja: oscyloskop", "Wizualizacja: wskaźniki VU", "Wizualizacja wyłączona"];
+    let n = names[app.s.viz as usize % 5];
     app.toast(n);
     app.dirty = true;
 }

@@ -1,11 +1,11 @@
-// Okno OpenMP: tryb muzyki (wyświetlacz + listy/biblioteka), tryb wideo, miniodtwarzacz.
+// Okno OpenMP: tryb muzyki (duży i pomniejszony), tryb wideo, miniodtwarzacz.
 
 import { Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon } from "widgets.slint";
-import { MusicDisplay } from "display.slint";
-import { TitleBar, ControlsBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
+import { Hero, BottomBar } from "nowplaying.slint";
+import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
 import { EqualizerDialog, SettingsDialog, AboutDialog, UrlDialog, TagEditor, UpdateDialog, RenameDialog } from "dialogs.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
@@ -18,8 +18,8 @@ export component AppWindow inherits Window {
     icon: @image-url("../icon.png");
     no-frame: true;
     background: Ui.mode == 1 ? #000000 : Theme.bg;
-    min-width: Ui.mode == 2 ? 340px : 420px;
-    min-height: Ui.mode == 2 ? 118px : 240px;
+    min-width: Ui.mode == 2 ? 360px : Ui.mode == 1 || Prefs.compact ? 480px : 720px;
+    min-height: Ui.mode == 2 ? 140px : Ui.mode == 1 ? 240px : Prefs.compact ? 300px : 560px;
     preferred-width: 1180px;
     preferred-height: 780px;
     default-font-family: Theme.font;
@@ -61,96 +61,93 @@ export component AppWindow inherits Window {
 
         if Ui.mode == 2: MiniView { }
 
-        if Ui.mode == 0: Rectangle {
+        // Duże okno: panel nawigacji, okładka z opisem nad listą, panel boczny i dolny pasek.
+        if Ui.mode == 0 && !Prefs.compact: Rectangle {
+            // Poświata akcentu z okładki za górną częścią okna.
+            Rectangle {
+                x: parent.width * 0.05;
+                y: -parent.height * 0.35;
+                width: parent.width * 0.75;
+                height: parent.height * 0.9;
+                background: @radial-gradient(circle, Theme.tint.with-alpha(0.09) 0%, transparent 65%);
+            }
+            VerticalLayout {
+                HorizontalLayout {
+                    vertical-stretch: 1;
+                    if Prefs.show-sidebar: Sidebar { }
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        TitleBar {
+                            show-brand: !Prefs.show-sidebar;
+                            subtitle: "";
+                        }
+                        HorizontalLayout {
+                            vertical-stretch: 1;
+                            padding-left: 26px;
+                            padding-right: 14px;
+                            padding-bottom: 10px;
+                            spacing: 16px;
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 20px;
+                                Hero {
+                                    height: clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                    small: self.height < 220px;
+                                }
+                                if Lib.view == 0: PlaylistView {
+                                    vertical-stretch: 1;
+                                }
+                                if Lib.view == 1: LibraryView {
+                                    vertical-stretch: 1;
+                                }
+                                if Lib.view == 2: RadioView {
+                                    vertical-stretch: 1;
+                                }
+                            }
+                            if Prefs.side-panel > 0: SidePanel { }
+                        }
+                    }
+                }
+                Rectangle {
+                    height: 1px;
+                    background: Theme.line;
+                }
+                BottomBar { }
+            }
+        }
+
+        // Widok pomniejszony: okładka z wizualizacją i tytuł po lewej, pod spodem ten sam dolny pasek.
+        if Ui.mode == 0 && Prefs.compact: Rectangle {
+            Rectangle {
+                x: -parent.width * 0.2;
+                y: -parent.height * 0.5;
+                width: parent.width * 0.9;
+                height: parent.height * 1.2;
+                background: @radial-gradient(circle, Theme.tint.with-alpha(0.10) 0%, transparent 65%);
+            }
             VerticalLayout {
                 TitleBar {
-                    subtitle: Player.idle ? "" : Player.artist != "" ? Player.artist + " – " + Player.title : Player.title;
+                    subtitle: "";
                 }
-                VerticalLayout {
-                    padding-left: 10px;
-                    padding-right: 10px;
-                    padding-bottom: 10px;
-                    spacing: 8px;
-                    MusicDisplay {
-                        // W widoku kompaktowym wyświetlacz wypełnia okno, a sterowanie zostaje przy dolnej krawędzi.
-                        min-height: Prefs.compact ? 168px : 236px;
-                        max-height: Prefs.compact ? 1000px : 236px;
-                        vertical-stretch: Prefs.compact ? 1 : 0;
-                        compact: Prefs.compact;
-                        title: Player.title;
-                        artist: Player.artist;
-                        album: Player.album;
-                        badges: Player.badges;
-                        position-text: Player.position-text;
-                        state-text: Player.state-text;
-                        cover: Player.cover;
-                        has-cover: Player.has-cover;
-                        backdrop: Player.backdrop;
-                        pos: Player.pos;
-                        duration: Player.duration;
-                        remaining: Prefs.remaining;
-                        playing: Player.playing;
-                        idle: Player.idle;
-                        fav: Player.fav;
-                        scroll-title: Prefs.scroll-title;
-                        shuffle: Player.shuffle;
-                        repeat: Player.repeat;
-                        eq-on: Prefs.eq-on;
-                        crossfade-on: Prefs.crossfade > 0;
-                        rg-on: Prefs.replaygain > 0;
-                        sleep-text: Player.sleep-text;
-                        speed-text: Player.speed-text;
-                        viz-mode: Player.viz-mode;
-                        bars: Player.bars;
-                        peaks: Player.peaks;
-                        scope-path: Player.scope-path;
-                        spectrum-path: Player.spectrum-path;
-                        vu-l: Player.vu-l;
-                        vu-r: Player.vu-r;
-                        vu-pl: Player.vu-pl;
-                        vu-pr: Player.vu-pr;
-                        viz-active: Player.viz-active;
-                        viz-note: Player.viz-note;
-                        wave: Player.wave;
-                        show-wave: Prefs.show-waveform;
-                        ab-a: Player.ab-a;
-                        ab-b: Player.ab-b;
-                        seek(v) => { Player.seek(v); }
-                        toggle-time => {
-                            Prefs.remaining = !Prefs.remaining;
-                            Prefs.changed("remaining");
-                        }
-                        cycle-viz => { Player.cycle-viz(); }
-                        cover-clicked => {
-                            Prefs.side-panel = 2;
-                            Prefs.changed("side-panel");
-                        }
-                        title-clicked => { Player.show-current(); }
+                HorizontalLayout {
+                    vertical-stretch: 1;
+                    padding-left: 22px;
+                    padding-right: 22px;
+                    padding-top: 2px;
+                    Hero {
+                        small: root.height < 560px;
                     }
-                    ControlsBar { }
-                    if !Prefs.compact: HorizontalLayout {
-                        vertical-stretch: 1;
-                        spacing: 8px;
-                        if Prefs.show-sidebar: Sidebar { }
-                        if Lib.view == 0: PlaylistView {
-                            horizontal-stretch: 1;
-                        }
-                        if Lib.view == 1: LibraryView {
-                            horizontal-stretch: 1;
-                        }
-                        if Lib.view == 2: RadioView {
-                            horizontal-stretch: 1;
-                        }
-                        if Prefs.side-panel > 0: SidePanel { }
-                    }
+                }
+                BottomBar {
+                    small: true;
                 }
             }
         }
 
         if Ui.mode != 1 && Ui.drop-hint: Rectangle {
-            background: Theme.accent.with-alpha(0.12);
+            background: Theme.tint.with-alpha(0.12);
             border-width: 2px;
-            border-color: Theme.accent;
+            border-color: Theme.tint;
             border-radius: 10px;
             Text {
                 text: "Upuść, by dodać do listy";
@@ -170,7 +167,7 @@ export component AppWindow inherits Window {
 
         // Krótki komunikat u dołu okna.
         if Ui.mode != 1: Rectangle {
-            y: parent.height - self.height - 46px;
+            y: parent.height - self.height - (Ui.mode == 2 ? 70px : Prefs.compact ? 160px : 210px);
             x: (parent.width - self.width) / 2;
             width: tt.preferred-width + 30px;
             height: 34px;
@@ -215,18 +212,25 @@ export component AppWindow inherits Window {
     }
 
     menu-popup := PopupWindow {
-        x: min(Ui.menu-x, root.width - 270px);
-        y: min(Ui.menu-y, max(0px, root.height - mbox.preferred-height - 8px));
+        // Menu zawsze w całości w oknie, także gdy okno jest wąskie.
+        x: max(4px, min(Ui.menu-x, root.width - mbox.width - 10px));
+        y: max(4px, min(Ui.menu-y, root.height - mbox.height - 8px));
+        // Okno menu dokładnie w rozmiarze zawartości – inaczej treść jest wyśrodkowana i ucięta.
+        width: mbox.width;
+        height: mbox.height;
         close-policy: PopupClosePolicy.close-on-click-outside;
         mbox := Rectangle {
-            width: 260px;
+            x: 0;
+            y: 0;
+            width: min(270px, root.width - 8px);
+            height: mlay.preferred-height;
             border-radius: 10px;
             background: Theme.raised;
             border-width: 1px;
             border-color: Theme.line2;
             drop-shadow-blur: 22px;
             drop-shadow-color: #00000080;
-            VerticalLayout {
+            mlay := VerticalLayout {
                 padding: 5px;
                 for m in Ui.menu: Rectangle {
                     height: m.sep ? 9px : 30px;
@@ -248,7 +252,7 @@ export component AppWindow inherits Window {
                                 if m.icon != "" || m.checked: Icon {
                                     icon: m.checked ? Icons.check : Icons.get(m.icon);
                                     size: 15px;
-                                    fill: m.checked ? Theme.accent : m.enabled ? Theme.text2 : Theme.text3.with-alpha(0.5);
+                                    fill: m.checked ? Theme.tint : m.enabled ? Theme.text2 : Theme.text3.with-alpha(0.5);
                                 }
                             }
                             Text {

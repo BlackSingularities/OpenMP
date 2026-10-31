@@ -103,16 +103,16 @@ export component TrackList inherits Rectangle {
                         if r.playing: Icon {
                             icon: Icons.equalizer;
                             size: 15px;
-                            fill: Theme.accent;
+                            fill: Theme.tint;
                         }
                         if !r.playing && r.queued != "": Rectangle {
                             width: 18px;
                             height: 18px;
                             border-radius: 9px;
-                            background: Theme.accent.with-alpha(0.25);
+                            background: Theme.tint.with-alpha(0.25);
                             Text {
                                 text: r.queued;
-                                color: Theme.accent;
+                                color: Theme.tint;
                                 font-size: 10px;
                                 font-weight: 700;
                             }
@@ -134,7 +134,7 @@ export component TrackList inherits Rectangle {
                     Text {
                         horizontal-stretch: 3;
                         text: r.title;
-                        color: r.missing ? Theme.text3 : r.playing ? Theme.accent : Theme.text;
+                        color: r.missing ? Theme.text3 : r.playing ? Theme.tint : Theme.text;
                         font-weight: r.playing ? 600 : 400;
                         font-size: Theme.fs;
                         vertical-alignment: center;

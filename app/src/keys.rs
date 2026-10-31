@@ -80,7 +80,7 @@ pub fn toggle_compact(app: &mut App) {
         let sf = ui.window().scale_factor();
         if app.s.compact {
             app.session.window = Some((x, y, w, h));
-            crate::win::set_geometry(&ui, (x, y, w, (292.0 * sf) as u32));
+            crate::win::set_geometry(&ui, (x, y, w, (380.0 * sf) as u32));
         } else {
             let h2 = app.session.window.map(|g| g.3).filter(|&hh| hh as f32 > 420.0 * sf).unwrap_or((760.0 * sf) as u32);
             crate::win::set_geometry(&ui, (x, y, w, h2));
@@ -108,7 +108,7 @@ pub fn set_mode(app: &mut App, mode: i32) {
         u.set_mode(2);
         let sf = ui.window().scale_factor();
         let (x, y, _, _) = crate::win::geometry(&ui);
-        crate::win::set_geometry(&ui, (x, y, (520.0 * sf) as u32, (132.0 * sf) as u32));
+        crate::win::set_geometry(&ui, (x, y, (540.0 * sf) as u32, (150.0 * sf) as u32));
         crate::win::set_ontop(app, true);
     } else if mode == 0 {
         u.set_mode(0);

@@ -415,7 +415,7 @@ export component SettingsDialog inherits Dialog {
                         y: (parent.height - self.height) / 2;
                         icon: p.icon;
                         size: 16px;
-                        fill: Ui.settings-page == i ? Theme.accent : Theme.text3;
+                        fill: Ui.settings-page == i ? Theme.tint : Theme.text3;
                     }
                     Text {
                         text: p.l;
@@ -1136,7 +1136,7 @@ export component UpdateDialog inherits Dialog {
                 x: 0;
                 width: parent.width * Ui.update-progress;
                 border-radius: 3px;
-                background: Theme.accent;
+                background: Theme.tint;
             }
         }
         if Ui.update-status != "": Text {

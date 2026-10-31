@@ -30,8 +30,9 @@ export component SeekBar inherits Rectangle {
     in property <float> ab-b: -1;
     out property <bool> dragging: ta.pressed;
     out property <float> drag-value;
+    in property <length> wave-height: 34px;
     callback seek(float);
-    height: show-wave ? 34px : 18px;
+    height: show-wave ? wave-height : 18px;
     property <float> shown: ta.pressed ? drag-value : value;
     property <color> c-played: Theme.tint;
     property <color> c-rest: on-video ? #ffffff40 : #ffffff30;
@@ -148,6 +149,8 @@ export component Visualizer inherits Rectangle {
     in property <float> vu-pr;
     in property <bool> active;
     in property <string> note;
+    // Na okładce: półprzezroczyste kolory i bez przełączania kliknięciem (okładka ma własny przycisk).
+    in property <bool> overlay;
     callback cycle();
     clip: true;
     property <int> n: bars.length;
@@ -158,15 +161,17 @@ export component Visualizer inherits Rectangle {
             width: max(1px, root.slot - 2px);
             y: root.height - self.height;
             height: root.height * b;
-            border-radius: 1.5px;
-            background: @linear-gradient(0deg, Theme.tint.darker(0.25) 0%, Theme.tint 55%, Theme.tint.brighter(0.7) 100%);
+            border-radius: root.overlay ? 2px : 1.5px;
+            background: root.overlay
+                ? @linear-gradient(0deg, Theme.tint.with-alpha(0.95) 0%, Theme.tint.brighter(0.5).with-alpha(0.75) 60%, #ffffffb0 100%)
+                : @linear-gradient(0deg, Theme.tint.darker(0.25) 0%, Theme.tint 55%, Theme.tint.brighter(0.7) 100%);
         }
         for p[i] in root.peaks: Rectangle {
             x: i * root.slot + 1px;
             width: max(1px, root.slot - 2px);
             y: root.height - root.height * p - 2px;
             height: 2px;
-            background: p > 0.01 ? #ffffffd0 : transparent;
+            background: p > 0.01 ? (root.overlay ? #ffffffa0 : #ffffffd0) : transparent;
         }
     }
     if root.mode == 1: Rectangle {
@@ -240,7 +245,7 @@ export component Visualizer inherits Rectangle {
         horizontal-alignment: center;
         wrap: word-wrap;
     }
-    TouchArea {
+    if !root.overlay: TouchArea {
         mouse-cursor: pointer;
         clicked => { root.cycle(); }
     }
@@ -324,7 +329,7 @@ export component MusicDisplay inherits Rectangle {
             spacing: 18px;
             vertical-stretch: 1;
             Cover {
-                width: root.compact ? 96px : 150px;
+                width: root.width < 520px ? 84px : root.compact ? 96px : 150px;
                 height: self.width;
                 source: root.cover;
                 has: root.has-cover;
@@ -341,7 +346,7 @@ export component MusicDisplay inherits Rectangle {
             VerticalLayout {
                 horizontal-stretch: 1;
                 spacing: 3px;
-                min-width: 180px;
+                min-width: 120px;
                 HorizontalLayout {
                     spacing: 5px;
                     height: 17px;
@@ -465,7 +470,8 @@ export component MusicDisplay inherits Rectangle {
                     }
                 }
             }
-            Rectangle {
+            // Analizator chowa się dopiero wtedy, gdy zabrakłoby miejsca na tytuł.
+            if root.width >= 600px: Rectangle {
                 width: root.compact ? clamp(root.width * 0.3, 150px, 360px) : clamp(root.width * 0.34, 200px, 420px);
                 border-radius: 8px;
                 background: #ffffff06;

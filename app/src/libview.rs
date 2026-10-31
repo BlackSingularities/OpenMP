@@ -29,8 +29,24 @@ fn n(v: usize) -> String {
     }
 }
 
+/// Utwory i filmy leżące w folderze biblioteki (z podfolderami).
+fn under_root<'a>(app: &'a App, root: &str) -> impl Iterator<Item = &'a TrackInfo> + 'a {
+    let prefix = root.trim_end_matches(['\\', '/']).to_lowercase();
+    app.lib.tracks.iter().chain(app.lib.videos.iter()).filter(move |t| {
+        let p = t.path.to_lowercase();
+        p.len() > prefix.len() && p.starts_with(&prefix) && matches!(p.as_bytes()[prefix.len()], b'\\' | b'/')
+    })
+}
+
+fn folder_name(root: &str) -> String {
+    let t = root.trim_end_matches(['\\', '/']);
+    std::path::Path::new(t).file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_else(|| t.to_string())
+}
+
 pub fn rebuild_nav(app: &mut App) {
+    let lists: usize = app.store.lists.len();
     let mut v = vec![
+        nav("playlist", "Listy odtwarzania", "playlist", n(lists)),
         section("sec-music", "MUZYKA"),
         nav("artist", "Wykonawcy", "artist", String::new()),
         nav("album", "Albumy", "album", String::new()),
@@ -49,10 +65,13 @@ pub fn rebuild_nav(app: &mut App) {
         nav("recent", "Ostatnio dodana muzyka", "clock", String::new()),
         nav("history", "Historia", "history", String::new()),
         nav("radio", "Radio internetowe", "radio", String::new()),
-        section("sec-lists", "LISTY ODTWARZANIA"),
+        // Foldery biblioteki (także udziały sieciowe) – skrót do całej zawartości folderu.
+        section("sec-folders", "FOLDERY"),
     ];
-    for l in &app.store.lists {
-        v.push(nav(&format!("list:{}", l.id), &l.name, "playlist", n(l.items.len())));
+    let roots: Vec<String> = app.s.library_folders.iter().chain(app.s.video_folders.iter()).cloned().collect();
+    for root in roots {
+        let count = under_root(app, &root).count();
+        v.push(nav(&format!("root:{root}"), &folder_name(&root), "folder-open", n(count)));
     }
     app.m.nav.set_vec(v);
 }
@@ -66,6 +85,10 @@ pub fn nav_clicked(app: &mut App, id: &str) {
         if let Some(i) = app.list_index(lid) {
             crate::lists::switch_tab(app, i);
         }
+        l.set_view(0);
+        return;
+    }
+    if id == "playlist" {
         l.set_view(0);
         return;
     }
@@ -90,7 +113,7 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
         }
         return;
     }
-    if id.starts_with("sec-") {
+    if id.starts_with("sec-") || id == "playlist" {
         return;
     }
     let items = vec![
@@ -257,6 +280,21 @@ pub fn show(app: &mut App) {
             let t = from_stats(app, keys, 200);
             l.set_subtitle(ss("Według liczby odtworzeń"));
             l.set_empty_text(ss("Jeszcze nic nie zostało odtworzone."));
+            set_tracks(app, t);
+        }
+        k if k.starts_with("root:") => {
+            let root = &k[5..];
+            let mut t: Vec<TrackInfo> = under_root(app, root).cloned().collect();
+            t.sort_by_key(|t| natural(&t.path));
+            let dur: f64 = t.iter().map(|t| t.duration).sum();
+            l.set_title(ss(folder_name(root)));
+            let mut s = vec![format!("{} {}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))];
+            if dur > 0.0 {
+                s.push(meta::fmt_total(dur));
+            }
+            s.push(root.to_string());
+            l.set_subtitle(ss(s.join("  ·  ")));
+            l.set_empty_text(ss("Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."));
             set_tracks(app, t);
         }
         "history" => {

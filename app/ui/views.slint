@@ -40,9 +40,38 @@ export component WinButtons inherits HorizontalLayout {
     }
 }
 
+// Logo z przyciskiem menu – w panelu nawigacji albo, gdy panel jest ukryty, na pasku tytułu.
+export component Brand inherits HorizontalLayout {
+    spacing: 4px;
+    IconBtn {
+        y: (parent.height - self.height) / 2;
+        icon: Icons.menu;
+        size: 32px;
+        tip: "Menu";
+        clicked => { Ui.open-main-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
+    }
+    Rectangle {
+        width: 4px;
+    }
+    Image {
+        y: (parent.height - self.height) / 2;
+        source: @image-url("../icon.png");
+        width: 22px;
+        height: 22px;
+    }
+    Text {
+        text: "OpenMP";
+        color: Theme.text;
+        font-size: Theme.fs-md + 1px;
+        font-weight: 600;
+        vertical-alignment: center;
+    }
+}
+
 export component TitleBar inherits Rectangle {
     in property <string> subtitle;
-    height: 38px;
+    in property <bool> show-brand: true;
+    height: 40px;
     background: transparent;
     TouchArea {
         pointer-event(e) => {
@@ -53,34 +82,12 @@ export component TitleBar inherits Rectangle {
         double-clicked => { Ui.toggle-maximize(); }
     }
     HorizontalLayout {
-        padding-left: 6px;
+        padding-left: 8px;
         padding-right: 4px;
         spacing: 2px;
-        menu-btn := IconBtn {
-            y: (parent.height - self.height) / 2;
-            icon: Icons.menu;
-            size: 30px;
-            tip: "Menu";
-            clicked => { Ui.open-main-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
-        }
-        Rectangle {
-            width: 6px;
-        }
-        Image {
-            y: (parent.height - self.height) / 2;
-            source: @image-url("../icon.png");
-            width: 18px;
-            height: 18px;
-        }
+        if root.show-brand: Brand { }
         Text {
-            text: "OpenMP";
-            color: Theme.text;
-            font-size: Theme.fs;
-            font-weight: 600;
-            vertical-alignment: center;
-        }
-        Text {
-            text: root.subtitle != "" ? "  ·  " + root.subtitle : "";
+            text: root.show-brand && root.subtitle != "" ? "  ·  " + root.subtitle : "";
             color: Theme.text3;
             font-size: Theme.fs-sm;
             vertical-alignment: center;
@@ -89,27 +96,11 @@ export component TitleBar inherits Rectangle {
         }
         IconBtn {
             y: (parent.height - self.height) / 2;
-            icon: Icons.pip;
-            size: 30px;
-            icon-size: 16px;
-            tip: "Miniodtwarzacz";
-            clicked => { Ui.set-mode(2); }
-        }
-        IconBtn {
-            y: (parent.height - self.height) / 2;
-            icon: Prefs.compact ? Icons.expand : Icons.compact;
-            size: 30px;
-            icon-size: 16px;
-            tip: Prefs.compact ? "Pełny widok" : "Widok kompaktowy";
-            clicked => { Ui.toggle-compact(); }
-        }
-        IconBtn {
-            y: (parent.height - self.height) / 2;
             icon: Icons.pin;
             active: Prefs.ontop;
             size: 30px;
             icon-size: 15px;
-            tip: "Zawsze na wierzchu";
+            tip: "Zawsze na wierzchu (Ctrl+T)";
             clicked => {
                 Prefs.ontop = !Prefs.ontop;
                 Prefs.changed("ontop");
@@ -146,9 +137,9 @@ export component ControlsBar inherits Rectangle {
                 width: 46px;
                 height: 46px;
                 border-radius: 23px;
-                background: pta.pressed ? Theme.accent.darker(0.2) : pta.has-hover ? Theme.accent.brighter(0.15) : Theme.accent;
+                background: pta.pressed ? Theme.tint.darker(0.2) : pta.has-hover ? Theme.tint.brighter(0.15) : Theme.tint;
                 drop-shadow-blur: 12px;
-                drop-shadow-color: Theme.accent.with-alpha(0.45);
+                drop-shadow-color: Theme.tint.with-alpha(0.45);
                 animate background { duration: 120ms; }
                 Icon {
                     icon: Player.playing ? Icons.pause : Icons.play;
@@ -168,7 +159,7 @@ export component ControlsBar inherits Rectangle {
                 tip: "Następny (Ctrl+→)";
                 clicked => { Player.next(); }
             }
-            IconBtn {
+            if root.width >= 480px: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.stop;
                 size: 34px;
@@ -206,14 +197,14 @@ export component ControlsBar inherits Rectangle {
                 tip: "Korektor i efekty (E)";
                 clicked => { Ui.equalizer = !Ui.equalizer; }
             }
-            IconBtn {
+            if root.width >= 600px: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.timer;
                 active: Player.sleep-text != "";
                 tip: "Wyłącznik czasowy";
                 clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
             }
-            IconBtn {
+            if root.width >= 600px: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.lyrics;
                 active: Prefs.side-panel > 0;
@@ -234,12 +225,12 @@ export component ControlsBar inherits Rectangle {
             }
             HSlider {
                 y: (parent.height - self.height) / 2;
-                width: 110px;
+                width: root.width < 560px ? 64px : 110px;
                 value: Player.volume;
-                fill-color: Player.muted ? Theme.text3 : Theme.accent;
+                fill-color: Player.muted ? Theme.text3 : Theme.tint;
                 moved(v) => { Player.set-volume(v); }
             }
-            Text {
+            if root.width >= 520px: Text {
                 width: 36px;
                 text: round(Player.volume * 100) + "%";
                 color: Theme.text3;
@@ -253,48 +244,86 @@ export component ControlsBar inherits Rectangle {
 
 // Panel nawigacji: listy, biblioteka, zbiory, radio.
 export component Sidebar inherits Rectangle {
-    width: 214px;
-    background: Theme.panel;
-    border-radius: Theme.radius-lg;
+    width: 236px;
+    background: Theme.side;
     VerticalLayout {
-        padding: 8px;
-        padding-top: 10px;
+        padding: 10px;
+        padding-top: 4px;
+        Rectangle {
+            height: 52px;
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                        Ui.drag();
+                    }
+                }
+                double-clicked => { Ui.toggle-maximize(); }
+            }
+            HorizontalLayout {
+                padding-left: 2px;
+                Brand { }
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+            }
+        }
         ListView {
             for n in Lib.nav: Rectangle {
-                height: n.section ? 30px : 32px;
+                height: n.section ? 40px : 40px;
                 if n.section: HorizontalLayout {
-                    padding-left: 10px;
-                    padding-top: 10px;
+                    padding-left: 12px;
+                    padding-top: 14px;
+                    padding-right: 4px;
                     SectionTitle {
                         text: n.label;
                         vertical-alignment: center;
                     }
-                    if n.id == "sec-lists": IconBtn {
+                    if n.id == "sec-folders": IconBtn {
                         icon: Icons.add;
-                        size: 22px;
+                        size: 24px;
                         icon-size: 15px;
-                        tip: "Nowa lista";
-                        clicked => { Lists.tab-add(); }
+                        tip: "Dodaj folder z muzyką";
+                        clicked => { Prefs.add-folder(0); }
                     }
                 }
                 if !n.section: Rectangle {
-                    border-radius: Theme.radius;
+                    y: 2px;
+                    height: parent.height - 4px;
+                    border-radius: 10px;
                     background: Lib.nav-selected == n.id ? Theme.sel : nta.has-hover ? Theme.hover : transparent;
+                    animate background { duration: 120ms; }
+                    // Zaznaczenie: kropka akcentu po prawej.
+                    if Lib.nav-selected == n.id: Rectangle {
+                        x: parent.width - 12px;
+                        y: (parent.height - self.height) / 2;
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 2.5px;
+                        background: Theme.tint;
+                    }
                     HorizontalLayout {
-                        padding-left: 10px;
-                        padding-right: 10px;
-                        spacing: 10px;
-                        Icon {
-                            y: (parent.height - self.height) / 2;
-                            icon: n.icon;
-                            size: 16px;
-                            fill: Lib.nav-selected == n.id ? Theme.accent : Theme.text3;
+                        padding-left: 12px;
+                        padding-right: 18px;
+                        spacing: 12px;
+                        Rectangle {
+                            width: 26px;
+                            if n.icon == "folder-open": Rectangle {
+                                y: (parent.height - 26px) / 2;
+                                height: 26px;
+                                border-radius: 6px;
+                                background: Theme.tint.with-alpha(0.14);
+                            }
+                            Icon {
+                                icon: Icons.get(n.icon);
+                                size: 17px;
+                                fill: Lib.nav-selected == n.id ? Theme.tint : Theme.text2;
+                            }
                         }
                         Text {
                             text: n.label;
                             color: Lib.nav-selected == n.id ? Theme.text : Theme.text2;
                             font-weight: Lib.nav-selected == n.id ? 600 : 400;
-                            font-size: Theme.fs;
+                            font-size: Theme.fs-md;
                             vertical-alignment: center;
                             overflow: elide;
                             horizontal-stretch: 1;
@@ -334,7 +363,7 @@ export component Sidebar inherits Rectangle {
                     x: 0;
                     width: parent.width * Lib.scan-progress;
                     border-radius: 2px;
-                    background: Theme.accent;
+                    background: Theme.tint;
                 }
             }
         }
@@ -577,7 +606,7 @@ export component LibraryView inherits Rectangle {
                         width: 34px;
                         height: 34px;
                         border-radius: 17px;
-                        background: Theme.accent;
+                        background: Theme.tint;
                         drop-shadow-blur: 8px;
                         drop-shadow-color: #00000080;
                         Icon {

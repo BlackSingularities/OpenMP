@@ -22,10 +22,12 @@ export component IconBtn inherits Rectangle {
     in property <bool> active;
     in property <bool> enabled: true;
     in property <string> tip;
-    in property <color> icon-color: active ? Theme.accent : Theme.text2;
-    in property <color> hover-color: active ? Theme.accent : Theme.text;
+    in property <color> icon-color: active ? Theme.tint : Theme.text2;
+    in property <color> hover-color: active ? Theme.tint : Theme.text;
     in property <bool> round: true;
     in property <bool> on-dark: false;
+    // Podpowiedź nad przyciskiem – dla przycisków przy dolnej krawędzi okna.
+    in property <bool> tip-above: false;
     out property <bool> hovered: ta.has-hover;
     callback clicked();
     callback right-clicked();
@@ -45,7 +47,7 @@ export component IconBtn inherits Rectangle {
         width: 4px;
         height: 4px;
         border-radius: 2px;
-        background: Theme.accent;
+        background: Theme.tint;
     }
     ta := TouchArea {
         enabled: root.enabled;
@@ -59,7 +61,7 @@ export component IconBtn inherits Rectangle {
     }
     if root.tip != "" && ta.has-hover: Rectangle {
         // Podpowiedź pod przyciskiem (nad, gdy przycisk jest nisko w oknie).
-        y: parent.height + 6px;
+        y: root.tip-above ? -self.height - 6px : parent.height + 6px;
         height: 22px;
         width: tipt.preferred-width + 14px;
         x: (parent.width - self.width) / 2;
@@ -87,7 +89,7 @@ export component Btn inherits Rectangle {
     height: compact ? 26px : 32px;
     min-width: lay.preferred-width + (compact ? 18px : 26px);
     border-radius: Theme.radius;
-    background: !enabled ? Theme.hover : primary ? (ta.pressed ? Theme.accent.darker(0.2) : ta.has-hover ? Theme.accent.brighter(0.12) : Theme.accent) : danger ? (ta.has-hover ? Theme.danger.with-alpha(0.25) : Theme.danger.with-alpha(0.15)) : (ta.pressed ? Theme.press : ta.has-hover ? Theme.hover : Theme.panel2);
+    background: !enabled ? Theme.hover : primary ? (ta.pressed ? Theme.tint.darker(0.2) : ta.has-hover ? Theme.tint.brighter(0.12) : Theme.tint) : danger ? (ta.has-hover ? Theme.danger.with-alpha(0.25) : Theme.danger.with-alpha(0.15)) : (ta.pressed ? Theme.press : ta.has-hover ? Theme.hover : Theme.panel2);
     border-width: primary || danger ? 0 : 1px;
     border-color: Theme.line2;
     animate background { duration: 120ms; }
@@ -123,7 +125,7 @@ export component HSlider inherits Rectangle {
     in property <float> minimum: 0;
     in property <float> maximum: 1;
     in property <bool> centered;
-    in property <color> fill-color: Theme.accent;
+    in property <color> fill-color: Theme.tint;
     in property <color> track-color: Theme.dark ? #ffffff1f : #0000001a;
     in property <length> thickness: 4px;
     in property <float> step: 0;
@@ -227,7 +229,7 @@ export component VSlider inherits Rectangle {
                 y: min(parent.height / 2, parent.height * (1 - root.frac));
                 height: abs(parent.height * (1 - root.frac) - parent.height / 2);
                 border-radius: 2px;
-                background: Theme.accent;
+                background: Theme.tint;
             }
             Rectangle {
                 y: parent.height / 2;
@@ -287,7 +289,7 @@ export component Switch inherits Rectangle {
     width: 36px;
     height: 20px;
     border-radius: 10px;
-    background: checked ? Theme.accent : (Theme.dark ? #ffffff24 : #00000024);
+    background: checked ? Theme.tint : (Theme.dark ? #ffffff24 : #00000024);
     opacity: enabled ? 1 : 0.45;
     animate background { duration: 150ms; }
     Rectangle {
@@ -402,7 +404,7 @@ export component Field inherits Rectangle {
     border-radius: Theme.radius;
     background: Theme.dark ? #ffffff0d : #0000000a;
     border-width: 1px;
-    border-color: ti.has-focus ? Theme.accent.with-alpha(0.8) : transparent;
+    border-color: ti.has-focus ? Theme.tint.with-alpha(0.8) : transparent;
     public function focus-input() {
         ti.focus();
     }
@@ -431,7 +433,7 @@ export component Field inherits Rectangle {
                 color: Theme.text;
                 font-size: Theme.fs;
                 vertical-alignment: center;
-                selection-background-color: Theme.accent.with-alpha(0.4);
+                selection-background-color: Theme.tint.with-alpha(0.4);
                 edited => { root.edited(self.text); }
                 accepted => { root.accepted(self.text); }
                 key-pressed(e) => {

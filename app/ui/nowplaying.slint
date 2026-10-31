@@ -1,0 +1,600 @@
+// „Teraz odtwarzane”: okładka z wizualizacją (jak w Poweramp), opis utworu z szeryfowym tytułem
+// i dolny pasek – duża taśma utworu, przyciski odtwarzania na środku, głośność i wyjście po lewej,
+// przełączniki po prawej. Te same części składają pełne okno i widok pomniejszony.
+
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, IconBtn, HSlider, Marquee, Cover } from "widgets.slint";
+import { SeekBar, Visualizer, Fmt } from "display.slint";
+import { Player, Prefs, Ui } from "state.slint";
+
+export global VizNames {
+    out property <[string]> names: ["Słupki", "Widmo", "Oscyloskop", "Wskaźniki VU", "Wyłączona"];
+}
+
+// Okładka z poświatą w kolorze akcentu i wizualizacją na dolnej części obrazu.
+export component CoverArt inherits Rectangle {
+    in property <length> radius: 14px;
+    in property <bool> show-chip: true;
+    callback clicked();
+    out property <bool> hovered: ta.has-hover || chip-ta.has-hover;
+    // Poświata
+    Rectangle {
+        border-radius: root.radius;
+        background: Theme.bg;
+        drop-shadow-blur: min(root.width * 0.18, 48px);
+        drop-shadow-color: Player.has-cover ? Theme.glow : Theme.glow.with-alpha(0.18);
+    }
+    Cover {
+        width: 100%;
+        height: 100%;
+        border-radius: root.radius;
+        source: Player.cover;
+        has: Player.has-cover;
+        fallback: Icons.note;
+        background: Theme.panel2;
+        if Player.viz-mode != 4 && !Player.idle: Rectangle {
+            y: parent.height * 0.42;
+            height: parent.height * 0.58;
+            background: @linear-gradient(180deg, transparent 0%, #00000088 70%, #000000b8 100%);
+        }
+        if Player.viz-mode != 4 && !Player.idle: Visualizer {
+            x: parent.width * 0.06;
+            width: parent.width * 0.88;
+            y: parent.height * (Player.viz-mode == 3 ? 0.62 : 0.5);
+            height: parent.height * (Player.viz-mode == 3 ? 0.32 : 0.46);
+            overlay: true;
+            mode: Player.viz-mode;
+            bars: Player.bars;
+            peaks: Player.peaks;
+            scope-path: Player.scope-path;
+            spectrum-path: Player.spectrum-path;
+            vu-l: Player.vu-l;
+            vu-r: Player.vu-r;
+            vu-pl: Player.vu-pl;
+            vu-pr: Player.vu-pr;
+            active: Player.viz-active;
+            note: "";
+        }
+    }
+    Rectangle {
+        border-radius: root.radius;
+        border-width: 1px;
+        border-color: Theme.tint.with-alpha(0.28);
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    // Przełącznik wizualizacji – widoczny po najechaniu na okładkę.
+    chip := Rectangle {
+        visible: root.show-chip && root.width >= 120px;
+        x: parent.width - self.width - 10px;
+        y: 10px;
+        height: 26px;
+        width: chip-row.preferred-width + 18px;
+        border-radius: 13px;
+        background: chip-ta.has-hover ? #000000e0 : #000000a8;
+        opacity: root.hovered ? 1 : 0;
+        animate opacity { duration: 160ms; }
+        chip-row := HorizontalLayout {
+            padding-left: 9px;
+            padding-right: 9px;
+            spacing: 6px;
+            Icon {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.equalizer;
+                size: 13px;
+                fill: Theme.tint.brighter(0.4);
+            }
+            Text {
+                text: VizNames.names[Player.viz-mode];
+                color: #ffffff;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+            }
+        }
+        chip-ta := TouchArea {
+            mouse-cursor: pointer;
+            clicked => { Player.cycle-viz(); }
+        }
+    }
+}
+
+component Chip inherits Rectangle {
+    in property <string> text;
+    in property <bool> lit;
+    height: 26px;
+    width: ct.preferred-width + 24px;
+    border-radius: 13px;
+    background: root.lit ? Theme.tint.with-alpha(0.16) : #ffffff08;
+    border-width: 1px;
+    border-color: root.lit ? Theme.tint.with-alpha(0.55) : Theme.line2;
+    ct := Text {
+        text: root.text;
+        color: root.lit ? Theme.tint.brighter(0.5) : Theme.text2;
+        font-size: Theme.fs-sm;
+    }
+}
+
+// Opis bieżącego utworu obok okładki.
+export component NowInfo inherits VerticalLayout {
+    in property <bool> small;
+    alignment: center;
+    spacing: root.small ? 4px : 8px;
+    if !root.small: Text {
+        text: Player.idle ? "OPENMP" : Player.playing ? "TERAZ ODTWARZANE" : "WSTRZYMANE";
+        color: Theme.text3;
+        font-size: Theme.fs-xs;
+        letter-spacing: 3px;
+    }
+    Marquee {
+        text: Player.idle ? "Nic nie gra" : Player.title;
+        font-size: root.small ? 22px : 40px;
+        font-family: Theme.font-serif;
+        text-color: Theme.text;
+        enabled: Prefs.scroll-title;
+        TouchArea {
+            mouse-cursor: pointer;
+            clicked => { Player.show-current(); }
+        }
+    }
+    Marquee {
+        text: Player.idle ? "Upuść pliki albo foldery, by zacząć słuchać" : Player.artist;
+        font-size: root.small ? 15px : 25px;
+        font-family: Theme.font-serif;
+        text-color: Theme.tint.mix(Theme.text2, 0.45);
+        enabled: Prefs.scroll-title;
+    }
+    if Player.album != "": Text {
+        text: Player.album;
+        color: Theme.text3;
+        font-size: root.small ? Theme.fs-sm : Theme.fs-md;
+        overflow: elide;
+    }
+    if !Player.idle: Rectangle {
+        height: root.small ? 2px : 8px;
+    }
+    if !Player.idle: HorizontalLayout {
+        spacing: 7px;
+        alignment: start;
+        for b[i] in Player.badges: Chip {
+            text: b;
+            lit: i == 0;
+        }
+    }
+    if !Player.idle: HorizontalLayout {
+        spacing: 2px;
+        alignment: start;
+        height: 30px;
+        IconBtn {
+            icon: Player.fav ? Icons.heart : Icons.heart-outline;
+            size: 30px;
+            icon-size: 17px;
+            active: Player.fav;
+            tip: "Ulubiony";
+            clicked => { Player.toggle-fav(); }
+        }
+        IconBtn {
+            icon: Icons.lyrics;
+            size: 30px;
+            icon-size: 17px;
+            active: Prefs.side-panel == 1;
+            tip: "Tekst (L)";
+            clicked => {
+                Prefs.side-panel = Prefs.side-panel == 1 ? 0 : 1;
+                Prefs.changed("side-panel");
+            }
+        }
+        IconBtn {
+            icon: Icons.info;
+            size: 30px;
+            icon-size: 17px;
+            active: Prefs.side-panel == 2;
+            tip: "Informacje";
+            clicked => {
+                Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
+                Prefs.changed("side-panel");
+            }
+        }
+        IconBtn {
+            icon: Icons.queue;
+            size: 30px;
+            icon-size: 17px;
+            active: Prefs.side-panel == 3;
+            tip: "Kolejka";
+            clicked => {
+                Prefs.side-panel = Prefs.side-panel == 3 ? 0 : 3;
+                Prefs.changed("side-panel");
+            }
+        }
+        Rectangle {
+            width: 8px;
+        }
+        // Stan silnika: losowo, powtarzanie, korektor, przenikanie, ReplayGain, szybkość, wyłącznik.
+        for f in [
+            { on: Player.shuffle, t: "LOS" },
+            { on: Player.eq-on, t: "EQ" },
+            { on: Player.crossfade-on, t: "XF" },
+            { on: Player.rg-on, t: "RG" },
+        ]: Text {
+            text: f.t;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: f.on ? Theme.tint.brighter(0.3) : Theme.text3.with-alpha(0.55);
+            vertical-alignment: center;
+            width: self.preferred-width + 6px;
+        }
+        if Player.speed-text != "": Text {
+            text: Player.speed-text;
+            font-size: 10px;
+            font-weight: 700;
+            color: Theme.tint.brighter(0.3);
+            vertical-alignment: center;
+        }
+        if Player.sleep-text != "": HorizontalLayout {
+            spacing: 3px;
+            padding-left: 6px;
+            Icon {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.timer;
+                size: 13px;
+                fill: Theme.tint.brighter(0.3);
+            }
+            Text {
+                text: Player.sleep-text;
+                font-size: 10px;
+                color: Theme.tint.brighter(0.3);
+                vertical-alignment: center;
+            }
+        }
+        if Player.position-text != "": Text {
+            text: "   " + Player.position-text;
+            color: Theme.text3;
+            font-size: Theme.fs-xs;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Okładka i opis obok siebie – górna część pełnego okna i cały widok pomniejszony.
+export component Hero inherits Rectangle {
+    in property <bool> small;
+    HorizontalLayout {
+        spacing: root.small ? 18px : 36px;
+        padding-left: root.small ? 4px : 8px;
+        padding-top: root.small ? 6px : 4px;
+        padding-bottom: root.small ? 6px : 4px;
+        CoverArt {
+            width: self.height;
+            radius: root.small ? 10px : 14px;
+            clicked => {
+                Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
+                Prefs.changed("side-panel");
+            }
+        }
+        NowInfo {
+            horizontal-stretch: 1;
+            small: root.small;
+        }
+    }
+}
+
+// Duży przycisk odtwarzania: pierścień w kolorze akcentu z poświatą.
+export component PlayRing inherits Rectangle {
+    in property <length> size: 64px;
+    width: size;
+    height: size;
+    border-radius: self.width / 2;
+    background: pta.pressed ? Theme.tint.with-alpha(0.32) : pta.has-hover ? Theme.tint.with-alpha(0.2) : Theme.tint.with-alpha(0.08);
+    border-width: 2px;
+    border-color: Theme.tint;
+    drop-shadow-blur: 22px;
+    drop-shadow-color: Theme.glow;
+    animate background { duration: 140ms; }
+    Icon {
+        icon: Player.playing ? Icons.pause : Icons.play;
+        size: root.size * 0.42;
+        fill: Theme.text;
+    }
+    pta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { Player.play-pause(); }
+    }
+}
+
+// Dolny pasek: taśma utworu z czasami, przyciski odtwarzania, głośność, wyjście i przełączniki.
+export component BottomBar inherits Rectangle {
+    in property <bool> small;
+    property <bool> narrow: root.width < 760px;
+    VerticalLayout {
+        padding-left: 24px;
+        padding-right: 24px;
+        padding-top: root.small ? 6px : 12px;
+        padding-bottom: root.small ? 10px : 14px;
+        spacing: 2px;
+        SeekBar {
+            wave-height: root.small ? 44px : 64px;
+            value: Player.duration > 0 ? Player.pos / Player.duration : 0;
+            duration: Player.duration;
+            wave: Player.wave;
+            show-wave: Prefs.show-waveform;
+            ab-a: Player.ab-a;
+            ab-b: Player.ab-b;
+            seek(v) => { Player.seek(v); }
+        }
+        HorizontalLayout {
+            height: 20px;
+            Text {
+                text: Fmt.time(Player.pos);
+                color: Theme.text2;
+                font-size: Theme.fs;
+                font-family: Theme.font-display;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+            Text {
+                text: Player.duration <= 0 ? Player.state-text : Prefs.remaining ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.duration);
+                color: Theme.text2;
+                font-size: Theme.fs;
+                font-family: Theme.font-display;
+                vertical-alignment: center;
+                TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => {
+                        Prefs.remaining = !Prefs.remaining;
+                        Prefs.changed("remaining");
+                    }
+                }
+            }
+        }
+        HorizontalLayout {
+            height: root.small ? 60px : 72px;
+            spacing: 8px;
+            // Lewa strona: wyjście dźwięku i głośność.
+            HorizontalLayout {
+                horizontal-stretch: 1;
+                alignment: start;
+                spacing: 4px;
+                if !root.narrow && Prefs.devices.length > 0: Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    height: 32px;
+                    width: min(dev-row.preferred-width + 20px, 190px);
+                    border-radius: 8px;
+                    background: dev-ta.has-hover ? Theme.hover : transparent;
+                    dev-row := HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        spacing: 7px;
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.audiotrack;
+                            size: 16px;
+                            fill: Theme.text2;
+                        }
+                        Text {
+                            text: Prefs.devices[Prefs.device];
+                            color: Theme.text2;
+                            font-size: Theme.fs-sm;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            max-width: 130px;
+                        }
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.chevron-down;
+                            size: 13px;
+                            fill: Theme.text3;
+                        }
+                    }
+                    dev-ta := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { dev-popup.show(); }
+                    }
+                    dev-popup := PopupWindow {
+                        y: -self.height - 6px;
+                        width: 280px;
+                        height: min(Prefs.devices.length, 10) * 30px + 10px;
+                        close-policy: PopupClosePolicy.close-on-click-outside;
+                        Rectangle {
+                            border-radius: 10px;
+                            background: Theme.raised;
+                            border-width: 1px;
+                            border-color: Theme.line2;
+                            drop-shadow-blur: 22px;
+                            drop-shadow-color: #00000080;
+                            VerticalLayout {
+                                padding: 5px;
+                                for d[i] in Prefs.devices: Rectangle {
+                                    height: 30px;
+                                    border-radius: 6px;
+                                    background: dta.has-hover ? Theme.sel : transparent;
+                                    HorizontalLayout {
+                                        padding-left: 9px;
+                                        padding-right: 9px;
+                                        spacing: 8px;
+                                        Rectangle {
+                                            width: 14px;
+                                            if i == Prefs.device: Icon {
+                                                icon: Icons.check;
+                                                size: 14px;
+                                                fill: Theme.tint;
+                                            }
+                                        }
+                                        Text {
+                                            text: d;
+                                            color: Theme.text;
+                                            font-size: Theme.fs;
+                                            vertical-alignment: center;
+                                            overflow: elide;
+                                            horizontal-stretch: 1;
+                                        }
+                                    }
+                                    dta := TouchArea {
+                                        clicked => {
+                                            Prefs.device = i;
+                                            Prefs.changed("device");
+                                            dev-popup.close();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
+                    size: 32px;
+                    tip: "Wycisz (M)";
+                    clicked => { Player.toggle-mute(); }
+                }
+                HSlider {
+                    y: (parent.height - self.height) / 2;
+                    width: root.width < 620px ? 70px : 120px;
+                    value: Player.volume;
+                    fill-color: Player.muted ? Theme.text3 : Theme.tint;
+                    moved(v) => { Player.set-volume(v); }
+                }
+                if root.width >= 620px: Text {
+                    width: 38px;
+                    text: round(Player.volume * 100) + "%";
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                }
+            }
+            // Środek: odtwarzanie.
+            HorizontalLayout {
+                spacing: root.narrow ? 6px : 16px;
+                alignment: center;
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.shuffle;
+                    size: 40px;
+                    icon-size: 20px;
+                    active: Player.shuffle;
+                    tip: "Losowo (S)";
+                    clicked => { Player.toggle-shuffle(); }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.prev;
+                    size: 44px;
+                    icon-size: 26px;
+                    icon-color: Theme.text;
+                    tip: "Poprzedni (Ctrl+←)";
+                    clicked => { Player.prev(); }
+                }
+                PlayRing {
+                    y: (parent.height - self.height) / 2;
+                    size: root.small ? 54px : 64px;
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.next;
+                    size: 44px;
+                    icon-size: 26px;
+                    icon-color: Theme.text;
+                    tip: "Następny (Ctrl+→)";
+                    clicked => { Player.next(); }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Player.repeat == 2 ? Icons.repeat-one : Icons.repeat;
+                    size: 40px;
+                    icon-size: 20px;
+                    active: Player.repeat > 0;
+                    tip: Player.repeat == 0 ? "Powtarzanie wyłączone (R)" : Player.repeat == 1 ? "Powtarzaj listę (R)" : "Powtarzaj utwór (R)";
+                    clicked => { Player.cycle-repeat(); }
+                }
+            }
+            // Prawa strona: zatrzymanie, korektor, wyłącznik, panele i widoki.
+            HorizontalLayout {
+                horizontal-stretch: 1;
+                alignment: end;
+                spacing: 2px;
+                if !root.narrow: IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.stop;
+                    size: 34px;
+                    icon-size: 17px;
+                    active: Player.stop-after;
+                    tip: "Zatrzymaj (prawy przycisk – po bieżącym)";
+                    clicked => { Player.stop(); }
+                    right-clicked => { Ui.key("stop-after", false, false, false); }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.equalizer;
+                    size: 34px;
+                    active: Ui.equalizer || Prefs.eq-on;
+                    tip: "Korektor i efekty (E)";
+                    clicked => { Ui.equalizer = !Ui.equalizer; }
+                }
+                if !root.narrow: IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.timer;
+                    size: 34px;
+                    active: Player.sleep-text != "";
+                    tip: "Wyłącznik czasowy";
+                    clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
+                }
+                if !root.small: IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.menu;
+                    size: 34px;
+                    active: Prefs.show-sidebar;
+                    tip: "Panel nawigacji";
+                    clicked => {
+                        Prefs.show-sidebar = !Prefs.show-sidebar;
+                        Prefs.changed("show-sidebar");
+                    }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.queue;
+                    size: 34px;
+                    active: Prefs.side-panel > 0;
+                    tip: "Tekst, informacje, kolejka (L)";
+                    clicked => {
+                        Prefs.side-panel = Prefs.side-panel > 0 ? 0 : 3;
+                        Prefs.changed("side-panel");
+                    }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.pip;
+                    size: 34px;
+                    icon-size: 17px;
+                    tip: "Miniodtwarzacz (Ctrl+M)";
+                    clicked => { Ui.set-mode(2); }
+                }
+                IconBtn {
+                    tip-above: true;
+                    y: (parent.height - self.height) / 2;
+                    icon: Prefs.compact ? Icons.expand : Icons.compact;
+                    size: 34px;
+                    icon-size: 17px;
+                    tip: Prefs.compact ? "Pełny widok (Ctrl+K)" : "Widok pomniejszony (Ctrl+K)";
+                    clicked => { Ui.toggle-compact(); }
+                }
+            }
+        }
+    }
+}

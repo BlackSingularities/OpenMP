@@ -1,5 +1,5 @@
-// Kolory i miary całego programu. Wyświetlacz jest zawsze ciemny (jak ekran LCD odtwarzacza),
-// reszta zależy od motywu. Akcent: z ustawień albo z okładki bieżącego albumu.
+// Kolory i miary całego programu: głęboka czerń i jeden akcent, który – gdy włączone – płynie
+// z okładki bieżącego utworu przez wszystkie widoki (przyciski, zaznaczenia, fala, poświata).
 
 export global Theme {
     in-out property <bool> dark: true;
@@ -7,33 +7,36 @@ export global Theme {
     // Akcent z okładki (gdy włączony) – wyświetlacz i pasek przewijania.
     in-out property <color> tint: accent;
 
-    out property <color> bg: dark ? #0e1015 : #f2f3f6;
-    out property <color> panel: dark ? #14171e : #ffffff;
-    out property <color> panel2: dark ? #1a1e27 : #f7f8fa;
-    out property <color> raised: dark ? #20252f : #ffffff;
-    out property <color> line: dark ? #252a35 : #e2e5eb;
-    out property <color> line2: dark ? #2f3542 : #d3d8e0;
-    out property <color> text: dark ? #e8ebf1 : #171a21;
-    out property <color> text2: dark ? #a0a8b6 : #545d6b;
-    out property <color> text3: dark ? #6c7484 : #8b93a0;
-    out property <color> hover: dark ? #ffffff0d : #0000000a;
-    out property <color> press: dark ? #ffffff17 : #00000014;
-    out property <color> sel: accent.with-alpha(dark ? 0.20 : 0.14);
-    out property <color> sel-strong: accent.with-alpha(dark ? 0.32 : 0.24);
+    out property <color> bg: dark ? #050507 : #f3f2f6;
+    out property <color> side: dark ? #09090c : #ebe9f0;
+    out property <color> panel: dark ? #0c0c10 : #ffffff;
+    out property <color> panel2: dark ? #121217 : #f7f6fa;
+    out property <color> raised: dark ? #18181f : #ffffff;
+    out property <color> line: dark ? #1c1c24 : #e2e0e8;
+    out property <color> line2: dark ? #2a2a35 : #d3d0db;
+    out property <color> text: dark ? #f1eff6 : #16151b;
+    out property <color> text2: dark ? #a9a6b4 : #55525f;
+    out property <color> text3: dark ? #6d6a78 : #8c8997;
+    out property <color> hover: dark ? #ffffff0b : #0000000a;
+    out property <color> press: dark ? #ffffff15 : #00000014;
+    out property <color> sel: tint.with-alpha(dark ? 0.16 : 0.14);
+    out property <color> sel-strong: tint.with-alpha(dark ? 0.30 : 0.24);
+    // Poświata akcentu za okładką i pod przyciskiem odtwarzania.
+    out property <color> glow: tint.with-alpha(0.38);
     out property <color> on-accent: #ffffff;
     out property <color> danger: #ef5a5a;
     out property <color> ok: #3ccf8e;
     out property <color> scrim: #00000099;
 
     // Wyświetlacz
-    out property <color> lcd: #07090d;
-    out property <color> lcd2: #0d1118;
+    out property <color> lcd: #050507;
+    out property <color> lcd2: #0c0c10;
     out property <color> lcd-text: #eef2f8;
     out property <color> lcd-dim: #8791a3;
     out property <color> lcd-faint: #4b5363;
 
     out property <length> radius: 8px;
-    out property <length> radius-lg: 12px;
+    out property <length> radius-lg: 14px;
     out property <length> fs-xs: 10.5px;
     out property <length> fs-sm: 11.5px;
     out property <length> fs: 12.5px;
@@ -42,5 +45,7 @@ export global Theme {
     out property <length> fs-xl: 22px;
     out property <string> font: "Segoe UI Variable Text";
     out property <string> font-display: "Segoe UI Variable Display";
+    // Tytuł utworu – szeryfowy, jak na okładce płyty.
+    out property <string> font-serif: "Georgia";
     out property <string> mono: "Cascadia Mono";
 }

@@ -3461,7 +3461,7 @@ dependencies = [
 
 [[package]]
 name = "openmp"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "crossbeam-channel",
  "glow 0.16.0",
@@ -3484,7 +3484,7 @@ dependencies = [
 
 [[package]]
 name = "openmp-core"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "cpal",
  "crossbeam-channel",

@@ -1,10 +1,11 @@
 // Tryb wideo: obraz na całe okno i mały, chowający się panel sterowania.
-// Miniodtwarzacz: wąski pasek na wierzchu z okładką i przyciskami.
+// Miniodtwarzacz: tytuł, pasek postępu z przyciskami, okładka z wizualizacją po najechaniu.
 
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, HSlider, Segmented, Cover, Marquee, Btn } from "widgets.slint";
 import { SeekBar, Fmt, Visualizer } from "display.slint";
+import { CoverArt, PlayRing } from "nowplaying.slint";
 import { WinButtons } from "views.slint";
 import { Player, Video, Ui, Prefs } from "state.slint";
 import { Opt } from "types.slint";
@@ -606,19 +607,9 @@ export component VideoView inherits Rectangle {
 }
 
 export component MiniView inherits Rectangle {
-    background: Theme.lcd;
-    border-radius: 0;
-    if Player.has-cover: Image {
-        width: 100%;
-        height: 100%;
-        source: Player.backdrop;
-        image-fit: ImageFit.cover;
-        opacity: 0.35;
-    }
-    Rectangle {
-        background: @linear-gradient(90deg, #07090dcc 0%, #07090d99 55%, #07090dee 100%);
-    }
-    TouchArea {
+    background: Theme.bg;
+    property <bool> hover: area.has-hover;
+    area := TouchArea {
         pointer-event(e) => {
             if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
                 Ui.drag();
@@ -629,133 +620,157 @@ export component MiniView inherits Rectangle {
             Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
             accept
         }
-    }
-    VerticalLayout {
-        padding: 10px;
-        padding-bottom: 8px;
-        spacing: 7px;
+        if Player.has-cover: Image {
+            width: 100%;
+            height: 100%;
+            source: Player.backdrop;
+            image-fit: ImageFit.cover;
+            opacity: 0.22;
+        }
+        Rectangle {
+            background: @linear-gradient(90deg, Theme.bg.with-alpha(0.9) 0%, Theme.bg.with-alpha(0.6) 60%, Theme.bg.with-alpha(0.92) 100%);
+        }
+        // Delikatne słupki analizatora za tytułem – muzyka „widać” także bez najeżdżania.
+        if Player.viz-mode != 4 && !Player.idle: Visualizer {
+            x: 10px;
+            y: 6px;
+            width: parent.width - 20px;
+            height: strip.y - 12px;
+            opacity: 0.28;
+            overlay: true;
+            mode: Player.viz-mode == 3 ? 0 : Player.viz-mode;
+            bars: Player.bars;
+            peaks: Player.peaks;
+            scope-path: Player.scope-path;
+            spectrum-path: Player.spectrum-path;
+            active: Player.viz-active;
+            note: "";
+        }
+        // Tytuł i wykonawca – zawsze widoczne; ustępują miejsca okładce po najechaniu.
         HorizontalLayout {
-            spacing: 12px;
-            vertical-stretch: 1;
-            Cover {
-                width: self.height;
-                source: Player.cover;
-                has: Player.has-cover;
-                fallback: Icons.note;
-                border-radius: 6px;
-            }
+            x: 14px;
+            y: 8px;
+            width: parent.width - 28px;
+            height: strip.y - 14px;
+            spacing: 8px;
             VerticalLayout {
                 horizontal-stretch: 1;
-                spacing: 1px;
                 alignment: center;
+                spacing: 1px;
+                padding-right: root.hover ? cover.width + 8px : 0px;
+                animate padding-right { duration: 180ms; easing: ease-out; }
                 Marquee {
                     text: Player.idle ? "OpenMP" : Player.title;
-                    font-size: Theme.fs-md;
-                    font-weight: 600;
-                    text-color: Theme.lcd-text;
+                    font-size: Theme.fs-lg + 1px;
+                    font-family: Theme.font-serif;
+                    text-color: Theme.text;
                     enabled: Prefs.scroll-title;
                 }
                 Text {
-                    text: Player.artist;
-                    color: Theme.tint.brighter(0.5);
-                    font-size: Theme.fs-sm;
+                    text: Player.idle ? "Nic nie gra" : Player.artist;
+                    color: Theme.tint.mix(Theme.text2, 0.45);
+                    font-size: Theme.fs;
                     overflow: elide;
-                }
-                HorizontalLayout {
-                    spacing: 2px;
-                    IconBtn {
-                        icon: Icons.prev;
-                        size: 28px;
-                        on-dark: true;
-                        icon-color: #ffffffc0;
-                        clicked => { Player.prev(); }
-                    }
-                    IconBtn {
-                        icon: Player.playing ? Icons.pause : Icons.play;
-                        size: 28px;
-                        icon-size: 20px;
-                        on-dark: true;
-                        icon-color: #ffffff;
-                        clicked => { Player.play-pause(); }
-                    }
-                    IconBtn {
-                        icon: Icons.next;
-                        size: 28px;
-                        on-dark: true;
-                        icon-color: #ffffffc0;
-                        clicked => { Player.next(); }
-                    }
-                    Text {
-                        text: (Prefs.remaining && Player.duration > 0 ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.pos)) + (Player.duration > 0 ? " / " + Fmt.time(Player.duration) : "");
-                        color: Theme.lcd-dim;
-                        font-size: Theme.fs-sm;
-                        vertical-alignment: center;
-                        horizontal-stretch: 1;
-                        horizontal-alignment: right;
-                        TouchArea {
-                            mouse-cursor: pointer;
-                            clicked => {
-                                Prefs.remaining = !Prefs.remaining;
-                                Prefs.changed("remaining");
-                            }
-                        }
-                    }
-                }
-            }
-            // Mały analizator – ten sam tryb co na dużym wyświetlaczu; klik przełącza.
-            Rectangle {
-                width: clamp(root.width * 0.22, 70px, 160px);
-                border-radius: 6px;
-                background: #ffffff06;
-                Visualizer {
-                    x: 4px;
-                    y: 4px;
-                    width: parent.width - 8px;
-                    height: parent.height - 8px;
-                    mode: Player.viz-mode;
-                    bars: Player.bars;
-                    peaks: Player.peaks;
-                    scope-path: Player.scope-path;
-                    spectrum-path: Player.spectrum-path;
-                    vu-l: Player.vu-l;
-                    vu-r: Player.vu-r;
-                    vu-pl: Player.vu-pl;
-                    vu-pr: Player.vu-pr;
-                    active: Player.viz-active;
-                    note: "";
-                    cycle => { Player.cycle-viz(); }
                 }
             }
             VerticalLayout {
                 alignment: start;
                 IconBtn {
                     icon: Icons.expand;
-                    size: 24px;
+                    size: 26px;
                     icon-size: 15px;
-                    on-dark: true;
-                    icon-color: #ffffffa0;
                     tip: "Pełne okno";
                     clicked => { Ui.set-mode(0); }
                 }
                 IconBtn {
                     icon: Icons.close;
-                    size: 24px;
+                    size: 26px;
                     icon-size: 14px;
-                    on-dark: true;
-                    icon-color: #ffffffa0;
                     clicked => { Ui.close(); }
                 }
             }
         }
-        // Ten sam pasek co w pełnym oknie: taśma utworu, znaczniki A-B, podgląd czasu.
-        SeekBar {
-            value: Player.duration > 0 ? Player.pos / Player.duration : 0;
-            duration: Player.duration;
-            wave: Player.wave;
-            show-wave: Prefs.show-waveform;
-            ab-a: Player.ab-a;
-            ab-b: Player.ab-b;
-            seek(v) => { Player.seek(v); }
+        // Pasek postępu z przyciskami odtwarzania.
+        strip := Rectangle {
+            x: 10px;
+            width: parent.width - 20px;
+            height: 52px;
+            y: parent.height - self.height - 10px;
+            border-radius: 26px;
+            background: Theme.panel2.with-alpha(0.85);
+            border-width: 1px;
+            border-color: Theme.line2;
+            HorizontalLayout {
+                padding-left: 6px;
+                padding-right: 16px;
+                spacing: 2px;
+                IconBtn {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.prev;
+                    size: 34px;
+                    icon-size: 20px;
+                    icon-color: Theme.text;
+                    tip-above: true;
+                    clicked => { Player.prev(); }
+                }
+                PlayRing {
+                    y: (parent.height - self.height) / 2;
+                    size: 40px;
+                }
+                IconBtn {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.next;
+                    size: 34px;
+                    icon-size: 20px;
+                    icon-color: Theme.text;
+                    tip-above: true;
+                    clicked => { Player.next(); }
+                }
+                Rectangle {
+                    width: 8px;
+                }
+                SeekBar {
+                    y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 1;
+                    wave-height: 32px;
+                    value: Player.duration > 0 ? Player.pos / Player.duration : 0;
+                    duration: Player.duration;
+                    wave: Player.wave;
+                    show-wave: Prefs.show-waveform;
+                    ab-a: Player.ab-a;
+                    ab-b: Player.ab-b;
+                    seek(v) => { Player.seek(v); }
+                }
+                Rectangle {
+                    width: 12px;
+                }
+                Text {
+                    text: Prefs.remaining && Player.duration > 0 ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.pos);
+                    color: Theme.text2;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            Prefs.remaining = !Prefs.remaining;
+                            Prefs.changed("remaining");
+                        }
+                    }
+                }
+            }
+        }
+        // Okładka z wizualizacją – nad paskiem po prawej, tylko po najechaniu.
+        cover := CoverArt {
+            width: strip.y - 14px;
+            height: self.width;
+            x: parent.width - self.width - 48px;
+            y: root.hover ? strip.y - self.height - 6px : strip.y - self.height + 6px;
+            radius: 8px;
+            show-chip: false;
+            opacity: root.hover ? 1 : 0;
+            visible: self.opacity > 0.01;
+            animate opacity, y { duration: 180ms; easing: ease-out; }
+            clicked => { Player.cycle-viz(); }
         }
     }
 }

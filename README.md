@@ -4,8 +4,8 @@ Odtwarzacz muzyki i wideo dla Windows 10 i 11. Natywny program w Rust ze Slint: 
 
 ## Muzyka
 
-- **Wyświetlacz** – okładka, tytuł, wykonawca i album, parametry techniczne (format, częstotliwość, bitrate, kanały), duży licznik czasu (kliknięcie przełącza na czas pozostały) i barwy dopasowane do okładki.
-- **Wizualizacje** – słupki ze szczytami, widmo, oscyloskop i wskaźniki VU liczone wprost z próbek. Kliknięcie w analizator przełącza tryb. Analizator jest widoczny w pełnym oknie, w widoku kompaktowym i w miniodtwarzaczu.
+- **Teraz odtwarzane** – duża okładka z poświatą, szeryfowy tytuł, wykonawca i album, etykiety formatu (format, częstotliwość, bitrate, kanały). Akcent całego interfejsu płynie z okładki bieżącego utworu.
+- **Wizualizacja na okładce** – słupki ze szczytami, widmo, oscyloskop albo wskaźniki VU liczone wprost z próbek, nałożone na dolną część okładki (przełącznik na okładce, można też wyłączyć). Widoczna w każdym widoku.
 - **Taśma utworu** – pasek przewijania z falą całego utworu w czterech stylach (fala, słupki, od dołu, kontur), z podglądem czasu pod kursorem i znacznikami pętli A-B. Ten sam pasek jest w każdym widoku.
 - **Silnik dźwięku** – przejścia bez przerw, płynne przenikanie, korektor 18-pasmowy z presetami i własnymi ustawieniami, ReplayGain (utwór lub album) z ogranicznikiem, szybkość i wysokość dźwięku, wybór urządzenia wyjściowego, łagodna pauza.
 - **Teksty** – pliki `.lrc` obok utworu, teksty z tagów i [LRCLIB](https://lrclib.net) dla brakujących (do serwera trafiają tylko wykonawca, tytuł, album i czas trwania). Wersje z sygnaturami czasu przewijają się razem z utworem, a pobrany tekst można zapisać obok pliku.
@@ -28,9 +28,9 @@ Odtwarzacz muzyki i wideo dla Windows 10 i 11. Natywny program w Rust ze Slint: 
 
 ## Widoki
 
-- **Pełne okno**: wyświetlacz, sterowanie, panel nawigacji, lista lub biblioteka i panel boczny (tekst, informacje, kolejka).
-- **Kompaktowy** (Ctrl+K): sam wyświetlacz z analizatorem i sterowanie.
-- **Miniodtwarzacz** (Ctrl+M): wąskie okno na wierzchu z okładką, przyciskami, analizatorem i pełnym paskiem z taśmą utworu.
+- **Duży**: panel nawigacji z folderami biblioteki, okładka z opisem nad listą lub biblioteką, panel boczny (tekst, informacje, kolejka) i dolny pasek z taśmą utworu, przyciskami odtwarzania, wyjściem dźwięku i głośnością.
+- **Pomniejszony** (Ctrl+K): okładka z wizualizacją i tytuł po lewej, ten sam dolny pasek.
+- **Miniodtwarzacz** (Ctrl+M): okno na wierzchu z tytułem i paskiem postępu, na którym są przyciski odtwarzania; okładka z wizualizacją pojawia się nad paskiem po najechaniu.
 
 ## Windows
 
