@@ -61,13 +61,20 @@ pub fn rebuild_nav(app: &mut App) {
         nav("v-recent", "Ostatnio dodane", "clock", String::new()),
         section("sec-sets", "ZBIORY"),
         nav("fav", "Ulubione", "heart", n(app.stats.map.values().filter(|s| s.rating >= 5).count())),
+        nav("rated", "Ocenione", "heart", n(app.stats.map.values().filter(|s| s.rating > 0).count())),
         nav("top", "Najczęściej odtwarzane", "trending", String::new()),
         nav("recent", "Ostatnio dodana muzyka", "clock", String::new()),
         nav("history", "Historia", "history", String::new()),
         nav("radio", "Radio internetowe", "radio", String::new()),
-        // Foldery biblioteki (także udziały sieciowe) – skrót do całej zawartości folderu.
-        section("sec-folders", "FOLDERY"),
     ];
+    if !app.s.smart_lists.is_empty() {
+        v.push(section("sec-smart", "INTELIGENTNE LISTY"));
+        for (i, (name, _)) in app.s.smart_lists.iter().enumerate() {
+            v.push(nav(&format!("smart:{i}"), name, "playlist", String::new()));
+        }
+    }
+    // Foldery biblioteki (także udziały sieciowe) – skrót do całej zawartości folderu.
+    v.push(section("sec-folders", "FOLDERY"));
     let roots: Vec<String> = app.s.library_folders.iter().chain(app.s.video_folders.iter()).cloned().collect();
     for root in roots {
         let count = under_root(app, &root).count();
@@ -116,6 +123,11 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
     if id.starts_with("sec-") || id == "playlist" {
         return;
     }
+    if id.starts_with("smart:") {
+        let items = vec![crate::menu::item("smart-del", "Usuń inteligentną listę", "delete", "")];
+        crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
+        return;
+    }
     let items = vec![
         crate::menu::item("rescan", "Odśwież bibliotekę", "refresh", ""),
         crate::menu::item("folders", "Foldery biblioteki…", "folder", ""),
@@ -123,26 +135,36 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
     crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
 }
 
-pub fn nav_command(app: &mut App, _id: &str, cmd: &str) {
+pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
     match cmd {
+        "smart-del" => {
+            if let Some(i) = id.strip_prefix("smart:").and_then(|s| s.parse::<usize>().ok()) {
+                if i < app.s.smart_lists.len() {
+                    app.s.smart_lists.remove(i);
+                    app.dirty = true;
+                    rebuild_nav(app);
+                }
+            }
+        }
         "rescan" => start_scan(app),
         "folders" => crate::keys::open_settings(app, 4),
         _ => {}
     }
 }
 
-fn lookup(app: &App) -> HashMap<String, TrackInfo> {
-    app.lib.tracks.iter().chain(app.lib.videos.iter()).map(|t| (library::key(&t.path), t.clone())).collect()
+fn lookup<'a>(a: &'a [TrackInfo], b: &'a [TrackInfo]) -> HashMap<String, &'a TrackInfo> {
+    a.iter().chain(b.iter()).map(|t| (library::key(&t.path), t)).collect()
 }
 
 /// Utwory z mapy statystyk (ulubione, najczęściej, historia): z biblioteki albo czytane z pliku.
-fn from_stats(app: &App, mut keys: Vec<(String, u64)>, limit: usize) -> Vec<TrackInfo> {
+/// `a` i `b` – obie części biblioteki (jedna bywa wyjęta z `app` na czas rysowania).
+fn from_stats(a: &[TrackInfo], b: &[TrackInfo], mut keys: Vec<(String, u64)>, limit: usize) -> Vec<TrackInfo> {
     keys.sort_by(|a, b| b.1.cmp(&a.1));
-    let idx = lookup(app);
+    let idx = lookup(a, b);
     keys.into_iter()
         .take(limit)
         .filter_map(|(k, _)| {
-            idx.get(&k).cloned().or_else(|| {
+            idx.get(&k).map(|t| (*t).clone()).or_else(|| {
                 let p = std::path::Path::new(&k);
                 p.exists().then(|| meta::read(p))
             })
@@ -160,6 +182,7 @@ fn title_for(kind: &str) -> &'static str {
         "all" => "Wszystkie utwory",
         "fav" => "Ulubione",
         "top" => "Najczęściej odtwarzane",
+        "rated" => "Ocenione",
         "recent" => "Ostatnio dodana muzyka",
         "history" => "Historia",
         "v-all" => "Wszystkie filmy",
@@ -172,11 +195,23 @@ fn title_for(kind: &str) -> &'static str {
 
 /// Rysuje bieżący widok biblioteki.
 pub fn show(app: &mut App) {
+    // Bez kopiowania całej biblioteki: na czas rysowania wyjmujemy ją z `app` i oddajemy z powrotem.
+    let video = app.libv.kind.starts_with("v-");
+    let source = std::mem::take(if video { &mut app.lib.videos } else { &mut app.lib.tracks });
+    show_with(app, &source);
+    *(if video { &mut app.lib.videos } else { &mut app.lib.tracks }) = source;
+}
+
+/// Druga część biblioteki (filmy przy muzyce i odwrotnie) – ta, której `show` nie wyjął.
+fn other(app: &App, video_kind: bool) -> &[TrackInfo] {
+    if video_kind { &app.lib.tracks } else { &app.lib.videos }
+}
+
+fn show_with(app: &mut App, source: &[TrackInfo]) {
     let Some(ui) = app.ui() else { return };
     let l = ui.global::<Lib>();
     let kind = app.libv.kind.clone();
     let video_kind = kind.starts_with("v-");
-    let source: Vec<TrackInfo> = if video_kind { app.lib.videos.clone() } else { app.lib.tracks.clone() };
     l.set_can_back(!app.libv.stack.is_empty());
     let empty_lib = if video_kind {
         "Brak filmów w bibliotece.\nDodaj foldery z wideo (także na dysku sieciowym) w Ustawieniach → Biblioteka."
@@ -185,11 +220,12 @@ pub fn show(app: &mut App) {
     };
     // Wyszukiwanie obejmuje całą bibliotekę – muzykę i filmy.
     if !app.libv.search.trim().is_empty() {
-        let w = library::words(&app.libv.search);
-        let found: Vec<TrackInfo> = app.lib.tracks.iter().chain(app.lib.videos.iter()).filter(|t| library::matches(t, &w)).take(2000).cloned().collect();
+        let q = library::Query::parse(&app.libv.search);
+        let found: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(2000).cloned().collect();
         l.set_title(ss(format!("Wyniki: „{}”", app.libv.search.trim())));
         l.set_subtitle(ss(format!("{} {}", found.len(), crate::lists::plural(found.len(), "pozycja", "pozycje", "pozycji"))));
-        l.set_empty_text(ss("Nic nie znaleziono."));
+        l.set_empty_text(ss("Nic nie znaleziono.
+Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworzenia>=10, format:flac, dodane<30, dlugosc>6"));
         set_tracks(app, found);
         return;
     }
@@ -205,6 +241,15 @@ pub fn show(app: &mut App) {
             set_tiles(app, groups, "album", true);
             return;
         }
+        if gk == "dir" || gk == "v-dir" {
+            show_dir(app, &source, &name, gk == "v-dir");
+            return;
+        }
+        let gk = match gk.as_str() {
+            "files" => "folder".to_string(),
+            "v-files" => "v-folder".to_string(),
+            _ => gk,
+        };
         let gkind = if gk == "v-folder" { "folder" } else { gk.as_str() };
         let mut tracks: Vec<TrackInfo> = library::in_group(&source, gkind, &name, &sub).into_iter().cloned().collect();
         if video_kind {
@@ -231,23 +276,42 @@ pub fn show(app: &mut App) {
     l.set_title(ss(title_for(&kind)));
     l.set_empty_text(ss(empty_lib));
     match kind.as_str() {
-        "artist" | "genre" | "year" | "folder" => {
+        "artist" | "genre" | "year" => {
             let groups = library::group_by(&source, &kind);
             l.set_subtitle(ss(format!("{} · {} utworów", groups.len(), source.len())));
             set_tiles(app, groups, &kind, false);
+        }
+        "folder" | "v-folder" => {
+            // Drzewo folderów: od folderów biblioteki w głąb (jedyny folder – od razu jego zawartość).
+            let roots = if video_kind { app.s.video_folders.clone() } else { app.s.library_folders.clone() };
+            if roots.len() == 1 {
+                show_dir(app, &source, &roots[0], video_kind);
+                return;
+            }
+            let groups: Vec<library::Group> = roots
+                .iter()
+                .map(|r| {
+                    let t = library::in_tree(&source, r);
+                    library::Group {
+                        name: r.trim_end_matches(['\\', '/']).to_string(),
+                        count: t.len(),
+                        duration: t.iter().map(|t| t.duration).sum(),
+                        first: t.first().map(|t| t.path.clone()).unwrap_or_default(),
+                        ..Default::default()
+                    }
+                })
+                .collect();
+            let what = if video_kind { "filmów" } else { "utworów" };
+            l.set_subtitle(ss(format!("{} {} · {} {what}", groups.len(), crate::lists::plural(groups.len(), "folder", "foldery", "folderów"), source.len())));
+            set_tiles(app, groups, if video_kind { "v-dir" } else { "dir" }, true);
         }
         "album" => {
             let groups = library::group_by(&source, "album");
             l.set_subtitle(ss(format!("{} albumów · {} utworów", groups.len(), source.len())));
             set_tiles(app, groups, "album", true);
         }
-        "v-folder" => {
-            let groups = library::group_by(&source, "folder");
-            l.set_subtitle(ss(format!("{} folderów · {} filmów", groups.len(), source.len())));
-            set_tiles(app, groups, "v-folder", true);
-        }
         "all" | "v-all" => {
-            let mut t = source;
+            let mut t = source.to_vec();
             if video_kind {
                 t.sort_by_key(|t| natural(&t.path));
             }
@@ -255,7 +319,7 @@ pub fn show(app: &mut App) {
             set_tracks(app, t);
         }
         "recent" | "v-recent" => {
-            let mut t = source;
+            let mut t = source.to_vec();
             t.sort_by_key(|t| std::cmp::Reverse(t.modified));
             t.truncate(300);
             l.set_subtitle(ss("Według daty pliku"));
@@ -263,28 +327,36 @@ pub fn show(app: &mut App) {
         }
         "v-continue" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(k, s)| s.resume > 10.0 && meta::is_video(std::path::Path::new(k.as_str()))).map(|(k, s)| (k.clone(), s.last)).collect();
-            let t = from_stats(app, keys, 100);
+            let t = from_stats(source, other(app, video_kind), keys, 100);
             l.set_subtitle(ss("Filmy przerwane w trakcie – zaczną się od miejsca, w którym skończyłeś"));
             l.set_empty_text(ss("Nie ma przerwanych filmów."));
             set_tracks(app, t);
         }
         "fav" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating >= 5).map(|(k, s)| (k.clone(), s.last)).collect();
-            let t = from_stats(app, keys, 5000);
+            let t = from_stats(source, other(app, video_kind), keys, 5000);
             l.set_subtitle(ss(format!("{} pozycji · serce przy utworze dodaje go tutaj", t.len())));
             l.set_empty_text(ss("Brak ulubionych. Kliknij serce przy utworze albo Ctrl+D."));
             set_tracks(app, t);
         }
+        "rated" => {
+            // Najpierw wyższa ocena, w niej ostatnio odtwarzane.
+            let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating > 0).map(|(k, s)| (k.clone(), ((s.rating as u64) << 40) | (s.last & 0xff_ffff_ffff))).collect();
+            let t = from_stats(source, other(app, video_kind), keys, 5000);
+            l.set_subtitle(ss(format!("{} pozycji · Ctrl+1…5 ocenia zaznaczone", t.len())));
+            l.set_empty_text(ss("Nic jeszcze nie ma oceny. Zaznacz utwory i naciśnij Ctrl+1…5."));
+            set_tracks(app, t);
+        }
         "top" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.plays > 0).map(|(k, s)| (k.clone(), s.plays as u64)).collect();
-            let t = from_stats(app, keys, 200);
+            let t = from_stats(source, other(app, video_kind), keys, 200);
             l.set_subtitle(ss("Według liczby odtworzeń"));
             l.set_empty_text(ss("Jeszcze nic nie zostało odtworzone."));
             set_tracks(app, t);
         }
         k if k.starts_with("root:") => {
             let root = &k[5..];
-            let mut t: Vec<TrackInfo> = under_root(app, root).cloned().collect();
+            let mut t: Vec<TrackInfo> = library::in_tree(source, root).into_iter().chain(library::in_tree(other(app, video_kind), root)).cloned().collect();
             t.sort_by_key(|t| natural(&t.path));
             let dur: f64 = t.iter().map(|t| t.duration).sum();
             l.set_title(ss(folder_name(root)));
@@ -297,9 +369,22 @@ pub fn show(app: &mut App) {
             l.set_empty_text(ss("Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."));
             set_tracks(app, t);
         }
+        k if k.starts_with("smart:") => {
+            let Some((name, query)) = k[6..].parse::<usize>().ok().and_then(|i| app.s.smart_lists.get(i).cloned()) else {
+                set_tracks(app, Vec::new());
+                return;
+            };
+            let q = library::Query::parse(&query);
+            let mut t: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(5000).cloned().collect();
+            t.sort_by(library::album_order);
+            l.set_title(ss(&name));
+            l.set_subtitle(ss(format!("{} {}  ·  {query}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))));
+            l.set_empty_text(ss("Nic nie pasuje do tej listy."));
+            set_tracks(app, t);
+        }
         "history" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.last > 0).map(|(k, s)| (k.clone(), s.last)).collect();
-            let t = from_stats(app, keys, 300);
+            let t = from_stats(source, other(app, video_kind), keys, 300);
             l.set_subtitle(ss("Ostatnio odtwarzane"));
             l.set_empty_text(ss("Historia jest pusta."));
             set_tracks(app, t);
@@ -307,6 +392,53 @@ pub fn show(app: &mut App) {
         _ => set_tracks(app, Vec::new()),
     }
 }
+
+/// Zawartość jednego folderu: podfoldery jako kafelki, a pliki leżące obok nich jako osobny
+/// kafelek; folder bez podfolderów od razu pokazuje listę plików.
+fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, video: bool) {
+    let Some(ui) = app.ui() else { return };
+    let l = ui.global::<Lib>();
+    let (mut groups, direct) = library::folder_children(source, dir);
+    let all = library::in_tree(source, dir);
+    let dur: f64 = all.iter().map(|t| t.duration).sum();
+    l.set_title(ss(folder_name(dir)));
+    let mut s = vec![];
+    if !groups.is_empty() {
+        s.push(format!("{} {}", groups.len(), crate::lists::plural(groups.len(), "podfolder", "podfoldery", "podfolderów")));
+    }
+    s.push(format!("{} {}", all.len(), crate::lists::plural(all.len(), "pozycja", "pozycje", "pozycji")));
+    if dur > 0.0 {
+        s.push(meta::fmt_total(dur));
+    }
+    s.push(dir.trim_end_matches(['\\', '/']).to_string());
+    l.set_subtitle(ss(s.join("  ·  ")));
+    l.set_empty_text(ss("Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."));
+    if groups.is_empty() {
+        let mut t: Vec<TrackInfo> = direct.into_iter().cloned().collect();
+        t.sort_by_key(|t| natural(&t.path));
+        set_tracks(app, t);
+        return;
+    }
+    let kind = if video { "v-dir" } else { "dir" };
+    let mut keys: Vec<(String, String, String)> = groups.iter().map(|g| (kind.to_string(), g.name.clone(), String::new())).collect();
+    if !direct.is_empty() {
+        groups.insert(
+            0,
+            library::Group {
+                name: dir.trim_end_matches(['\\', '/']).to_string(),
+                count: direct.len(),
+                duration: direct.iter().map(|t| t.duration).sum(),
+                first: direct[0].path.clone(),
+                sub: FILES_HERE.into(),
+            },
+        );
+        keys.insert(0, (if video { "v-files" } else { "files" }.to_string(), groups[0].name.clone(), String::new()));
+    }
+    set_tiles(app, groups, kind, true);
+    app.libv.tile_keys = keys;
+}
+
+const FILES_HERE: &str = "Pliki w tym folderze";
 
 /// Porządek „naturalny”: odcinek 2 przed odcinkiem 10.
 fn natural(s: &str) -> Vec<(String, u64)> {
@@ -334,13 +466,25 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
     l.set_show_tiles(true);
     l.set_grid(grid);
     app.libv.tile_keys = groups.iter().map(|g| (kind.to_string(), g.name.clone(), g.sub.clone())).collect();
-    let with_cover = matches!(kind, "album" | "artist" | "folder" | "v-folder");
+    let with_cover = matches!(kind, "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir");
     let tiles: Vec<Tile> = groups
         .iter()
         .enumerate()
         .map(|(i, g)| {
             let cover = if with_cover { crate::covers::get(&g.first) } else { None };
-            let video = kind == "v-folder";
+            let video = kind == "v-folder" || kind == "v-dir";
+            let what = if video { crate::lists::plural(g.count, "film", "filmy", "filmów") } else { crate::lists::plural(g.count, "utwór", "utwory", "utworów") };
+            if kind == "dir" || kind == "v-dir" {
+                let name = if g.sub == FILES_HERE { FILES_HERE.to_string() } else { folder_name(&g.name) };
+                return Tile {
+                    key: ss(i.to_string()),
+                    name: ss(name),
+                    sub: ss(format!("{} {what}", g.count)),
+                    count: ss(format!("{} {what}", g.count)),
+                    has_cover: cover.is_some(),
+                    cover: cover.unwrap_or_default(),
+                };
+            }
             let name = if kind == "folder" || video { std::path::Path::new(&g.name).file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or(g.name.clone()) } else { g.name.clone() };
             let sub = match kind {
                 "album" => {
@@ -353,7 +497,6 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
                 "folder" | "v-folder" => std::path::Path::new(&g.name).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default(),
                 _ => String::new(),
             };
-            let what = if video { crate::lists::plural(g.count, "film", "filmy", "filmów") } else { crate::lists::plural(g.count, "utwór", "utwory", "utworów") };
             Tile {
                 key: ss(i.to_string()),
                 name: ss(name),
@@ -388,6 +531,7 @@ fn rows(app: &mut App) {
         .map(|(i, t)| {
             let st = app.stats.get(&t.path);
             let mut r = crate::lists::track_row(t, i, (i + 1).to_string(), playing.as_deref() == Some(&t.path.to_lowercase()), app.libv.sel.contains(&i), st.rating >= 5, String::new());
+            crate::lists::with_rating(&mut r, st.rating);
             if t.video && st.resume > 10.0 {
                 let pct = if t.duration > 0.0 { format!("{}%", (st.resume / t.duration * 100.0).round()) } else { meta::fmt_time(st.resume) };
                 r.info = ss(format!("obejrzano {pct}"));
@@ -417,12 +561,10 @@ pub fn refresh_covers(app: &mut App, key: &str) {
             continue;
         }
         let Some((kind, name, sub)) = app.libv.tile_keys.get(r).cloned() else { continue };
-        if !matches!(kind.as_str(), "album" | "artist" | "folder" | "v-folder") {
+        if !matches!(kind.as_str(), "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir" | "files" | "v-files") {
             continue;
         }
-        let src = if kind == "v-folder" { &app.lib.videos } else if app.libv.stack.is_empty() { &app.lib.tracks } else { &app.libv.tracks };
-        let gk = if kind == "v-folder" { "folder" } else { kind.as_str() };
-        let first = library::in_group(src, gk, &name, &sub).first().map(|t| t.path.clone());
+        let first = group_tracks_of(app, &kind, &name, &sub).first().map(|t| t.path.clone());
         if let Some(p) = first {
             if crate::covers::key(&p) == key {
                 if let Some(img) = crate::covers::get(&p) {
@@ -443,22 +585,31 @@ pub fn tile_clicked(app: &mut App, key: &str) {
     show(app);
 }
 
-fn group_tracks(app: &App, key: &str) -> Vec<TrackInfo> {
-    let Ok(i) = key.parse::<usize>() else { return Vec::new() };
-    let Some((kind, name, sub)) = app.libv.tile_keys.get(i).cloned() else { return Vec::new() };
-    let src = if kind == "v-folder" {
+/// Pliki kafelka; folder w drzewie obejmuje też wszystkie podfoldery.
+fn group_tracks_of(app: &App, kind: &str, name: &str, sub: &str) -> Vec<TrackInfo> {
+    let video = matches!(kind, "v-folder" | "v-dir" | "v-files");
+    let src = if video {
         &app.lib.videos
     } else if app.libv.kind == "artist" && !app.libv.stack.is_empty() {
         &app.libv.tracks
     } else {
         &app.lib.tracks
     };
-    let gk = if kind == "v-folder" { "folder" } else { kind.as_str() };
-    let mut v: Vec<TrackInfo> = library::in_group(src, gk, &name, &sub).into_iter().cloned().collect();
-    if kind == "v-folder" {
+    let mut v: Vec<TrackInfo> = match kind {
+        "dir" | "v-dir" => library::in_tree(src, name).into_iter().cloned().collect(),
+        "files" | "v-files" | "v-folder" => library::in_group(src, "folder", name, sub).into_iter().cloned().collect(),
+        _ => library::in_group(src, kind, name, sub).into_iter().cloned().collect(),
+    };
+    if matches!(kind, "dir" | "v-dir" | "files" | "v-files" | "v-folder") {
         v.sort_by_key(|t| natural(&t.path));
     }
     v
+}
+
+fn group_tracks(app: &App, key: &str) -> Vec<TrackInfo> {
+    let Ok(i) = key.parse::<usize>() else { return Vec::new() };
+    let Some((kind, name, sub)) = app.libv.tile_keys.get(i).cloned() else { return Vec::new() };
+    group_tracks_of(app, &kind, &name, &sub)
 }
 
 pub fn tile_double(app: &mut App, key: &str) {
@@ -605,6 +756,7 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::item("l-explorer", "Pokaż w Eksploratorze", "folder-open", ""),
         crate::menu::sep(),
         crate::menu::item("l-resume-reset", "Zapomnij miejsce wznowienia", "history", ""),
+        crate::menu::item_en("l-save-smart", "Zapisz wyszukiwanie jako inteligentną listę", "playlist", "", !app.libv.search.trim().is_empty()),
     ];
     crate::menu::open(app, MenuCtx::Lib, items, x, y);
 }
@@ -645,6 +797,15 @@ pub fn command(app: &mut App, cmd: &str) {
         "l-explorer" => {
             if let Some(t) = sel.first() {
                 crate::win::reveal(&t.path);
+            }
+        }
+        "l-save-smart" => {
+            let q = app.libv.search.trim().to_string();
+            if !q.is_empty() && !app.s.smart_lists.iter().any(|(_, s)| s == &q) {
+                app.s.smart_lists.push((q.clone(), q.clone()));
+                app.dirty = true;
+                rebuild_nav(app);
+                app.toast(format!("Zapisano inteligentną listę „{q}”"));
             }
         }
         "l-resume-reset" => {
@@ -709,8 +870,41 @@ pub fn start_scan(app: &mut App) {
     });
 }
 
+/// Obserwuje foldery biblioteki – nowe, usunięte i przeniesione pliki trafiają do biblioteki same.
+pub fn watch(app: &mut App) {
+    use notify::{EventKind, RecursiveMode, Watcher};
+    app.watch = None;
+    let changed = Arc::new(std::sync::atomic::AtomicU64::new(0));
+    let c = changed.clone();
+    let w = notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
+        let Ok(ev) = res else { return };
+        let media = ev.paths.iter().any(|p| p.is_dir() || p.extension().is_none() || meta::is_media(p));
+        if media && matches!(ev.kind, EventKind::Create(_) | EventKind::Remove(_) | EventKind::Modify(notify::event::ModifyKind::Name(_))) {
+            c.store(library::now_ms(), Ordering::Relaxed);
+        }
+    });
+    let Ok(mut w) = w else { return };
+    for f in app.s.library_folders.iter().chain(app.s.video_folders.iter()) {
+        // Udział sieciowy bywa niedostępny – wtedy obserwujemy resztę.
+        let _ = w.watch(std::path::Path::new(f), RecursiveMode::Recursive);
+    }
+    app.watch = Some((w, changed));
+}
+
+/// Po 3 s ciszy od zmian na dysku – ponowne skanowanie (z pamięci podręcznej tagów, szybkie).
+fn watch_tick(app: &mut App) {
+    let Some(c) = app.watch.as_ref().map(|w| w.1.clone()) else { return };
+    let t = c.load(Ordering::Relaxed);
+    if t == 0 || app.scan.is_some() || library::now_ms().saturating_sub(t) < 3000 {
+        return;
+    }
+    c.store(0, Ordering::Relaxed);
+    start_scan(app);
+}
+
 /// Postęp skanowania – wołane z zegara.
 pub fn scan_tick(app: &mut App) {
+    watch_tick(app);
     let Some(p) = app.scan.clone() else { return };
     let (found, done) = (p.found.load(Ordering::Relaxed), p.done.load(Ordering::Relaxed));
     if let Some(ui) = app.ui() {

@@ -206,6 +206,13 @@ pub struct Resample {
 
 const CHUNK: usize = 1024;
 
+static QUALITY: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
+
+/// Jakość przepróbkowania dla kolejnych utworów: 0 – szybka, 1 – dobra, 2 – najlepsza.
+pub fn set_resample_quality(q: u32) {
+    QUALITY.store(q.min(2), std::sync::atomic::Ordering::Relaxed);
+}
+
 impl Resample {
     pub fn new(from: u32, to: u32, speed: f64) -> Resample {
         let mut r = Resample { inner: None, from, to, speed, planar: [Vec::new(), Vec::new()] };
@@ -217,12 +224,28 @@ impl Resample {
         self.inner = if self.from == self.to && (self.speed - 1.0).abs() < 1e-6 {
             None
         } else {
-            let params = SincInterpolationParameters {
-                sinc_len: 128,
-                f_cutoff: 0.95,
-                interpolation: SincInterpolationType::Cubic,
-                oversampling_factor: 128,
-                window: WindowFunction::BlackmanHarris2,
+            let params = match QUALITY.load(std::sync::atomic::Ordering::Relaxed) {
+                0 => SincInterpolationParameters {
+                    sinc_len: 48,
+                    f_cutoff: 0.91,
+                    interpolation: SincInterpolationType::Linear,
+                    oversampling_factor: 64,
+                    window: WindowFunction::BlackmanHarris2,
+                },
+                1 => SincInterpolationParameters {
+                    sinc_len: 128,
+                    f_cutoff: 0.95,
+                    interpolation: SincInterpolationType::Cubic,
+                    oversampling_factor: 128,
+                    window: WindowFunction::BlackmanHarris2,
+                },
+                _ => SincInterpolationParameters {
+                    sinc_len: 256,
+                    f_cutoff: 0.97,
+                    interpolation: SincInterpolationType::Cubic,
+                    oversampling_factor: 256,
+                    window: WindowFunction::BlackmanHarris2,
+                },
             };
             SincFixedIn::new(self.to as f64 / self.from as f64, 4.0, params, CHUNK, 2).ok().map(|mut r| {
                 let _ = r.set_resample_ratio_relative(1.0 / self.speed, false);

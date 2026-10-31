@@ -95,7 +95,7 @@ impl Scope {
     }
 }
 
-struct Shared {
+pub(super) struct Shared {
     ring: Mutex<Ring>,
     vol: AtomicU32,
     paused: AtomicBool,
@@ -103,7 +103,10 @@ struct Shared {
     dsp: Mutex<Dsp>,
     scope: Mutex<Scope>,
     rate: AtomicU32,
-    failed: AtomicBool,
+    pub(super) failed: AtomicBool,
+    /// Bity wyjścia (0 – zmiennoprzecinkowe przez mikser Windows) i tryb wyłączny.
+    out_bits: AtomicU32,
+    exclusive: AtomicBool,
 }
 
 #[derive(Clone, Debug)]
@@ -123,6 +126,7 @@ enum Cmd {
     Crossfade(f64),
     Device(Option<String>),
     Loopback(bool),
+    Exclusive(bool),
 }
 
 #[derive(Clone, Debug)]
@@ -167,6 +171,8 @@ impl Engine {
             scope: Mutex::new(Scope { data: vec![0.0; SCOPE_FRAMES * 2], pos: 0, rate: 48000, total: 0 }),
             rate: AtomicU32::new(48000),
             failed: AtomicBool::new(false),
+            out_bits: AtomicU32::new(0),
+            exclusive: AtomicBool::new(false),
         });
         let sh = shared.clone();
         std::thread::Builder::new()
@@ -197,10 +203,10 @@ impl Engine {
     pub fn paused(&self) -> bool {
         self.shared.paused.load(Ordering::Relaxed)
     }
-    /// Głośność 0..1 (krzywa percepcyjna liczona tutaj).
+    /// Głośność 0..1 (krzywa percepcyjna liczona tutaj; 100% = sygnał bez ściszania).
     pub fn set_volume(&self, v: f32) {
         let v = v.clamp(0.0, 1.0);
-        let g = if v <= 0.0 { 0.0 } else { v * v * v.sqrt() };
+        let g = if v <= 0.0 { 0.0 } else { v * v.sqrt() };
         self.shared.vol.store(g.to_bits(), Ordering::Relaxed);
     }
     pub fn set_soft_pause(&self, on: bool) {
@@ -218,6 +224,14 @@ impl Engine {
     /// Wizualizacja z dźwięku systemu (gdy gra mpv – wideo, radio, nietypowe formaty).
     pub fn set_loopback(&self, on: bool) {
         let _ = self.tx.send(Cmd::Loopback(on));
+    }
+    /// Tryb wyłączny WASAPI: karta gra w częstotliwości pliku, z pominięciem miksera Windows.
+    pub fn set_exclusive(&self, on: bool) {
+        let _ = self.tx.send(Cmd::Exclusive(on));
+    }
+    /// Wyjście: częstotliwość, bity (0 – mikser Windows, f32) i czy działa tryb wyłączny.
+    pub fn output(&self) -> (u32, u32, bool) {
+        (self.rate(), self.shared.out_bits.load(Ordering::Relaxed), self.shared.exclusive.load(Ordering::Relaxed))
     }
     pub fn set_dsp(&self, s: DspSettings) {
         self.shared.dsp.lock().apply(s);
@@ -332,6 +346,8 @@ struct Worker {
     etx: Sender<Event>,
     device: Option<String>,
     stream: Option<cpal::Stream>,
+    excl: Option<super::exclusive::Exclusive>,
+    want_excl: bool,
     loopback: Option<cpal::Stream>,
     want_loopback: bool,
     rate: u32,
@@ -352,6 +368,8 @@ impl Worker {
             etx,
             device,
             stream: None,
+            excl: None,
+            want_excl: false,
             loopback: None,
             want_loopback: false,
             rate: 48000,
@@ -367,8 +385,61 @@ impl Worker {
         w
     }
 
+    /// Nowa częstotliwość wyjścia: korektor, wizualizacja i przepróbkowanie utworów.
+    fn set_rate(&mut self, rate: u32, reseek: bool) {
+        if rate == self.rate {
+            return;
+        }
+        let pos = self.position();
+        self.rate = rate;
+        self.sh.rate.store(rate, Ordering::Relaxed);
+        self.sh.dsp.lock().set_rate(rate);
+        self.sh.scope.lock().rate = rate;
+        if let Some(c) = &mut self.cur {
+            c.rs = Resample::new(c.src.info.rate, rate, self.speed);
+            c.pend.clear();
+        }
+        self.next = None;
+        // Utwór od tego samego miejsca z nowym przepróbkowaniem.
+        if reseek && self.cur.is_some() {
+            self.seek(pos);
+        }
+    }
+
+    /// Częstotliwość, w której najlepiej zagra bieżący utwór.
+    fn wanted_rate(&self) -> u32 {
+        self.cur.as_ref().map(|c| c.src.info.rate).filter(|r| *r > 0).unwrap_or(self.rate)
+    }
+
+    fn open_exclusive(&mut self, want: u32, reseek: bool) -> bool {
+        self.excl = None;
+        match super::exclusive::Exclusive::open(self.device.clone(), want, self.sh.clone()) {
+            Ok(x) => {
+                self.stream = None;
+                self.sh.out_bits.store(x.bits, Ordering::Relaxed);
+                self.sh.exclusive.store(true, Ordering::Relaxed);
+                self.sh.failed.store(false, Ordering::Relaxed);
+                let rate = x.rate;
+                self.excl = Some(x);
+                self.set_rate(rate, reseek);
+                true
+            }
+            Err(e) => {
+                self.want_excl = false;
+                let _ = self.etx.send(Event::Device(format!("Tryb wyłączny niedostępny ({e}) – gra przez mikser Windows")));
+                false
+            }
+        }
+    }
+
     fn open_stream(&mut self) {
         self.stream = None;
+        self.excl = None;
+        self.sh.exclusive.store(false, Ordering::Relaxed);
+        if self.want_excl && self.open_exclusive(self.wanted_rate(), true) {
+            return;
+        }
+        self.sh.out_bits.store(0, Ordering::Relaxed);
         let host = cpal::default_host();
         let dev = self
             .device
@@ -384,32 +455,18 @@ impl Worker {
         let ch = cfg.channels() as usize;
         let sc: cpal::StreamConfig = cfg.config();
         let res = match cfg.sample_format() {
-            cpal::SampleFormat::F32 => build::<f32>(&dev, &sc, ch, rate, self.sh.clone()),
-            cpal::SampleFormat::I16 => build::<i16>(&dev, &sc, ch, rate, self.sh.clone()),
-            cpal::SampleFormat::I32 => build::<i32>(&dev, &sc, ch, rate, self.sh.clone()),
-            cpal::SampleFormat::U16 => build::<u16>(&dev, &sc, ch, rate, self.sh.clone()),
-            _ => build::<f32>(&dev, &sc, ch, rate, self.sh.clone()),
+            cpal::SampleFormat::F32 => build::<f32>(&dev, &sc, ch, rate, None, self.sh.clone()),
+            cpal::SampleFormat::I16 => build::<i16>(&dev, &sc, ch, rate, Some(16), self.sh.clone()),
+            cpal::SampleFormat::I32 => build::<i32>(&dev, &sc, ch, rate, None, self.sh.clone()),
+            cpal::SampleFormat::U16 => build::<u16>(&dev, &sc, ch, rate, Some(16), self.sh.clone()),
+            _ => build::<f32>(&dev, &sc, ch, rate, None, self.sh.clone()),
         };
         match res {
             Ok(s) => {
                 let _ = s.play();
                 self.stream = Some(s);
                 self.sh.failed.store(false, Ordering::Relaxed);
-                if rate != self.rate {
-                    let pos = self.position();
-                    self.rate = rate;
-                    self.sh.rate.store(rate, Ordering::Relaxed);
-                    self.sh.dsp.lock().set_rate(rate);
-                    self.sh.scope.lock().rate = rate;
-                    // Nowa częstotliwość – utwór od tego samego miejsca z nowym przepróbkowaniem.
-                    if let Some(c) = &mut self.cur {
-                        c.rs = Resample::new(c.src.info.rate, rate, self.speed);
-                    }
-                    self.next = None;
-                    if self.cur.is_some() {
-                        self.seek(pos);
-                    }
-                }
+                self.set_rate(rate, true);
             }
             Err(e) => {
                 let _ = self.etx.send(Event::Device(format!("Nie udało się otworzyć wyjścia audio: {e}")));
@@ -476,7 +533,7 @@ impl Worker {
                 Err(crossbeam_channel::RecvTimeoutError::Disconnected) => return,
                 Err(_) => {}
             }
-            if self.sh.failed.swap(false, Ordering::Relaxed) || self.stream.is_none() {
+            if self.sh.failed.swap(false, Ordering::Relaxed) || (self.stream.is_none() && self.excl.is_none()) {
                 // Odłączone słuchawki / zmiana urządzenia domyślnego – otwieramy wyjście ponownie.
                 std::thread::sleep(Duration::from_millis(300));
                 self.open_stream();
@@ -493,8 +550,17 @@ impl Worker {
                 match Track::open(&it, self.rate, self.speed) {
                     Ok(mut t) => {
                         let base = if start > 0.5 { t.src.seek(start) } else { 0.0 };
+                        self.sh.ring.lock().cut(self.rate);
+                        // Tryb wyłączny: karta przechodzi na częstotliwość pliku (bez przepróbkowania).
+                        let want = t.src.info.rate;
+                        if self.excl.is_some() && want > 0 && want != self.rate {
+                            self.cur = None;
+                            if !self.open_exclusive(want, false) {
+                                self.open_stream();
+                            }
+                            t.rs = Resample::new(want, self.rate, self.speed);
+                        }
                         let mut r = self.sh.ring.lock();
-                        r.cut(self.rate);
                         let m = t.mark(r.written, base, self.speed);
                         r.marks.push_back(m);
                         drop(r);
@@ -553,6 +619,12 @@ impl Worker {
             Cmd::Device(d) => {
                 self.device = d;
                 self.open_stream();
+            }
+            Cmd::Exclusive(on) => {
+                if on != self.want_excl {
+                    self.want_excl = on;
+                    self.open_stream();
+                }
             }
             Cmd::Loopback(on) => {
                 self.want_loopback = on;
@@ -712,53 +784,96 @@ impl Worker {
     }
 }
 
-fn build<T>(dev: &cpal::Device, cfg: &cpal::StreamConfig, ch: usize, rate: u32, sh: Arc<Shared>) -> Result<cpal::Stream, String>
+/// Szum TPDF o amplitudzie jednego najmłodszego bitu – kwantyzacja bez zniekształceń w cichych partiach.
+#[derive(Default)]
+pub(super) struct Dither(u32);
+
+impl Dither {
+    fn uniform(&mut self) -> f32 {
+        let mut x = if self.0 == 0 { 0x9e37_79b9 } else { self.0 };
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        self.0 = x;
+        (x >> 8) as f32 / (1u32 << 24) as f32
+    }
+
+    /// Szum w zakresie ±1 LSB.
+    pub(super) fn noise(&mut self) -> f32 {
+        self.uniform() - self.uniform()
+    }
+
+    /// Próbka −1..1 → liczba całkowita o `bits` bitach (dither do 24 bitów włącznie).
+    pub(super) fn quantize(&mut self, x: f32, bits: u32) -> i32 {
+        let scale = ((1i64 << (bits - 1)) - 1) as f64;
+        let mut v = x.clamp(-1.0, 1.0) as f64 * scale;
+        if bits <= 24 {
+            v += self.noise() as f64;
+        }
+        v.round().clamp(-scale - 1.0, scale) as i32
+    }
+}
+
+/// Kolejna porcja stereo dla karty: bufor → korektor → wizualizacja → głośność z płynną pauzą.
+pub(super) fn render(sh: &Shared, tmp: &mut Vec<f32>, frames: usize, rate: u32, fade: &mut f32) {
+    let paused = sh.paused.load(Ordering::Relaxed);
+    let soft = sh.soft.load(Ordering::Relaxed);
+    let target = if paused { 0.0 } else { 1.0 };
+    if !soft {
+        *fade = target;
+    }
+    tmp.clear();
+    tmp.resize(frames * 2, 0.0);
+    if paused && *fade <= 0.0 {
+        return;
+    }
+    {
+        let mut r = sh.ring.lock();
+        let n = (frames * 2).min(r.buf.len());
+        for (i, v) in r.buf.drain(..n).enumerate() {
+            tmp[i] = v;
+        }
+        r.played += (n / 2) as u64;
+    }
+    sh.dsp.lock().process(tmp);
+    if let Some(mut s) = sh.scope.try_lock() {
+        s.push(tmp);
+    }
+    let vol = f32::from_bits(sh.vol.load(Ordering::Relaxed));
+    let step = 1.0 / (0.12 * rate as f32);
+    for f in tmp.chunks_exact_mut(2) {
+        if *fade < target {
+            *fade = (*fade + step).min(1.0);
+        } else if *fade > target {
+            *fade = (*fade - step).max(0.0);
+        }
+        let g = vol * *fade * *fade;
+        f[0] *= g;
+        f[1] *= g;
+    }
+}
+
+fn build<T>(dev: &cpal::Device, cfg: &cpal::StreamConfig, ch: usize, rate: u32, dither: Option<u32>, sh: Arc<Shared>) -> Result<cpal::Stream, String>
 where
     T: SizedSample + FromSample<f32>,
 {
     let mut tmp: Vec<f32> = Vec::with_capacity(16384);
     let mut fade = 0.0f32;
+    let mut d = Dither::default();
+    let lsb = dither.map(|b| 1.0 / (1u32 << (b - 1)) as f32);
     let sh2 = sh.clone();
     dev.build_output_stream(
         cfg,
         move |data: &mut [T], _: &cpal::OutputCallbackInfo| {
             let frames = data.len() / ch.max(1);
-            let paused = sh.paused.load(Ordering::Relaxed);
-            let soft = sh.soft.load(Ordering::Relaxed);
-            let target = if paused { 0.0 } else { 1.0 };
-            if !soft {
-                fade = target;
-            }
-            if paused && fade <= 0.0 {
-                for s in data.iter_mut() {
-                    *s = T::from_sample(0.0);
+            render(&sh, &mut tmp, frames, rate, &mut fade);
+            if let Some(lsb) = lsb {
+                for s in tmp.iter_mut() {
+                    *s += d.noise() * lsb;
                 }
-                return;
             }
-            tmp.clear();
-            tmp.resize(frames * 2, 0.0);
-            {
-                let mut r = sh.ring.lock();
-                let n = (frames * 2).min(r.buf.len());
-                for (i, v) in r.buf.drain(..n).enumerate() {
-                    tmp[i] = v;
-                }
-                r.played += (n / 2) as u64;
-            }
-            sh.dsp.lock().process(&mut tmp);
-            if let Some(mut s) = sh.scope.try_lock() {
-                s.push(&tmp);
-            }
-            let vol = f32::from_bits(sh.vol.load(Ordering::Relaxed));
-            let step = 1.0 / (0.12 * rate as f32);
             for (f, out) in data.chunks_exact_mut(ch.max(1)).enumerate() {
-                if fade < target {
-                    fade = (fade + step).min(1.0);
-                } else if fade > target {
-                    fade = (fade - step).max(0.0);
-                }
-                let g = vol * fade * fade;
-                let (l, r) = (tmp[f * 2] * g, tmp[f * 2 + 1] * g);
+                let (l, r) = (tmp[f * 2], tmp[f * 2 + 1]);
                 match ch {
                     1 => out[0] = T::from_sample((l + r) * 0.5),
                     _ => {

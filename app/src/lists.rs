@@ -23,6 +23,19 @@ fn album_key(t: &TrackInfo) -> String {
     format!("{}\u{1}{}", t.album.to_lowercase(), who.to_lowercase())
 }
 
+/// Gwiazdki oceny, np. „★★★☆☆”.
+pub fn stars(n: u8) -> String {
+    let n = n.min(5) as usize;
+    format!("{}{}", "★".repeat(n), "☆".repeat(5 - n))
+}
+
+/// Ocena przed formatem w kolumnie informacji (5 gwiazdek pokazuje już serce).
+pub fn with_rating(r: &mut TrackRow, rating: u8) {
+    if (1..5).contains(&rating) {
+        r.info = ss(format!("{}  {}", stars(rating), r.info));
+    }
+}
+
 pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected: bool, fav: bool, queued: String) -> TrackRow {
     let mut info = t.format();
     if t.bitrate > 0 {
@@ -116,9 +129,11 @@ pub fn rebuild(app: &mut App) {
             }
         }
         let num = if grouped && t.track > 0 && last_key.is_some() { format!("{:02}", t.track) } else { (i + 1).to_string() };
-        let fav = app.stats.get(&t.path).rating >= 5;
+        let rating = app.stats.get(&t.path).rating;
         app.row_of.insert(i, rows.len());
-        rows.push(track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), fav, queued_label(app, list.id, i)));
+        let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
+        with_rating(&mut r, rating);
+        rows.push(r);
         i += 1;
     }
     app.m.rows.set_vec(rows);
@@ -481,6 +496,25 @@ pub fn command(app: &mut App, id: &str) {
                 app.stats.entry(&t.path).rating = if all_fav { 0 } else { 5 };
             }
             app.dirty = true;
+            rebuild(app);
+            if let Some(c) = &app.cur {
+                let f = app.stats.get(&c.info.path).rating >= 5;
+                if let Some(ui) = app.ui() {
+                    ui.global::<Player>().set_fav(f);
+                }
+            }
+        }
+        c if c.starts_with("rate-") => {
+            let n = c[5..].parse::<u8>().unwrap_or(0).min(5);
+            let tracks = selected_tracks(app);
+            if tracks.is_empty() {
+                return;
+            }
+            for t in &tracks {
+                app.stats.entry(&t.path).rating = n;
+            }
+            app.dirty = true;
+            app.toast(if n == 0 { "Ocena usunięta".to_string() } else { format!("Ocena: {}", stars(n)) });
             rebuild(app);
             if let Some(c) = &app.cur {
                 let f = app.stats.get(&c.info.path).rating >= 5;

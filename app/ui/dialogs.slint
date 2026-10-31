@@ -542,6 +542,16 @@ export component SettingsDialog inherits Dialog {
                     checked <=> Prefs.online-lyrics;
                     toggled => { Prefs.changed("online-lyrics"); }
                 }
+                SettingRow {
+                    title: "Token ListenBrainz";
+                    hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";
+                    LineEdit {
+                        width: 220px;
+                        input-type: password;
+                        text <=> Prefs.lb-token;
+                        edited => { Prefs.changed("lb-token"); }
+                    }
+                }
                 SettingSwitch {
                     title: "Grupuj listę według albumów";
                     hint: "Nagłówki z okładką nad każdym albumem";
@@ -627,6 +637,21 @@ export component SettingsDialog inherits Dialog {
                             Prefs.device = self.current-index;
                             Prefs.changed("device");
                         }
+                    }
+                }
+                SettingSwitch {
+                    title: "Tryb wyłączny (WASAPI Exclusive)";
+                    hint: "Karta gra w częstotliwości pliku, z pominięciem miksera Windows – inne programy nie zagrają w tym czasie";
+                    checked <=> Prefs.exclusive;
+                    toggled => { Prefs.changed("exclusive"); }
+                }
+                SettingRow {
+                    title: "Jakość przepróbkowania";
+                    hint: "Gdy plik ma inną częstotliwość niż karta (od następnego utworu)";
+                    Segmented {
+                        options: ["Szybka", "Dobra", "Najlepsza"];
+                        selected <=> Prefs.resample-quality;
+                        changed => { Prefs.changed("resample-quality"); }
                     }
                 }
                 SettingRow {

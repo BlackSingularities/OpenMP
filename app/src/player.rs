@@ -443,7 +443,8 @@ pub fn apply_volume(app: &mut App) {
     let v = if app.s.muted { 0.0 } else { app.s.volume * app.sleep_fade.unwrap_or(1.0) };
     app.engine.set_volume(v);
     if let Some(m) = &app.mpv {
-        m.set_f64("volume", (v as f64 * 100.0).clamp(0.0, 100.0));
+        // mpv liczy amplitudę jako (głośność/100)³, silnik muzyki jako v^1,5 – ta sama słyszalna głośność.
+        m.set_f64("volume", ((v as f64).sqrt() * 100.0).clamp(0.0, 100.0));
     }
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_volume(app.s.volume);
@@ -696,4 +697,22 @@ pub fn open_url(app: &mut App, url: &str) {
         return;
     }
     open_paths(app, vec![url], true, None);
+}
+
+/// ListenBrainz: wysłuchany utwór (połowa albo 4 minuty) – raz na każde odtworzenie.
+pub fn scrobble_tick(app: &mut App) {
+    if app.s.listenbrainz_token.trim().is_empty() {
+        return;
+    }
+    let Some(c) = &app.cur else { return };
+    if c.video || c.station.is_some() || c.item == 0 || c.item == app.scrobbled || !matches!(c.backend, Backend::Engine) {
+        return;
+    }
+    let s = app.engine.status();
+    if s.id != Some(c.item) || s.paused || !openmp_core::listenbrainz::due(s.pos, c.info.duration.max(s.info.duration)) {
+        return;
+    }
+    let at = openmp_core::library::now().saturating_sub(s.pos as u64);
+    openmp_core::listenbrainz::submit(&app.s.listenbrainz_token, &c.info, at);
+    app.scrobbled = c.item;
 }

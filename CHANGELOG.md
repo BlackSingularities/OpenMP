@@ -1,5 +1,19 @@
 # Zmiany
 
+## 1.2.0
+
+- Mocniejszy, pełniejszy dźwięk: ReplayGain domyślnie wyłączony (ściszał głośne nagrania o 6–10 dB), łagodniejsza krzywa głośności, ogranicznik tylko przy realnym przesterowaniu.
+- Tryb wyłączny WASAPI (Ustawienia → Dźwięk): karta gra w częstotliwości pliku, z pominięciem miksera Windows.
+- Dither TPDF przy wyjściu 16- i 24-bitowym, wybór jakości przepróbkowania, plakietka drogi do karty („Wyłączny”, „→ 48 kHz”).
+- Głośność wideo i radia (mpv) zgodna z głośnością muzyki.
+- Foldery w bibliotece jako drzewo: podfoldery jako kafelki, pliki obok nich osobno.
+- Obserwowanie folderów biblioteki – nowe i usunięte pliki pojawiają się same.
+- Oceny 1–5 (Ctrl+1…5, Ctrl+0 usuwa) i widok „Ocenione”.
+- Filtry w wyszukiwaniu (ocena>=4, rok:1990-1999, gatunek:rock, format:flac, dodane<30…) i zapisywane inteligentne listy.
+- Scrobbling do ListenBrainz (token w ustawieniach).
+- Obsługa czytników ekranu (przyciski, przełączniki, suwaki).
+- Szybszy widok biblioteki przy dużych kolekcjach.
+
 ## 1.1.3
 
 - Program nie zawiesza się już po zamknięciu okna wyboru folderu albo pliku bez wyboru. Okna wyboru (pliki, foldery, biblioteka, okładka, napisy, zapis listy) otwierają się w osobnym wątku, nad oknem programu albo dialogu, który je wywołał.

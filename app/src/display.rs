@@ -239,7 +239,14 @@ pub fn update_badges_from(app: &mut App, info: &StreamInfo) {
         return;
     }
     let Some(c) = &app.cur else { return };
-    let b = badges(&c.info, Some(info));
+    let mut b = badges(&c.info, Some(info));
+    // Droga do karty: tryb wyłączny albo przepróbkowanie przez mikser Windows.
+    let (out, _, excl) = app.engine.output();
+    if excl {
+        b.push(if out == info.rate { "Wyłączny".into() } else { format!("Wyłączny → {}", khz(out)) });
+    } else if out > 0 && out != info.rate {
+        b.push(format!("→ {}", khz(out)));
+    }
     if let Some(ui) = app.ui() {
         let cur: Vec<String> = ui.global::<Player>().get_badges().iter().map(|s| s.to_string()).collect();
         if cur != b {

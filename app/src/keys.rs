@@ -41,6 +41,7 @@ pub fn help() -> Vec<KeyHelp> {
         k("Alt + ↑ / ↓", "Przesuń zaznaczone na liście"),
         k("Ctrl + A", "Zaznacz wszystko"),
         k("Ctrl + D", "Ulubione"),
+        k("Ctrl + 1…5 / Ctrl + 0", "Oceń zaznaczone (5 = ulubione) / usuń ocenę"),
         k("F2", "Edytuj tagi"),
         k("Ctrl + F", "Szukaj na liście"),
         k("Ctrl + O / Ctrl + Shift + O", "Otwórz pliki / folder"),
@@ -256,6 +257,7 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
             ',' => open_settings(app, 0),
             'a' => crate::lists::command(app, "select-all"),
             'd' => crate::lists::command(app, "fav"),
+            '0'..='5' => crate::lists::command(app, &format!("rate-{lc}")),
             'i' => crate::lists::command(app, "info"),
             'j' => {
                 crate::lists::scroll_to_current(app);

@@ -57,6 +57,10 @@ pub fn key(p: &str) -> String {
     p.to_lowercase()
 }
 
+pub fn now_ms() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0)
+}
+
 pub fn now() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
@@ -256,6 +260,43 @@ pub fn in_group<'a>(tracks: &'a [TrackInfo], kind: &str, name: &str, sub: &str) 
         .collect()
 }
 
+/// Część ścieżki za folderem `dir` (bez separatora), gdy plik leży w nim albo głębiej.
+fn rel_to<'a>(path: &'a str, dir: &str) -> Option<&'a str> {
+    let dir = dir.trim_end_matches(['\\', '/']);
+    let head = path.get(..dir.len())?;
+    if !head.eq_ignore_ascii_case(dir) || !matches!(path.as_bytes().get(dir.len()), Some(b'\\' | b'/')) {
+        return None;
+    }
+    Some(&path[dir.len() + 1..])
+}
+
+/// Wszystkie pliki w folderze i jego podfolderach.
+pub fn in_tree<'a>(tracks: &'a [TrackInfo], dir: &str) -> Vec<&'a TrackInfo> {
+    tracks.iter().filter(|t| rel_to(&t.path, dir).is_some()).collect()
+}
+
+/// Bezpośrednie podfoldery `dir` (z liczbą plików w głąb) i pliki leżące wprost w nim.
+pub fn folder_children<'a>(tracks: &'a [TrackInfo], dir: &str) -> (Vec<Group>, Vec<&'a TrackInfo>) {
+    let base = dir.trim_end_matches(['\\', '/']);
+    let mut map: HashMap<String, Group> = HashMap::new();
+    let mut direct = Vec::new();
+    for t in tracks {
+        let Some(rel) = rel_to(&t.path, base) else { continue };
+        match rel.find(['\\', '/']) {
+            Some(i) => {
+                let child = format!("{base}\\{}", &rel[..i]);
+                let g = map.entry(child.to_lowercase()).or_insert_with(|| Group { name: child, first: t.path.clone(), ..Default::default() });
+                g.count += 1;
+                g.duration += t.duration;
+            }
+            None => direct.push(t),
+        }
+    }
+    let mut v: Vec<Group> = map.into_values().collect();
+    v.sort_by_key(|g| g.name.to_lowercase());
+    (v, direct)
+}
+
 /// Wyszukiwanie po wszystkich polach; słowa muszą wystąpić wszystkie.
 pub fn matches(t: &TrackInfo, words: &[String]) -> bool {
     if words.is_empty() {
@@ -265,6 +306,173 @@ pub fn matches(t: &TrackInfo, words: &[String]) -> bool {
     words.iter().all(|w| hay.contains(w.as_str()))
 }
 
+/// Zapytanie z filtrami – podstawa wyszukiwania i inteligentnych list. Obok zwykłych słów:
+/// `ocena>=4`, `rok:1990-1999`, `rok>2000`, `gatunek:rock`, `wykonawca:queen`, `album:…`,
+/// `odtworzenia>=10`, `format:flac`, `dodane<30` (dni), `dlugosc>6` (minuty).
+#[derive(Clone, Debug, Default)]
+pub struct Query {
+    pub words: Vec<String>,
+    text: Vec<(Field, String)>,
+    nums: Vec<(Field, Op, f64)>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Field {
+    Rating,
+    Year,
+    Plays,
+    Added,
+    Length,
+    Genre,
+    Artist,
+    Album,
+    Format,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum Op {
+    Eq,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+}
+
+fn field(k: &str) -> Option<Field> {
+    Some(match k {
+        "ocena" | "rating" => Field::Rating,
+        "rok" | "year" => Field::Year,
+        "odtworzenia" | "plays" => Field::Plays,
+        "dodane" | "added" => Field::Added,
+        "dlugosc" | "długość" | "czas" | "length" => Field::Length,
+        "gatunek" | "genre" => Field::Genre,
+        "wykonawca" | "artist" => Field::Artist,
+        "album" => Field::Album,
+        "format" | "ext" => Field::Format,
+        _ => return None,
+    })
+}
+
+impl Query {
+    pub fn parse(q: &str) -> Query {
+        let mut out = Query::default();
+        for tok in q.to_lowercase().split_whitespace() {
+            if !out.add_filter(tok) {
+                out.words.push(tok.to_string());
+            }
+        }
+        out
+    }
+
+    fn add_filter(&mut self, tok: &str) -> bool {
+        for (sym, op) in [(">=", Op::Ge), ("<=", Op::Le), (">", Op::Gt), ("<", Op::Lt), (":", Op::Eq), ("=", Op::Eq)] {
+            let Some((k, v)) = tok.split_once(sym) else { continue };
+            let Some(f) = field(k) else { return false };
+            if v.is_empty() {
+                return false;
+            }
+            let numeric = matches!(f, Field::Rating | Field::Year | Field::Plays | Field::Added | Field::Length);
+            if !numeric {
+                self.text.push((f, v.replace('_', " ")));
+                return true;
+            }
+            // Zakres „1990-1999”.
+            if let Some((a, b)) = v.split_once('-') {
+                if let (Ok(a), Ok(b)) = (a.parse::<f64>(), b.parse::<f64>()) {
+                    self.nums.push((f, Op::Ge, a));
+                    self.nums.push((f, Op::Le, b));
+                    return true;
+                }
+            }
+            return match v.replace(',', ".").parse::<f64>() {
+                Ok(n) => {
+                    self.nums.push((f, op, n));
+                    true
+                }
+                Err(_) => false,
+            };
+        }
+        false
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.words.is_empty() && self.text.is_empty() && self.nums.is_empty()
+    }
+
+    pub fn matches(&self, t: &TrackInfo, st: &Stat) -> bool {
+        if !matches(t, &self.words) {
+            return false;
+        }
+        for (f, v) in &self.text {
+            let hay = match f {
+                Field::Genre => t.genre.to_lowercase(),
+                Field::Artist => format!("{} {}", t.artist, t.album_artist).to_lowercase(),
+                Field::Album => t.album.to_lowercase(),
+                _ => meta::ext(Path::new(&t.path)),
+            };
+            if !hay.contains(v.as_str()) {
+                return false;
+            }
+        }
+        for &(f, op, n) in &self.nums {
+            let x = match f {
+                Field::Rating => st.rating as f64,
+                Field::Year => t.year as f64,
+                Field::Plays => st.plays as f64,
+                Field::Added => now().saturating_sub(t.modified) as f64 / 86400.0,
+                _ => t.duration / 60.0,
+            };
+            let ok = match op {
+                Op::Eq => (x - n).abs() < 0.5,
+                Op::Lt => x < n,
+                Op::Le => x <= n,
+                Op::Gt => x > n,
+                Op::Ge => x >= n,
+            };
+            if !ok {
+                return false;
+            }
+        }
+        true
+    }
+}
+
 pub fn words(q: &str) -> Vec<String> {
     q.to_lowercase().split_whitespace().map(str::to_string).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn t(p: &str) -> TrackInfo {
+        TrackInfo { path: p.into(), duration: 1.0, ..Default::default() }
+    }
+
+    #[test]
+    fn drzewo_folderow() {
+        let v = vec![t(r"D:\Muzyka\a.mp3"), t(r"D:\Muzyka\Rock\b.mp3"), t(r"D:\Muzyka\Rock\Album\c.flac"), t(r"D:\Muzyka\Jazz\d.mp3"), t(r"D:\MuzykaInna\e.mp3")];
+        let (groups, direct) = folder_children(&v, r"D:\Muzyka\");
+        assert_eq!(direct.len(), 1);
+        let names: Vec<(&str, usize)> = groups.iter().map(|g| (g.name.as_str(), g.count)).collect();
+        assert_eq!(names, vec![(r"D:\Muzyka\Jazz", 1), (r"D:\Muzyka\Rock", 2)]);
+        assert_eq!(in_tree(&v, r"d:\muzyka").len(), 4);
+        assert_eq!(in_tree(&v, r"D:\Muzyka\Rock").len(), 2);
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+
+    #[test]
+    fn filtry() {
+        let t = TrackInfo { path: r"D:\a.flac".into(), artist: "Queen".into(), genre: "Rock".into(), year: 1991, duration: 300.0, ..Default::default() };
+        let st = Stat { rating: 4, plays: 12, ..Default::default() };
+        assert!(Query::parse("ocena>=4 rok:1990-1999 gatunek:rock format:flac").matches(&t, &st));
+        assert!(Query::parse("wykonawca:queen odtworzenia>10 dlugosc<6").matches(&t, &st));
+        assert!(!Query::parse("rok>2000").matches(&t, &st));
+        assert!(Query::parse("queen").matches(&t, &st));
+        assert_eq!(Query::parse("ac/dc:live").words, vec!["ac/dc:live".to_string()]);
+    }
 }

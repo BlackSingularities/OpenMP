@@ -60,6 +60,8 @@ pub fn publish(app: &mut App) {
     p.set_scroll_title(s.scroll_title);
     p.set_crossfade(s.crossfade as f32);
     p.set_soft_pause(s.soft_pause);
+    p.set_exclusive(s.exclusive);
+    p.set_resample_quality(s.resample_quality);
     p.set_replaygain(s.replaygain);
     p.set_rg_preamp(s.rg_preamp);
     p.set_speed(s.speed as f32);
@@ -82,6 +84,7 @@ pub fn publish(app: &mut App) {
     p.set_video_fit(s.video_fit_window);
     p.set_sub_size(s.sub_size);
     p.set_sub_lang(ss(&s.sub_lang));
+    p.set_lb_token(ss(&s.listenbrainz_token));
     p.set_audio_lang(ss(&s.audio_lang));
     p.set_screenshot_dir(ss(&s.screenshot_dir));
     p.set_deinterlace(s.deinterlace);
@@ -124,6 +127,8 @@ pub fn apply_audio(app: &mut App) {
     app.engine.set_dsp(app.s.dsp.clone());
     app.engine.set_crossfade(app.s.crossfade);
     app.engine.set_soft_pause(app.s.soft_pause);
+    openmp_core::audio::decoder::set_resample_quality(app.s.resample_quality.max(0) as u32);
+    app.engine.set_exclusive(app.s.exclusive);
     app.engine.set_speed(app.s.speed);
     crate::video::apply_audio_filters(app);
     crate::player::apply_volume(app);
@@ -194,6 +199,14 @@ pub fn changed(app: &mut App, key: &str) {
             app.engine.set_crossfade(app.s.crossfade);
             crate::player::refresh_next(app);
         }
+        "exclusive" => {
+            app.s.exclusive = p.get_exclusive();
+            app.engine.set_exclusive(app.s.exclusive);
+        }
+        "resample-quality" => {
+            app.s.resample_quality = p.get_resample_quality();
+            openmp_core::audio::decoder::set_resample_quality(app.s.resample_quality.max(0) as u32);
+        }
         "soft-pause" => {
             app.s.soft_pause = p.get_soft_pause();
             app.engine.set_soft_pause(app.s.soft_pause);
@@ -248,6 +261,7 @@ pub fn changed(app: &mut App, key: &str) {
                 m.set("sub-font-size", &app.s.sub_size.to_string());
             }
         }
+        "lb-token" => app.s.listenbrainz_token = p.get_lb_token().trim().to_string(),
         "sub-lang" => {
             app.s.sub_lang = p.get_sub_lang().to_string();
             if let Some(m) = &app.mpv {
@@ -400,6 +414,7 @@ pub fn remove_folder(app: &mut App, kind: i32, i: usize) {
 }
 
 fn publish_folders(app: &mut App) {
+    crate::libview::watch(app);
     if let Some(ui) = app.ui() {
         ui.global::<Prefs>().set_folders(crate::app::strings(&app.s.library_folders));
         ui.global::<Prefs>().set_video_folders(crate::app::strings(&app.s.video_folders));

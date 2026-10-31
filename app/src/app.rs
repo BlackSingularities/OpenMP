@@ -151,6 +151,8 @@ pub struct App {
     pub wave_raw: Vec<f32>,
     pub music_geom: Option<(i32, i32, u32, u32)>,
     pub dirty: bool,
+    /// Element (`Playing::item`) już wysłany do ListenBrainz.
+    pub scrobbled: u64,
     pub last_save: Instant,
     pub last_smtc: Instant,
     pub stations: Vec<Station>,
@@ -162,6 +164,8 @@ pub struct App {
     pub tag_cover: Option<Vec<u8>>,
     pub smtc: Option<souvlaki::MediaControls>,
     pub scan: Option<std::sync::Arc<openmp_core::library::Progress>>,
+    /// Obserwator folderów biblioteki i czas ostatniej zmiany na dysku (ms od epoki, 0 – brak).
+    pub watch: Option<(notify::RecommendedWatcher, std::sync::Arc<std::sync::atomic::AtomicU64>)>,
     pub video_size: (i64, i64),
     pub awake: bool,
     pub icy: String,

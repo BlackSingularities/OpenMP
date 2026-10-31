@@ -214,7 +214,9 @@ export global Prefs {
     in-out property <int> device;
     in-out property <float> crossfade;
     in-out property <bool> soft-pause: true;
-    in-out property <int> replaygain: 1;
+    in-out property <bool> exclusive: false;
+    in-out property <int> resample-quality: 1;
+    in-out property <int> replaygain: 0;
     in-out property <float> rg-preamp;
     in-out property <float> speed: 1;
     in-out property <bool> eq-on;
@@ -237,6 +239,7 @@ export global Prefs {
     in-out property <bool> video-fit: true;
     in-out property <int> sub-size: 46;
     in-out property <string> sub-lang;
+    in-out property <string> lb-token;
     in-out property <string> audio-lang;
     in-out property <string> screenshot-dir;
     in-out property <bool> deinterlace;

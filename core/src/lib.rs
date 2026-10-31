@@ -3,6 +3,7 @@
 pub mod audio;
 pub mod instance;
 pub mod library;
+pub mod listenbrainz;
 pub mod lrclib;
 pub mod meta;
 pub mod mpv;

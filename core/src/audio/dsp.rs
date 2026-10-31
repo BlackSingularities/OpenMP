@@ -246,7 +246,8 @@ impl Dsp {
             r *= gr;
             if s.limiter {
                 let peak = l.abs().max(r.abs());
-                let want = if peak * self.lim_gain > 0.98 { 0.98 / peak } else { 1.0 };
+                // Rusza dopiero przy realnym przesterowaniu – pełna skala gra bez ściszania.
+                let want = if peak * self.lim_gain > 0.999 { 0.999 / peak } else { 1.0 };
                 // Atak natychmiastowy, powolne odpuszczanie.
                 self.lim_gain = if want < self.lim_gain { want } else { want + (self.lim_gain - want) * lim_release };
                 l *= self.lim_gain;

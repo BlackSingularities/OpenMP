@@ -24,6 +24,8 @@ pub struct Settings {
     pub show_lyrics: bool,
     /// Pobieranie brakujących tekstów z LRCLIB.
     pub online_lyrics: bool,
+    /// Token ListenBrainz – pusty wyłącza scrobbling.
+    pub listenbrainz_token: String,
     pub show_sidebar: bool,
     pub scroll_title: bool,
     // Dźwięk
@@ -32,6 +34,10 @@ pub struct Settings {
     pub device: Option<String>,
     pub crossfade: f64,
     pub soft_pause: bool,
+    /// Tryb wyłączny WASAPI (karta w częstotliwości pliku, bez miksera Windows).
+    pub exclusive: bool,
+    /// Jakość przepróbkowania: 0 – szybka, 1 – dobra, 2 – najlepsza.
+    pub resample_quality: i32,
     /// 0 – wyłączone, 1 – utwór, 2 – album.
     pub replaygain: i32,
     pub rg_preamp: f32,
@@ -65,7 +71,12 @@ pub struct Settings {
     pub library_folders: Vec<String>,
     pub video_folders: Vec<String>,
     pub custom_eq: Vec<(String, Vec<f32>)>,
+    /// Inteligentne listy: nazwa i zapytanie z filtrami (`library::Query`).
+    pub smart_lists: Vec<(String, String)>,
     pub skip_version: String,
+    /// Wersja ustawień dźwięku – stare domyślne (ReplayGain ściszający utwory) są poprawiane raz.
+    #[serde(default)]
+    pub audio_rev: u32,
 }
 
 impl Default for Settings {
@@ -86,6 +97,7 @@ impl Default for Settings {
             always_on_top: false,
             show_lyrics: false,
             online_lyrics: true,
+            listenbrainz_token: String::new(),
             show_sidebar: true,
             scroll_title: true,
             volume: 0.8,
@@ -93,7 +105,9 @@ impl Default for Settings {
             device: None,
             crossfade: 0.0,
             soft_pause: true,
-            replaygain: 1,
+            exclusive: false,
+            resample_quality: 1,
+            replaygain: 0,
             rg_preamp: 0.0,
             speed: 1.0,
             dsp: DspSettings::default(),
@@ -120,14 +134,28 @@ impl Default for Settings {
             library_folders: dirs::audio_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
             video_folders: dirs::video_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
             custom_eq: Vec::new(),
+            smart_lists: vec![
+                ("Najlepiej oceniane".into(), "ocena>=4".into()),
+                ("Często słuchane".into(), "odtworzenia>=5".into()),
+            ],
             skip_version: String::new(),
+            audio_rev: AUDIO_REV,
         }
     }
 }
 
+const AUDIO_REV: u32 = 1;
+
 impl Settings {
     pub fn load() -> Settings {
-        crate::paths::load_json("settings.json")
+        let mut s: Settings = crate::paths::load_json("settings.json");
+        if s.audio_rev < AUDIO_REV {
+            // Do 1.1.3 ReplayGain był domyślnie włączony i ściszał głośne nagrania o 6–10 dB –
+            // muzyka grała dużo ciszej niż w innych odtwarzaczach.
+            s.replaygain = 0;
+            s.audio_rev = AUDIO_REV;
+        }
+        s
     }
     pub fn save(&self) {
         crate::paths::save_json("settings.json", self);

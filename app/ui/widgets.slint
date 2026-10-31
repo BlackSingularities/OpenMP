@@ -31,6 +31,11 @@ export component IconBtn inherits Rectangle {
     out property <bool> hovered: ta.has-hover;
     callback clicked();
     callback right-clicked();
+    // Czytniki ekranu (Narrator, NVDA): przycisk z nazwą z podpowiedzi.
+    accessible-role: button;
+    accessible-label: root.tip != "" ? root.tip : root.icon;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { root.clicked(); }
     width: size;
     height: size;
     border-radius: round ? self.height / 2 : Theme.radius;
@@ -86,6 +91,10 @@ export component Btn inherits Rectangle {
     in property <bool> enabled: true;
     in property <bool> compact;
     callback clicked();
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { root.clicked(); }
     height: compact ? 26px : 32px;
     min-width: lay.preferred-width + (compact ? 18px : 26px);
     border-radius: Theme.radius;
@@ -133,6 +142,10 @@ export component HSlider inherits Rectangle {
     callback moved(float);
     callback committed(float);
     callback reset();
+    accessible-role: slider;
+    accessible-value: round(root.value * 100) / 100;
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
     height: 18px;
     min-width: 60px;
     property <float> frac: (value - minimum) / (maximum - minimum);
@@ -286,6 +299,14 @@ export component Switch inherits Rectangle {
     in-out property <bool> checked;
     in property <bool> enabled: true;
     callback toggled(bool);
+    accessible-role: checkbox;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        root.checked = !root.checked;
+        root.toggled(root.checked);
+    }
     width: 36px;
     height: 20px;
     border-radius: 10px;
@@ -350,6 +371,7 @@ export component SettingSwitch inherits SettingRow {
     in-out property <bool> checked;
     callback toggled(bool);
     Switch {
+        accessible-label: root.title;
         checked <=> root.checked;
         toggled(v) => { root.toggled(v); }
     }
