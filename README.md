@@ -15,8 +15,11 @@ Odtwarzacz muzyki i wideo dla Windows 10 i 11. Natywny program w Rust ze Slint: 
 
 ## Wideo
 
-- Obraz na całe okno i mały panel sterowania, który sam się chowa.
-- Dekodowanie sprzętowe, napisy (ASS, SRT, PGS), ścieżki dźwiękowe, rozdziały na pasku, wznawianie od miejsca przerwania, zrzuty klatek, usuwanie przeplotu, dopasowanie okna do filmu, pełny ekran.
+- Wideo jest częścią programu: wyjście do biblioteki nie przerywa filmu – gra dalej w miejscu okładki, w obrazie w obrazie albo jako sam dźwięk.
+- Dwa widoki filmu: kinowy (obraz na całe okno, sterowanie samo się chowa) i szeroki (scena z panelem listy, ścieżek, napisów, obrazu i szczegółów). Na pełnym ekranie zawsze autoukrywanie.
+- Poświata z obrazu (Ambilight) wokół filmu i w czarnych pasach, kolor przewodni programu podąża za barwami filmu, podgląd klatek nad paskiem przewijania.
+- Cztery poziomy jakości skalowania, wybór dekodowania sprzętowego, płynny ruch (interpolacja), usuwanie pasm, mapowanie tonów HDR; powiększenie, przesuwanie, obrót i proporcje obrazu.
+- Napisy (ASS, SRT, PGS) z własnym stylem, ścieżki dźwiękowe, tryb nocny i wzmocnienie do 200%, rozdziały na pasku, wznawianie od miejsca przerwania, zrzuty klatek, usuwanie przeplotu, dopasowanie okna do filmu.
 - Silnik wideo to libmpv, więc obsługiwany jest praktycznie każdy format.
 
 ## Biblioteka

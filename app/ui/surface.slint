@@ -1,0 +1,160 @@
+// Obraz filmu i tła: powierzchnia, na której rysuje mpv (zgłasza Rustowi swój rozmiar), scena
+// z obrazem w proporcjach filmu i poświatą w pasach po bokach, oraz tło okna z barw okładki.
+
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Cover } from "widgets.slint";
+import { Player, Video, Prefs } from "state.slint";
+
+// Powierzchnia obrazu – mpv rysuje dokładnie w jej rozmiarze. W danej chwili istnieje jedna.
+export component VideoSurface inherits Rectangle {
+    background: #000000;
+    clip: true;
+    init => {
+        Video.surface-w = self.width;
+        Video.surface-h = self.height;
+    }
+    changed width => {
+        Video.surface-w = self.width;
+    }
+    changed height => {
+        Video.surface-h = self.height;
+    }
+    if Video.has-frame && Video.active: Image {
+        width: 100%;
+        height: 100%;
+        source: Video.frame;
+        image-fit: fill;
+    }
+}
+
+// Trzy pulsujące kropki – wczytywanie (odświeża okno tylko, gdy widoczne).
+export component Spinner inherits HorizontalLayout {
+    spacing: 8px;
+    alignment: center;
+    for i in 3: Rectangle {
+        width: 10px;
+        height: 10px;
+        border-radius: 5px;
+        background: Theme.tint.brighter(0.4);
+        opacity: 0.25 + 0.75 * abs(sin(animation-tick() / 1100ms * 180deg + i * 40deg));
+    }
+}
+
+// Scena filmu: obraz w proporcjach filmu na środku, a w pasach po bokach – poświata z obrazu.
+// Przy powiększeniu, obrocie i rozciąganiu obraz zajmuje całą scenę.
+export component VideoStage inherits Rectangle {
+    in property <bool> ambient: true;
+    in property <float> ambient-strength: 0.35;
+    in property <length> radius: 0;
+    in property <bool> show-states: true;
+    property <bool> full: Video.zoom != 0 || Video.aspect >= 4 || Video.rotate != 0;
+    property <float> r: max(Video.ratio, 0.1);
+    property <length> sw: root.full ? root.width : min(root.width, root.height * root.r);
+    property <length> sh: root.full ? root.height : min(root.height, root.width / root.r);
+    background: #000000;
+    border-radius: root.radius;
+    clip: true;
+    if root.ambient && Video.has-ambient && Video.active: Image {
+        width: 100%;
+        height: 100%;
+        source: Video.ambient;
+        image-fit: fill;
+        opacity: root.ambient-strength;
+    }
+    VideoSurface {
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        width: root.sw;
+        height: root.sh;
+        border-radius: root.full ? root.radius : 0;
+    }
+    if root.show-states && Video.audio-only: VerticalLayout {
+        alignment: center;
+        spacing: 14px;
+        Cover {
+            x: (parent.width - self.width) / 2;
+            width: min(root.width, root.height) * 0.42;
+            height: self.width;
+            source: Player.cover;
+            has: Player.has-cover;
+            fallback: Icons.audiotrack;
+            background: #ffffff10;
+        }
+        Text {
+            text: Video.title;
+            color: #ffffff;
+            font-size: Theme.fs-lg;
+            horizontal-alignment: center;
+        }
+    }
+    if root.show-states && Video.loading && Video.error == "": VerticalLayout {
+        alignment: center;
+        spacing: 14px;
+        Spinner { }
+        Text {
+            text: "Wczytywanie…";
+            color: #ffffffa0;
+            font-size: Theme.fs;
+            horizontal-alignment: center;
+        }
+    }
+    if root.show-states && Video.error != "": VerticalLayout {
+        alignment: center;
+        padding: 20px;
+        Text {
+            text: Video.error;
+            color: #ffffffd0;
+            font-size: Theme.fs-md;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+}
+
+// Tło okna: rozmyta okładka albo gradient jej barw (a przy filmie – poświata z obrazu),
+// przyciemnione ku dołowi, żeby tekst był czytelny.
+export component Backdrop inherits Rectangle {
+    property <color> ca: Theme.grad-a;
+    property <color> cb: Theme.grad-b;
+    property <color> cc: Theme.grad-c;
+    animate ca, cb, cc { duration: 900ms; easing: ease-in-out; }
+    property <float> o: Prefs.backdrop-opacity;
+    property <float> t: Prefs.backdrop-motion ? animation-tick() / 30s : 0;
+    if Prefs.backdrop == 1 && Player.has-cover && !Video.active: Image {
+        width: 100%;
+        height: 100%;
+        source: Player.backdrop;
+        image-fit: cover;
+        opacity: root.o * 1.4;
+    }
+    if Prefs.backdrop == 2 && !Player.idle && !Video.active: Rectangle {
+        background: @linear-gradient(135deg, root.ca.with-alpha(root.o) 0%, root.cb.with-alpha(root.o * 0.5) 50%, root.cc.with-alpha(root.o * 0.85) 100%);
+    }
+    // Powolny ruch: dwie plamy światła krążące po oknie.
+    if Prefs.backdrop-motion && Prefs.backdrop > 0 && !Player.idle: Rectangle {
+        x: root.width * (0.3 + 0.25 * sin(root.t * 360deg)) - self.width / 2;
+        y: root.height * (0.3 + 0.2 * cos(root.t * 360deg)) - self.height / 2;
+        width: root.width * 0.8;
+        height: root.height * 1.1;
+        background: @radial-gradient(circle, root.ca.with-alpha(root.o * 0.9) 0%, transparent 65%);
+    }
+    if Prefs.backdrop-motion && Prefs.backdrop > 0 && !Player.idle: Rectangle {
+        x: root.width * (0.7 + 0.22 * cos(root.t * 300deg)) - self.width / 2;
+        y: root.height * (0.65 + 0.2 * sin(root.t * 300deg)) - self.height / 2;
+        width: root.width * 0.7;
+        height: root.height;
+        background: @radial-gradient(circle, root.cc.with-alpha(root.o * 0.8) 0%, transparent 65%);
+    }
+    // Film: tłem jest jego poświata.
+    if Video.active && Prefs.ambient > 0 && Video.has-ambient && Prefs.backdrop > 0: Image {
+        width: 100%;
+        height: 100%;
+        source: Video.ambient;
+        image-fit: fill;
+        opacity: min(root.o * (Prefs.ambient == 2 ? 2.2 : 1.4), 0.75);
+    }
+    Rectangle {
+        background: @linear-gradient(180deg, Theme.bg.with-alpha(0) 0%, Theme.bg.with-alpha(0.35) 60%, Theme.bg.with-alpha(0.7) 100%);
+    }
+}

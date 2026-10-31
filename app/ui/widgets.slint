@@ -200,7 +200,7 @@ export component HSlider inherits Rectangle {
         width: ta.has-hover || ta.pressed ? 14px : 10px;
         height: self.width;
         border-radius: self.width / 2;
-        background: ta.has-hover || ta.pressed ? #ffffff : root.fill-color;
+        background: ta.has-hover || ta.pressed ? Theme.knob : root.fill-color;
         border-width: fs.has-focus ? 2px : 0;
         border-color: Theme.tint.brighter(0.4);
         drop-shadow-blur: 4px;
@@ -372,7 +372,7 @@ export component Switch inherits Rectangle {
         width: 14px;
         height: 14px;
         border-radius: 7px;
-        background: #ffffff;
+        background: root.checked || Theme.scope == 0 ? #ffffff : Theme.knob;
         animate x { duration: 150ms; easing: ease-out; }
     }
     fs := FocusScope {

@@ -1,32 +1,65 @@
 // Kolory i miary całego programu: głęboka czerń i jeden akcent, który – gdy włączone – płynie
-// z okładki bieżącego utworu przez wszystkie widoki (przyciski, zaznaczenia, fala, poświata).
+// z okładki bieżącego utworu (albo z obrazu filmu) przez wszystkie widoki.
+// Zasięg akcentu wybiera się w ustawieniach: same akcenty, także ikony i suwaki, albo cały interfejs.
 
 export global Theme {
     in-out property <bool> dark: true;
     in-out property <color> accent: #4f8cff;
-    // Akcent z okładki (gdy włączony) – wyświetlacz i pasek przewijania.
+    // Akcent z okładki (gdy włączony) – wyświetlacz, przyciski, suwaki, poświata.
     in-out property <color> tint: accent;
+    // 0 – tylko akcenty, 1 – też ikony, suwaki i znaczniki (zamiast bieli), 2 – cały interfejs.
+    in-out property <int> scope: 1;
+    // 0 – ostre, 1 – zwykłe, 2 – mocne zaokrąglenia.
+    in-out property <int> corners: 1;
+    in-out property <float> text-scale: 1;
+    // 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
+    in-out property <int> title-font;
+    in-out property <float> glow-k: 1;
+    // Barwy okładki do gradientu tła.
+    in-out property <color> grad-a: tint;
+    in-out property <color> grad-b: tint;
+    in-out property <color> grad-c: tint;
 
-    out property <color> bg: dark ? #050507 : #f3f2f6;
-    out property <color> side: dark ? #09090c : #ebe9f0;
-    out property <color> panel: dark ? #0c0c10 : #ffffff;
-    out property <color> panel2: dark ? #121217 : #f7f6fa;
-    out property <color> raised: dark ? #18181f : #ffffff;
-    out property <color> line: dark ? #1c1c24 : #e2e0e8;
-    out property <color> line2: dark ? #2a2a35 : #d3d0db;
+    // Cały interfejs w barwie: tła i linie przyjmują odrobinę akcentu.
+    out property <float> wash: scope >= 2 ? (dark ? 0.94 : 0.95) : 1;
+    out property <color> bg0: dark ? #050507 : #f3f2f6;
+    out property <color> side0: dark ? #09090c : #ebe9f0;
+    out property <color> panel0: dark ? #0c0c10 : #ffffff;
+    out property <color> panel20: dark ? #121217 : #f7f6fa;
+    out property <color> raised0: dark ? #18181f : #ffffff;
+    out property <color> line0: dark ? #1c1c24 : #e2e0e8;
+    out property <color> line20: dark ? #2a2a35 : #d3d0db;
+    out property <color> text20: dark ? #a9a6b4 : #55525f;
+    out property <color> text30: dark ? #6d6a78 : #8c8997;
+    out property <color> bg: bg0.mix(tint, wash);
+    out property <color> side: side0.mix(tint, wash);
+    out property <color> panel: panel0.mix(tint, wash);
+    out property <color> panel2: panel20.mix(tint, wash);
+    out property <color> raised: raised0.mix(tint, wash);
+    out property <color> line: line0.mix(tint, scope >= 2 ? 0.88 : 1);
+    out property <color> line2: line20.mix(tint, scope >= 2 ? 0.86 : 1);
     out property <color> text: dark ? #f1eff6 : #16151b;
-    out property <color> text2: dark ? #a9a6b4 : #55525f;
-    out property <color> text3: dark ? #6d6a78 : #8c8997;
+    out property <color> text2: text20.mix(tint, scope >= 2 ? 0.82 : 1);
+    out property <color> text3: text30.mix(tint, scope >= 2 ? 0.8 : 1);
     out property <color> hover: dark ? #ffffff0b : #0000000a;
     out property <color> press: dark ? #ffffff15 : #00000014;
     out property <color> sel: tint.with-alpha(dark ? 0.16 : 0.14);
     out property <color> sel-strong: tint.with-alpha(dark ? 0.30 : 0.24);
     // Poświata akcentu za okładką i pod przyciskiem odtwarzania.
-    out property <color> glow: tint.with-alpha(0.38);
+    out property <color> glow: tint.with-alpha(min(0.38 * glow-k, 0.9));
     out property <color> on-accent: #ffffff;
     out property <color> danger: #ef5a5a;
     out property <color> ok: #3ccf8e;
     out property <color> scrim: #00000099;
+    // Barwa „mocnych” elementów, które bez akcentu są białe: ikony odtwarzania, gałki, znaczniki.
+    out property <color> tint-hi: dark ? tint.brighter(0.25) : tint.darker(0.15);
+    out property <color> ink: scope >= 1 ? tint-hi : text;
+    out property <color> knob: scope >= 1 ? tint.brighter(0.45) : #ffffff;
+    // Tytuły (cały interfejs w barwie).
+    out property <color> heading: scope >= 2 ? text.mix(tint, 0.62) : text;
+    // Sterowanie na obrazie filmu.
+    out property <color> on-video: scope >= 1 ? tint.brighter(0.55) : #ffffff;
+    out property <color> on-video2: scope >= 1 ? tint.brighter(0.7) : #ffffffd0;
 
     // Wyświetlacz
     out property <color> lcd: #050507;
@@ -35,17 +68,17 @@ export global Theme {
     out property <color> lcd-dim: #8791a3;
     out property <color> lcd-faint: #4b5363;
 
-    out property <length> radius: 8px;
-    out property <length> radius-lg: 14px;
-    out property <length> fs-xs: 10.5px;
-    out property <length> fs-sm: 11.5px;
-    out property <length> fs: 12.5px;
-    out property <length> fs-md: 14px;
-    out property <length> fs-lg: 17px;
-    out property <length> fs-xl: 22px;
+    out property <length> radius: corners == 0 ? 3px : corners == 2 ? 12px : 8px;
+    out property <length> radius-lg: corners == 0 ? 5px : corners == 2 ? 22px : 14px;
+    out property <length> fs-xs: 10.5px * text-scale;
+    out property <length> fs-sm: 11.5px * text-scale;
+    out property <length> fs: 12.5px * text-scale;
+    out property <length> fs-md: 14px * text-scale;
+    out property <length> fs-lg: 17px * text-scale;
+    out property <length> fs-xl: 22px * text-scale;
     out property <string> font: "Segoe UI Variable Text";
     out property <string> font-display: "Segoe UI Variable Display";
-    // Tytuł utworu – szeryfowy, jak na okładce płyty.
-    out property <string> font-serif: "Georgia";
+    // Tytuł utworu – szeryfowy, jak na okładce płyty (albo bezszeryfowy / techniczny).
+    out property <string> font-serif: title-font == 1 ? "Segoe UI Variable Display" : title-font == 2 ? "Bahnschrift" : "Georgia";
     out property <string> mono: "Cascadia Mono";
 }

@@ -215,7 +215,7 @@ pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
             }
         }
         "rescan" => start_scan(app),
-        "folders" => crate::keys::open_settings(app, 4),
+        "folders" => crate::keys::open_settings(app, 5),
         _ => {}
     }
 }

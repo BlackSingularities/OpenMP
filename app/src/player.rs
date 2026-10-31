@@ -110,6 +110,7 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
         ensure_loudness(app, &t, item);
         app.engine.set_paused(app.pause_after_load);
         app.cur = Some(Playing { list, idx, item, info: t.clone(), backend: Backend::Engine, video: false, station: None });
+        crate::video::clear(app);
         refresh_next(app);
     } else {
         let Some(m) = app.mpv.clone() else {
@@ -120,11 +121,28 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
         m.set("vid", if video { "auto" } else { "no" });
         m.set("start", &resume.filter(|r| *r > 0.0).map(|r| format!("{r:.2}")).unwrap_or_else(|| "none".into()));
         m.set_flag("pause", app.pause_after_load);
+        if video {
+            // Każdy film zaczyna się bez powiększenia, przesunięcia i obrotu poprzedniego.
+            m.set_f64("video-zoom", 0.0);
+            m.set_f64("video-pan-x", 0.0);
+            m.set_f64("video-pan-y", 0.0);
+            m.set("video-rotate", "0");
+        }
         crate::video::apply_audio_filters(app);
         m.command_async(&["loadfile", &t.path, "replace"]);
         app.cur = Some(Playing { list, idx, item, info: t.clone(), backend: Backend::Mpv, video, station: station.clone() });
+        app.video_size = (0, 0);
+        crate::video::clear(app);
+        if let Some(ui) = app.ui() {
+            let v = ui.global::<Video>();
+            v.set_zoom(0.0);
+            v.set_rotate(0);
+        }
         if video {
-            crate::video::enter_video(app);
+            // Film otwiera widok filmu albo gra w miejscu okładki – okno muzyki zostaje.
+            if app.s.video_open_view || app.is_video_mode() {
+                crate::video::enter_video(app);
+            }
         } else {
             crate::video::leave_video(app);
         }
@@ -135,6 +153,7 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
             ui.global::<Video>().set_error(ss(""));
             ui.global::<Video>().set_audio_only(false);
         }
+        crate::video::refresh_active(app);
     }
     app.pause_after_load = false;
     app.stats.played(&t.path);
@@ -320,6 +339,10 @@ pub fn on_end(app: &mut App) {
         if let Some(c) = &app.cur {
             app.stats.entry(&c.info.path).resume = 0.0;
         }
+        if !app.s.video_autonext {
+            stop(app);
+            return;
+        }
     }
     match next_of(app, true, true) {
         Some((l, i, _)) => play(app, l, i, None),
@@ -351,6 +374,7 @@ pub fn stop(app: &mut App) {
         c.item = 0;
     }
     crate::video::leave_video(app);
+    crate::video::refresh_active(app);
     crate::win::smtc_state(app);
     crate::win::keep_awake(app, false);
 }
@@ -475,7 +499,9 @@ pub fn apply_volume(app: &mut App) {
     app.engine.set_volume(v);
     if let Some(m) = &app.mpv {
         // mpv liczy amplitudę jako (głośność/100)³, silnik muzyki jako v^1,5 – ta sama słyszalna głośność.
-        m.set_f64("volume", ((v as f64).sqrt() * 100.0).clamp(0.0, 100.0));
+        // Filmy: pełna głośność może sięgać wzmocnienia z ustawień (do 200%).
+        let top = if app.cur.as_ref().is_some_and(|c| c.video) { app.s.volume_boost.clamp(100.0, 200.0) as f64 } else { 100.0 };
+        m.set_f64("volume", ((v as f64).sqrt() * top).clamp(0.0, top));
     }
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_volume(app.s.volume);

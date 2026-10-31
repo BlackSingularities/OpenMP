@@ -80,8 +80,46 @@ pub fn publish(app: &mut App) {
     p.set_resume_on_start(s.resume_on_start);
     p.set_follow_playing(s.follow_playing);
     p.set_seek_step(s.seek_step as f32);
-    p.set_hwdec(s.hwdec);
     p.set_video_resume(s.video_resume);
+    p.set_accent_scope(s.accent_scope);
+    p.set_backdrop(s.backdrop);
+    p.set_backdrop_opacity(s.backdrop_opacity);
+    p.set_backdrop_motion(s.backdrop_motion);
+    p.set_glow(s.glow);
+    p.set_corners(s.corners);
+    p.set_text_scale(s.text_scale);
+    p.set_title_font(s.title_font);
+    publish_theme(app);
+    p.set_video_ui(s.video_ui);
+    p.set_video_leave(s.video_leave);
+    p.set_video_open_view(s.video_open_view);
+    p.set_autohide_window(s.autohide_window);
+    p.set_video_quality(s.video_quality);
+    p.set_hwdec_mode(s.hwdec_mode);
+    p.set_interpolation(s.interpolation);
+    p.set_deband(s.deband);
+    ui.global::<Video>().set_deband(s.deband);
+    ui.global::<Video>().set_panel_page(if s.video_ui == 1 { 5 } else { 0 });
+    p.set_tone_mapping(s.tone_mapping);
+    p.set_ambient(s.ambient);
+    p.set_video_tint(s.video_tint);
+    p.set_seek_preview(s.seek_preview);
+    p.set_wheel_action(s.wheel_action);
+    p.set_dblclick_seek(s.dblclick_seek);
+    p.set_video_autonext(s.video_autonext);
+    p.set_volume_boost(s.volume_boost);
+    p.set_night_mode(s.night_mode);
+    p.set_downmix(s.downmix);
+    p.set_ytdl_format(s.ytdl_format);
+    p.set_ytdl(s.ytdl);
+    p.set_cache_mb(s.cache_mb);
+    p.set_sub_font(ss(&s.sub_font));
+    p.set_sub_color(s.sub_color);
+    p.set_sub_style(s.sub_style);
+    p.set_sub_pos(s.sub_pos);
+    p.set_sub_bold(s.sub_bold);
+    p.set_sub_override(s.sub_override);
+    p.set_sub_auto(s.sub_auto);
     p.set_autohide_ms(s.autohide_ms);
     p.set_video_fit(s.video_fit_window);
     p.set_sub_size(s.sub_size);
@@ -117,6 +155,27 @@ pub fn publish(app: &mut App) {
     publish_presets(app);
 }
 
+/// Wygląd całego programu (zasięg akcentu, zaokrąglenia, wielkość tekstu, czcionka, poświata).
+pub fn publish_theme(app: &App) {
+    let Some(ui) = app.ui() else { return };
+    let t = ui.global::<Theme>();
+    t.set_scope(app.s.accent_scope.clamp(0, 2));
+    t.set_corners(app.s.corners.clamp(0, 2));
+    t.set_text_scale(app.s.text_scale.clamp(0.8, 1.4));
+    t.set_title_font(app.s.title_font.clamp(0, 2));
+    t.set_glow_k(app.s.glow.clamp(0.0, 2.0));
+}
+
+/// Opcje mpv zależne od ustawienia `key` (po zmianie w oknie ustawień).
+fn apply_mpv(app: &App, key: &str) {
+    let Some(m) = &app.mpv else { return };
+    match key {
+        "video-quality" | "interpolation" | "deband" => crate::video::apply_quality(m, &app.s),
+        "sub-font" | "sub-color" | "sub-style" | "sub-pos" | "sub-bold" | "sub-override" | "sub-auto" | "sub-size" => crate::video::apply_subs(m, &app.s),
+        _ => crate::video::apply_all(m, &app.s),
+    }
+}
+
 fn speed_text(s: f64) -> String {
     if (s - 1.0).abs() < 0.001 {
         String::new()
@@ -147,7 +206,13 @@ pub fn changed(app: &mut App, key: &str) {
             ui.global::<Theme>().set_dark(p.get_dark());
         }
         "accent" => {
-            app.s.accent = p.get_accent().to_string();
+            // Własny kolor wpisywany ręcznie – dopiero pełny zapis #RRGGBB.
+            let a = p.get_accent().trim().to_string();
+            let a = if a.starts_with('#') { a } else { format!("#{a}") };
+            if a.len() != 7 || u32::from_str_radix(&a[1..], 16).is_err() {
+                return;
+            }
+            app.s.accent = a;
             let c = parse_color(&app.s.accent);
             ui.global::<Theme>().set_accent(c);
             if !app.s.accent_from_cover || app.cur.is_none() {
@@ -249,20 +314,76 @@ pub fn changed(app: &mut App, key: &str) {
         "resume-on-start" => app.s.resume_on_start = p.get_resume_on_start(),
         "follow-playing" => app.s.follow_playing = p.get_follow_playing(),
         "seek-step" => app.s.seek_step = p.get_seek_step().round() as f64,
-        "hwdec" => {
-            app.s.hwdec = p.get_hwdec();
-            if let Some(m) = &app.mpv {
-                m.set("hwdec", if app.s.hwdec { "auto-safe" } else { "no" });
+        "hwdec-mode" => {
+            app.s.hwdec_mode = p.get_hwdec_mode().clamp(0, 5);
+            app.s.hwdec = app.s.hwdec_mode != 0;
+            apply_mpv(app, key);
+        }
+        "accent-scope" | "corners" | "text-scale" | "title-font" | "glow" => {
+            app.s.accent_scope = p.get_accent_scope();
+            app.s.corners = p.get_corners();
+            app.s.text_scale = (p.get_text_scale() * 20.0).round() / 20.0;
+            app.s.title_font = p.get_title_font();
+            app.s.glow = p.get_glow();
+            publish_theme(app);
+        }
+        "backdrop" => app.s.backdrop = p.get_backdrop(),
+        "backdrop-opacity" => app.s.backdrop_opacity = p.get_backdrop_opacity(),
+        "backdrop-motion" => app.s.backdrop_motion = p.get_backdrop_motion(),
+        "video-ui" => crate::video::set_layout(app, p.get_video_ui()),
+        "video-leave" => app.s.video_leave = p.get_video_leave(),
+        "video-open-view" => app.s.video_open_view = p.get_video_open_view(),
+        "autohide-window" => app.s.autohide_window = p.get_autohide_window(),
+        "ambient" => app.s.ambient = p.get_ambient(),
+        "video-tint" => {
+            app.s.video_tint = p.get_video_tint();
+            if !app.s.video_tint {
+                crate::display::show_track(app);
             }
+        }
+        "seek-preview" => app.s.seek_preview = p.get_seek_preview(),
+        "wheel-action" => app.s.wheel_action = p.get_wheel_action(),
+        "dblclick-seek" => app.s.dblclick_seek = p.get_dblclick_seek(),
+        "video-autonext" => app.s.video_autonext = p.get_video_autonext(),
+        "video-quality" | "interpolation" | "deband" | "tone-mapping" | "volume-boost" | "downmix" | "ytdl-format" | "ytdl" | "cache-mb" => {
+            app.s.video_quality = p.get_video_quality();
+            app.s.interpolation = p.get_interpolation();
+            app.s.deband = p.get_deband();
+            ui.global::<Video>().set_deband(app.s.deband);
+            app.s.tone_mapping = p.get_tone_mapping();
+            app.s.volume_boost = p.get_volume_boost().round();
+            app.s.downmix = p.get_downmix();
+            app.s.ytdl_format = p.get_ytdl_format();
+            app.s.ytdl = p.get_ytdl();
+            app.s.cache_mb = p.get_cache_mb();
+            apply_mpv(app, key);
+            if key == "volume-boost" {
+                crate::player::apply_volume(app);
+            }
+        }
+        "night-mode" => {
+            app.s.night_mode = p.get_night_mode();
+            crate::video::apply_audio_filters(app);
+        }
+        "sub-font" | "sub-color" | "sub-style" | "sub-pos" | "sub-bold" | "sub-override" | "sub-auto" => {
+            app.s.sub_font = p.get_sub_font().trim().to_string();
+            if app.s.sub_font.is_empty() {
+                app.s.sub_font = "Segoe UI Semibold".into();
+            }
+            app.s.sub_color = p.get_sub_color();
+            app.s.sub_style = p.get_sub_style();
+            app.s.sub_pos = p.get_sub_pos();
+            app.s.sub_bold = p.get_sub_bold();
+            app.s.sub_override = p.get_sub_override();
+            app.s.sub_auto = p.get_sub_auto();
+            apply_mpv(app, key);
         }
         "video-resume" => app.s.video_resume = p.get_video_resume(),
         "autohide-ms" => app.s.autohide_ms = p.get_autohide_ms(),
         "video-fit" => app.s.video_fit_window = p.get_video_fit(),
         "sub-size" => {
             app.s.sub_size = p.get_sub_size();
-            if let Some(m) = &app.mpv {
-                m.set("sub-font-size", &app.s.sub_size.to_string());
-            }
+            apply_mpv(app, key);
         }
         "online-covers" => {
             app.s.online_covers = p.get_online_covers();

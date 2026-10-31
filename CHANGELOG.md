@@ -1,5 +1,25 @@
 # Zmiany
 
+## 1.3.0
+
+Wideo przestaje być osobnym trybem – jest częścią programu.
+
+- **Film nie zamyka interfejsu.** Esc albo strzałka „Biblioteka” wraca do biblioteki, a film gra dalej w miejscu okładki (z poświatą); kliknięcie obrazu wraca do widoku filmu. Do wyboru też: tylko dźwięk albo pauza.
+- **Dwa widoki filmu:** kinowy (obraz na całe okno, chowające się sterowanie) i szeroki (obraz na scenie z panelem listy i ustawień, sterowanie jak w oknie muzyki). Przełączanie klawiszem W. Na pełnym ekranie zawsze autoukrywanie sterowania i kursora.
+- **Obraz w obrazie** (P): miniodtwarzacz w proporcjach filmu w rogu ekranu, zawsze na wierzchu, z przyciskami po najechaniu.
+- **Poświata z obrazu (Ambilight):** miękkie światło w barwach filmu wokół obrazu i w czarnych pasach; kolor przewodni programu płynnie podąża za filmem.
+- **Podgląd klatek** nad paskiem przewijania, z nazwą rozdziału; zbuforowana część strumienia na pasku.
+- Silnik obrazu: mpv rysuje dokładnie w rozmiarze miejsca na ekranie (mniej pracy karty graficznej), cztery poziomy jakości skalowania, wybór dekodowania sprzętowego (D3D11, NVDEC, DXVA2), płynny ruch (interpolacja), usuwanie pasm, mapowanie tonów HDR, plakietki 4K/HDR10/kodek.
+- Obraz: powiększenie (Ctrl+kółko, +/−), przesuwanie, obrót, proporcje „Wypełnij ekran”, odcień; „Obraz jak w pliku” (0).
+- Dźwięk filmów: wzmocnienie do 200%, tryb nocny (wyrównana dynamika), miks do stereo, szybkie prędkości 0,5–2×.
+- Napisy: czcionka, kolor, styl (obrys, cień, pole), położenie, pogrubienie, wymuszanie stylu ASS, wczytywanie z folderu filmu.
+- Karta „Szczegóły”: rozdzielczość, kodek, klatki, dekodowanie, barwy/HDR, przepływność, pominięte klatki, bufor, synchronizacja A/V.
+- Mysz na obrazie: dwuklik przy krawędzi przewija o 10 s, kółko – głośność albo przewijanie; zrzut ekranu bez napisów (Shift+S).
+- **Kolor przewodni wszędzie:** do wyboru zasięg – same akcenty, także ikony, gałki i znaczniki (zamiast bieli) albo cały interfejs z tłami i tytułami. Własny kolor szesnastkowo i więcej gotowych barw.
+- **Tło z okładki:** rozmyta okładka albo gradient jej barw jako subtelna nakładka pod całym oknem, z regulowanym kryciem i opcjonalnym powolnym ruchem.
+- Wygląd: siła poświaty, zaokrąglenia, wielkość tekstu (90–125%), czcionka tytułów (szeryfowa, bezszeryfowa, techniczna).
+- Nowa strona ustawień „Napisy” i rozbudowana strona „Wideo” (widok, obraz, sterowanie, dźwięk filmów, sieć: yt-dlp, jakość, bufor).
+
 ## 1.2.7
 
 - Tryb wyłączny reaguje na głośność Windows (i wyciszenie) – program stosuje ją sam, gdy karta nie robi tego sprzętowo.

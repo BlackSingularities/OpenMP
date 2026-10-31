@@ -111,18 +111,21 @@ pub fn show_track(app: &mut App) {
             None => meta::cover(Path::new(&path)).or_else(|| openmp_core::coverart::fetch(&artist, &album)),
         };
         let decoded = bytes.as_ref().and_then(|b| image::load_from_memory(b).ok());
-        let (big, back, tint) = match &decoded {
+        let (big, back, tint, pal) = match &decoded {
             Some(img) => {
                 let big = img.thumbnail(600, 600).to_rgba8();
                 let small = img.thumbnail(48, 48).blur(2.5).to_rgba8();
-                let tint = dominant(&img.thumbnail(32, 32).to_rgba8());
+                let thumb = img.thumbnail(32, 32).to_rgba8();
+                let tint = dominant(&thumb);
+                let pal = palette(&thumb, 3);
                 (
                     Some(slint::SharedPixelBuffer::<slint::Rgba8Pixel>::clone_from_slice(big.as_raw(), big.width(), big.height())),
                     Some(slint::SharedPixelBuffer::<slint::Rgba8Pixel>::clone_from_slice(small.as_raw(), small.width(), small.height())),
                     Some(tint),
+                    pal,
                 )
             }
-            None => (None, None, None),
+            None => (None, None, None, Vec::new()),
         };
         if GEN.load(Ordering::SeqCst) != gen {
             return;
@@ -150,8 +153,15 @@ pub fn show_track(app: &mut App) {
                 Some((r, g, b)) if from_cover => Color::from_rgb_u8(r, g, b),
                 _ => accent,
             };
-            ui.global::<Theme>().set_tint(t);
+            let th = ui.global::<Theme>();
+            th.set_tint(t);
+            // Gradient tła: trzy barwy okładki (brakujące – odcienie akcentu).
+            let c = |i: usize, f: f32| pal.get(i).map(|&(r, g, b)| Color::from_rgb_u8(r, g, b)).unwrap_or_else(|| if f >= 0.0 { t.brighter(f) } else { t.darker(-f) });
+            th.set_grad_a(c(0, 0.0));
+            th.set_grad_b(c(1, -0.35));
+            th.set_grad_c(c(2, 0.3));
             later(move |app| {
+                app.tint_target = None;
                 app.cover_bytes = bytes;
                 crate::win::smtc_meta(app);
             });
@@ -182,6 +192,12 @@ pub fn show_track(app: &mut App) {
 
 /// Barwa przewodnia okładki: najczęstszy nasycony odcień, rozjaśniony do czytelności.
 fn dominant(img: &image::RgbaImage) -> (u8, u8, u8) {
+    palette(img, 1).first().copied().unwrap_or((0x4f, 0x8c, 0xff))
+}
+
+/// Do `n` najmocniejszych odcieni obrazu (od najczęstszego), rozjaśnionych do czytelności.
+/// Pusta, gdy obraz nie ma wyraźnych barw.
+pub fn palette(img: &image::RgbaImage, n: usize) -> Vec<(u8, u8, u8)> {
     let mut buckets = [(0f32, 0f32, 0f32, 0f32); 24];
     for p in img.pixels() {
         let (r, g, b) = (p[0] as f32 / 255.0, p[1] as f32 / 255.0, p[2] as f32 / 255.0);
@@ -199,18 +215,26 @@ fn dominant(img: &image::RgbaImage) -> (u8, u8, u8) {
         buckets[i].2 += b * w;
         buckets[i].3 += w;
     }
-    let best = buckets.iter().max_by(|a, b| a.3.total_cmp(&b.3)).copied().unwrap_or_default();
-    if best.3 <= 0.5 {
-        return (0x4f, 0x8c, 0xff);
+    let mut order: Vec<usize> = (0..24).collect();
+    order.sort_by(|&a, &b| buckets[b].3.total_cmp(&buckets[a].3));
+    let total: f32 = buckets.iter().map(|b| b.3).sum();
+    let mut out = Vec::new();
+    for (k, &i) in order.iter().enumerate() {
+        let bk = buckets[i];
+        // Pierwsza barwa musi być wyraźna, kolejne – nie śladowe (inaczej powtarzamy pierwszą).
+        if bk.3 <= 0.5 || (k > 0 && bk.3 < total * 0.06) || out.len() >= n {
+            break;
+        }
+        let (mut r, mut g, mut b) = (bk.0 / bk.3, bk.1 / bk.3, bk.2 / bk.3);
+        // Rozjaśnienie do jasności ok. 0.85 i lekkie podbicie nasycenia.
+        let mx = r.max(g).max(b).max(1e-3);
+        let f = 0.88 / mx;
+        r = (r * f).min(1.0);
+        g = (g * f).min(1.0);
+        b = (b * f).min(1.0);
+        out.push(((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8));
     }
-    let (mut r, mut g, mut b) = (best.0 / best.3, best.1 / best.3, best.2 / best.3);
-    // Rozjaśnienie do jasności ok. 0.85 i lekkie podbicie nasycenia.
-    let mx = r.max(g).max(b).max(1e-3);
-    let k = 0.88 / mx;
-    r = (r * k).min(1.0);
-    g = (g * k).min(1.0);
-    b = (b * k).min(1.0);
-    ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+    out
 }
 
 fn hue(r: f32, g: f32, b: f32) -> f32 {

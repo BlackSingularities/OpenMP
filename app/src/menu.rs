@@ -59,6 +59,9 @@ fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, a
     mt.set_dark(t.get_dark());
     mt.set_accent(t.get_accent());
     mt.set_tint(t.get_tint());
+    mt.set_scope(t.get_scope());
+    mt.set_corners(t.get_corners());
+    mt.set_text_scale(t.get_text_scale());
     mw.set_items(ModelRc::new(VecModel::from(items)));
     let sf = ui.window().scale_factor();
     let w = 280.0 * sf;
@@ -130,23 +133,41 @@ pub fn main_menu(app: &mut App, x: f32, y: f32) {
 pub fn video_menu(app: &mut App) {
     let fs = app.ui().map(|u| u.global::<Video>().get_fullscreen()).unwrap_or(false);
     let ontop = app.ui().map(|u| u.global::<Video>().get_ontop()).unwrap_or(false);
+    let aspect = app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0);
     let playing = crate::player::is_playing(app);
-    let items = vec![
+    let wide = app.s.video_ui == 1;
+    let mut items = vec![
         item("v-pause", if playing { "Pauza" } else { "Odtwórz" }, if playing { "pause" } else { "play" }, "Spacja"),
         check("v-full", "Pełny ekran", fs, "F"),
         check("v-ontop", "Zawsze na wierzchu", ontop, "T"),
+        item("v-mini", "Obraz w obrazie", "pip", "P"),
+        sep(),
+        check("v-layout-0", "Widok kinowy", !wide, "W"),
+        check("v-layout-1", "Widok szeroki (z panelami)", wide, "W"),
         sep(),
         item("v-audio", "Ścieżki dźwiękowe i prędkość…", "audiotrack", "A"),
         item("v-subs", "Napisy…", "subtitles", "V"),
-        item("v-image", "Obraz i proporcje…", "aspect", ""),
+        item("v-image", "Obraz: barwy, powiększenie…", "tune", ""),
         item("v-chapters", "Rozdziały…", "bookmark", ""),
+        item("v-info", "Szczegóły odtwarzania", "info", "I"),
+        sep(),
+    ];
+    let an = ["automatyczne", "16:9", "4:3", "21:9", "rozciągnięte", "wypełnij ekran"];
+    items.push(item("v-aspect-next", &format!("Proporcje: {}", an[aspect.clamp(0, 5) as usize]), "aspect", "C"));
+    items.extend([
+        item("v-rotate", "Obróć o 90°", "refresh", "Ctrl+R"),
+        item("v-reset", "Obraz jak w pliku", "aspect", "0"),
+        check("v-deband", "Usuwanie pasm", app.s.deband, "B"),
+        check("v-ambient", "Poświata z obrazu", app.s.ambient > 0, "G"),
         sep(),
         item("v-shot", "Zrzut ekranu", "camera", "S"),
+        item("v-shot-clean", "Zrzut ekranu bez napisów", "camera", "Shift+S"),
         item("v-ab", "Pętla A-B", "repeat", "L"),
         sep(),
         item("open-files", "Otwórz plik…", "file", "Ctrl+O"),
-        item("v-back", "Wróć do muzyki", "back", "Esc"),
-    ];
+        item("v-audio-only", "Tylko dźwięk (obraz w tle wyłączony)", "audiotrack", ""),
+        item("v-back", "Biblioteka (film gra dalej)", "back", "Esc"),
+    ]);
     let (x, y) = app.ui().map(|u| (u.window().size().width as f32 / u.window().scale_factor() / 2.0 - 130.0, 80.0)).unwrap_or((40.0, 80.0));
     open(app, MenuCtx::Video, items, x, y);
 }

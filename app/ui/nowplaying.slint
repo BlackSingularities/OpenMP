@@ -6,7 +6,8 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, HSlider, Marquee, Cover } from "widgets.slint";
 import { SeekBar, Visualizer, Fmt } from "display.slint";
-import { Player, Prefs, Ui } from "state.slint";
+import { Player, Prefs, Ui, Video } from "state.slint";
+import { VideoStage } from "surface.slint";
 
 export global VizNames {
     out property <[string]> names: ["Słupki", "Widmo", "Oscyloskop", "Wskaźniki VU", "Wyłączona", "Lustro", "Okrąg", "Widmo 3D", "Diody", "Stereo", "Kropki"];
@@ -134,7 +135,7 @@ export component NowInfo inherits VerticalLayout {
         text: Player.idle ? "Nic nie gra" : Player.title;
         font-size: root.small ? 22px : 40px;
         font-family: Theme.font-serif;
-        text-color: Theme.text;
+        text-color: Theme.heading;
         enabled: Prefs.scroll-title;
         TouchArea {
             mouse-cursor: pointer;
@@ -198,6 +199,14 @@ export component NowInfo inherits VerticalLayout {
                 Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
                 Prefs.changed("side-panel");
             }
+        }
+        if Video.active || Video.bg-audio: IconBtn {
+            icon: Icons.movie;
+            size: 30px;
+            icon-size: 17px;
+            active: true;
+            tip: Video.bg-audio ? "Pokaż obraz filmu" : "Widok filmu";
+            clicked => { Video.open-view(); }
         }
         IconBtn {
             icon: Icons.folder-open;
@@ -297,6 +306,72 @@ component HeroLyrics inherits Rectangle {
     }
 }
 
+// Film w miejscu okładki (okno muzyki): obraz z poświatą, przyciski po najechaniu.
+component HeroVideo inherits Rectangle {
+    in property <length> radius: 14px;
+    if Video.has-ambient && Prefs.ambient > 0: Image {
+        x: -26px;
+        y: -20px;
+        width: parent.width + 52px;
+        height: parent.height + 40px;
+        source: Video.ambient;
+        image-fit: fill;
+        opacity: Prefs.ambient == 2 ? 0.75 : 0.45;
+    }
+    VideoStage {
+        radius: root.radius;
+        ambient: false;
+    }
+    Rectangle {
+        border-radius: root.radius;
+        border-width: 1px;
+        border-color: Theme.tint.with-alpha(0.3);
+    }
+    hta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { Video.open-view(); }
+        double-clicked => { Video.toggle-fullscreen(); }
+        scroll-event(e) => {
+            Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
+            accept
+        }
+    }
+    Rectangle {
+        opacity: hta.has-hover || exp.hovered || fsb.hovered ? 1 : 0;
+        visible: self.opacity > 0.01;
+        animate opacity { duration: 160ms; }
+        border-radius: root.radius;
+        background: @linear-gradient(180deg, #00000070 0%, transparent 40%);
+        HorizontalLayout {
+            y: 8px;
+            height: 30px;
+            padding-right: 8px;
+            alignment: end;
+            spacing: 2px;
+            exp := IconBtn {
+                icon: Icons.expand;
+                size: 30px;
+                icon-size: 16px;
+                on-dark: true;
+                icon-color: #ffffffe0;
+                hover-color: #ffffff;
+                tip: "Widok filmu";
+                clicked => { Video.open-view(); }
+            }
+            fsb := IconBtn {
+                icon: Icons.fullscreen;
+                size: 30px;
+                icon-size: 16px;
+                on-dark: true;
+                icon-color: #ffffffe0;
+                hover-color: #ffffff;
+                tip: "Pełny ekran";
+                clicked => { Video.toggle-fullscreen(); }
+            }
+        }
+    }
+}
+
 // Okładka i opis obok siebie – górna część pełnego okna i cały widok pomniejszony.
 export component Hero inherits Rectangle {
     in property <bool> small;
@@ -309,13 +384,22 @@ export component Hero inherits Rectangle {
         padding-left: root.small ? 4px : 8px;
         padding-top: root.small ? 6px : 4px;
         padding-bottom: root.small ? 6px : 4px;
-        CoverArt {
+        if !Video.active: CoverArt {
             width: self.height;
             radius: root.small ? 10px : 14px;
             clicked => {
-                Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
-                Prefs.changed("side-panel");
+                if Video.bg-audio {
+                    Video.show-picture();
+                } else {
+                    Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
+                    Prefs.changed("side-panel");
+                }
             }
+        }
+        // Film gra w miejscu okładki – z poświatą z obrazu; kliknięcie otwiera widok filmu.
+        if Video.active: HeroVideo {
+            width: min(self.height * max(Video.ratio, 0.5), root.width * (root.small ? 0.62 : 0.5));
+            radius: root.small ? 10px : Theme.radius-lg;
         }
         NowInfo {
             horizontal-stretch: 1;
@@ -342,7 +426,7 @@ export component PlayRing inherits Rectangle {
     Icon {
         icon: Player.playing ? Icons.pause : Icons.play;
         size: root.size * 0.42;
-        fill: Theme.text;
+        fill: Theme.ink;
     }
     pta := TouchArea {
         mouse-cursor: pointer;
@@ -371,7 +455,19 @@ export component BottomBar inherits Rectangle {
             show-wave: Prefs.show-waveform;
             ab-a: Player.ab-a;
             ab-b: Player.ab-b;
+            chapters: Video.chapters;
+            buffered: Video.buffered;
+            show-preview: Prefs.seek-preview && Video.active;
+            preview: Video.preview;
+            has-preview: Video.has-preview;
+            preview-ratio: Video.ratio;
+            preview-label: Video.preview-chapter;
             seek(v) => { Player.seek(v); }
+            hover(f) => {
+                if Video.active {
+                    Video.hover-seek(f);
+                }
+            }
         }
         HorizontalLayout {
             height: 20px;
@@ -472,7 +568,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.prev;
                     size: 44px;
                     icon-size: 26px;
-                    icon-color: Theme.text;
+                    icon-color: Theme.ink;
                     tip: "Poprzedni (Ctrl+←)";
                     clicked => { Player.prev(); }
                 }
@@ -486,7 +582,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.next;
                     size: 44px;
                     icon-size: 26px;
-                    icon-color: Theme.text;
+                    icon-color: Theme.ink;
                     tip: "Następny (Ctrl+→)";
                     clicked => { Player.next(); }
                 }

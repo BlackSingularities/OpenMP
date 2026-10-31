@@ -182,6 +182,42 @@ export global Video {
     in-out property <bool> loading;
     in-out property <bool> audio-only;
     in-out property <string> error;
+    // Gra plik wideo z obrazem – pokazywany w widoku filmu, w miejscu okładki albo w miniodtwarzaczu.
+    in-out property <bool> active;
+    // Film gra samym dźwiękiem (obraz wyłączony po wyjściu z widoku filmu).
+    in-out property <bool> bg-audio;
+    // Powierzchnia, na której jest obraz – w jej rozmiarze rysuje mpv (bez skalowania i marnowania GPU).
+    in-out property <length> surface-w;
+    in-out property <length> surface-h;
+    // Proporcje obrazu (szerokość / wysokość).
+    in-out property <float> ratio: 1.7778;
+    // Poświata: obraz zmniejszony do kilkudziesięciu pikseli i rozciągnięty – miękkie światło wokół filmu.
+    in-out property <image> ambient;
+    in-out property <bool> has-ambient;
+    // Podgląd klatki nad paskiem przewijania.
+    in-out property <image> preview;
+    in-out property <bool> has-preview;
+    in-out property <string> preview-chapter;
+    in-out property <[Opt]> stats;
+    in-out property <float> zoom;
+    in-out property <int> rotate;
+    in-out property <float> hue;
+    // Kursor nad obrazem (znika po chwili bez ruchu myszy).
+    in-out property <bool> cursor: true;
+    in-out property <bool> deband;
+    // Panel boczny w szerokim widoku.
+    in-out property <bool> side: true;
+    callback open-view();
+    callback leave-view();
+    callback show-picture();
+    callback hover-seek(float);
+    callback set-zoom(float);
+    callback rotate-view();
+    callback reset-view();
+    callback set-layout(int);
+    callback menu();
+    callback mini();
+    callback panel-page-changed(int);
     callback mouse-moved();
     callback toggle-fullscreen();
     callback toggle-ontop();
@@ -220,6 +256,44 @@ export global Prefs {
     in-out property <bool> show-sidebar: true;
     in-out property <int> side-panel;
     in-out property <bool> scroll-title: true;
+    in-out property <int> accent-scope: 1;
+    in-out property <int> backdrop: 2;
+    in-out property <float> backdrop-opacity: 0.2;
+    in-out property <bool> backdrop-motion;
+    in-out property <float> glow: 1;
+    in-out property <int> corners: 1;
+    in-out property <float> text-scale: 1;
+    in-out property <int> title-font;
+    // Wideo – wygląd i obraz
+    in-out property <int> video-ui;
+    in-out property <int> video-leave;
+    in-out property <bool> video-open-view: true;
+    in-out property <bool> autohide-window: true;
+    in-out property <int> video-quality: 1;
+    in-out property <int> hwdec-mode: 1;
+    in-out property <bool> interpolation;
+    in-out property <bool> deband;
+    in-out property <int> tone-mapping;
+    in-out property <int> ambient: 1;
+    in-out property <bool> video-tint: true;
+    in-out property <bool> seek-preview: true;
+    in-out property <int> wheel-action;
+    in-out property <bool> dblclick-seek: true;
+    in-out property <bool> video-autonext: true;
+    in-out property <float> volume-boost: 100;
+    in-out property <bool> night-mode;
+    in-out property <bool> downmix;
+    in-out property <int> ytdl-format: 1;
+    in-out property <bool> ytdl: true;
+    in-out property <int> cache-mb: 200;
+    // Napisy
+    in-out property <string> sub-font;
+    in-out property <int> sub-color;
+    in-out property <int> sub-style;
+    in-out property <int> sub-pos: 100;
+    in-out property <bool> sub-bold;
+    in-out property <bool> sub-override;
+    in-out property <int> sub-auto: 2;
     in-out property <[string]> devices;
     in-out property <int> device;
     in-out property <float> crossfade;
@@ -243,7 +317,6 @@ export global Prefs {
     in-out property <bool> resume-on-start: true;
     in-out property <bool> follow-playing: true;
     in-out property <float> seek-step: 5;
-    in-out property <bool> hwdec: true;
     in-out property <bool> video-resume: true;
     in-out property <int> autohide-ms: 2200;
     in-out property <bool> video-fit: true;

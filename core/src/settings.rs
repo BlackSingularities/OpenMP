@@ -30,6 +30,20 @@ pub struct Settings {
     pub listenbrainz_token: String,
     pub show_sidebar: bool,
     pub scroll_title: bool,
+    /// Zasięg koloru przewodniego: 0 – tylko akcenty, 1 – też ikony, suwaki i znaczniki, 2 – cały interfejs.
+    pub accent_scope: i32,
+    /// Tło okna z okładki: 0 – brak, 1 – rozmyta okładka, 2 – gradient barw okładki.
+    pub backdrop: i32,
+    pub backdrop_opacity: f32,
+    /// Powolny ruch tła (kosztuje ciągłe odświeżanie okna).
+    pub backdrop_motion: bool,
+    /// Siła poświaty akcentu (0–2).
+    pub glow: f32,
+    /// Zaokrąglenia: 0 – ostre, 1 – zwykłe, 2 – mocne.
+    pub corners: i32,
+    pub text_scale: f32,
+    /// Czcionka tytułu: 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
+    pub title_font: i32,
     // Dźwięk
     pub volume: f32,
     pub muted: bool,
@@ -65,6 +79,58 @@ pub struct Settings {
     pub audio_lang: String,
     pub screenshot_dir: String,
     pub deinterlace: bool,
+    /// Wygląd w trakcie filmu: 0 – kinowy (obraz na całe okno), 1 – szeroki (obraz z panelami).
+    pub video_ui: i32,
+    /// Wyjście z widoku filmu: 0 – obraz dalej gra w oknie programu, 1 – tylko dźwięk, 2 – pauza.
+    pub video_leave: i32,
+    /// Nowy film otwiera widok filmu (inaczej gra w miejscu okładki).
+    pub video_open_view: bool,
+    /// Chowanie sterowania także w oknie (na pełnym ekranie zawsze).
+    pub autohide_window: bool,
+    /// Jakość obrazu: 0 – szybka, 1 – zrównoważona, 2 – wysoka, 3 – najwyższa.
+    pub video_quality: i32,
+    /// Dekodowanie sprzętowe: 0 – wyłączone, 1 – auto, 2 – auto z kopiowaniem, 3 – D3D11, 4 – NVDEC, 5 – DXVA2.
+    pub hwdec_mode: i32,
+    pub interpolation: bool,
+    pub deband: bool,
+    /// Mapowanie tonów HDR: 0 – auto, 1 – BT.2390, 2 – Hable, 3 – Mobius, 4 – Reinhard, 5 – obcięcie.
+    pub tone_mapping: i32,
+    /// Poświata z obrazu wokół filmu: 0 – wyłączona, 1 – delikatna, 2 – mocna.
+    pub ambient: i32,
+    /// Kolor przewodni z barw filmu.
+    pub video_tint: bool,
+    /// Podgląd klatek nad paskiem przewijania.
+    pub seek_preview: bool,
+    /// Kółko myszy nad obrazem: 0 – głośność, 1 – przewijanie.
+    pub wheel_action: i32,
+    /// Dwuklik przy lewej/prawej krawędzi obrazu przewija o 10 s.
+    pub dblclick_seek: bool,
+    /// Po końcu filmu następny plik z listy.
+    pub video_autonext: bool,
+    /// Wzmocnienie dźwięku filmów (100–200%).
+    pub volume_boost: f32,
+    /// Tryb nocny: wyrównanie dynamiki (ciche dialogi, głośne wybuchy).
+    pub night_mode: bool,
+    /// Miks dźwięku wielokanałowego do stereo.
+    pub downmix: bool,
+    /// Jakość filmów z sieci (yt-dlp): 0 – najlepsza, 1 – do 1080p, 2 – do 720p, 3 – do 480p.
+    pub ytdl_format: i32,
+    pub ytdl: bool,
+    /// Bufor strumieni w MB.
+    pub cache_mb: i32,
+    // Napisy
+    pub sub_font: String,
+    /// 0 – biały, 1 – żółty, 2 – błękitny, 3 – zielony.
+    pub sub_color: i32,
+    /// 0 – obrys, 1 – cień, 2 – półprzezroczyste pole.
+    pub sub_style: i32,
+    /// Położenie napisów (100 – dół obrazu).
+    pub sub_pos: i32,
+    pub sub_bold: bool,
+    /// Wymuszanie własnego stylu także na napisach ASS.
+    pub sub_override: bool,
+    /// Wczytywanie napisów obok filmu: 0 – nie, 1 – ta sama nazwa, 2 – podobna nazwa, 3 – wszystkie z folderu.
+    pub sub_auto: i32,
     // System
     pub single_instance: bool,
     pub media_keys: bool,
@@ -107,6 +173,14 @@ impl Default for Settings {
             listenbrainz_token: String::new(),
             show_sidebar: true,
             scroll_title: true,
+            accent_scope: 1,
+            backdrop: 2,
+            backdrop_opacity: 0.2,
+            backdrop_motion: false,
+            glow: 1.0,
+            corners: 1,
+            text_scale: 1.0,
+            title_font: 0,
             volume: 0.8,
             muted: false,
             device: None,
@@ -134,6 +208,34 @@ impl Default for Settings {
             audio_lang: "pol,pl,eng,en".into(),
             screenshot_dir: pictures,
             deinterlace: false,
+            video_ui: 0,
+            video_leave: 0,
+            video_open_view: true,
+            autohide_window: true,
+            video_quality: 1,
+            hwdec_mode: 1,
+            interpolation: false,
+            deband: false,
+            tone_mapping: 0,
+            ambient: 1,
+            video_tint: true,
+            seek_preview: true,
+            wheel_action: 0,
+            dblclick_seek: true,
+            video_autonext: true,
+            volume_boost: 100.0,
+            night_mode: false,
+            downmix: false,
+            ytdl_format: 1,
+            ytdl: true,
+            cache_mb: 200,
+            sub_font: "Segoe UI Semibold".into(),
+            sub_color: 0,
+            sub_style: 0,
+            sub_pos: 100,
+            sub_bold: false,
+            sub_override: false,
+            sub_auto: 2,
             single_instance: true,
             media_keys: true,
             global_hotkeys: true,
@@ -164,6 +266,11 @@ impl Settings {
             s.replaygain = 0;
             s.audio_rev = AUDIO_REV;
         }
+        // Do 1.2.7 dekodowanie sprzętowe było tylko włączone/wyłączone.
+        if !s.hwdec {
+            s.hwdec_mode = 0;
+        }
+        s.hwdec = s.hwdec_mode != 0;
         s
     }
     pub fn save(&self) {

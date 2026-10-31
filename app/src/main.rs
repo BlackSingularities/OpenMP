@@ -154,6 +154,14 @@ fn main() {
         scan: None,
         watch: None,
         video_size: (0, 0),
+        chapters: Vec::new(),
+        preview: None,
+        preview_file: String::new(),
+        preview_want: None,
+        preview_sent: -1.0,
+        preview_at: Instant::now(),
+        tint_target: None,
+        video_slow: Instant::now(),
         awake: false,
         icy: String::new(),
         pause_after_load: false,
@@ -172,8 +180,9 @@ fn main() {
             ui.global::<Lib>().set_nav_selected(ss(format!("list:{id}")));
         }
         if let Some(m) = app.mpv.clone() {
+            app.preview = video::create_preview();
             if let Some(ui) = app.ui() {
-                video::attach(&ui, m);
+                video::attach(&ui, m, app.preview.clone());
             }
         }
         // Okno jak przy ostatnim zamknięciu.
@@ -589,14 +598,33 @@ fn wire(ui: &AppWindow) {
     v.on_mouse_moved(|| later(|app| {
         app.last_mouse = Instant::now();
         if let Some(ui) = app.ui() {
-            if !ui.global::<Video>().get_controls() {
-                ui.global::<Video>().set_controls(true);
+            let v = ui.global::<Video>();
+            if !v.get_controls() {
+                v.set_controls(true);
+            }
+            if !v.get_cursor() {
+                v.set_cursor(true);
             }
         }
     }));
     v.on_toggle_fullscreen(|| later(video::toggle_fullscreen));
     v.on_toggle_ontop(|| later(video::toggle_ontop));
-    v.on_back_to_music(|| later(video::back_to_music));
+    v.on_back_to_music(|| later(video::leave_view));
+    v.on_open_view(|| later(video::open_view));
+    v.on_leave_view(|| later(video::leave_view));
+    v.on_show_picture(|| later(video::open_view));
+    v.on_hover_seek(|f| later(move |app| video::hover_seek(app, f)));
+    v.on_set_zoom(|z| later(move |app| video::set(app, "zoom", z)));
+    v.on_rotate_view(|| later(video::rotate));
+    v.on_reset_view(|| later(video::reset_view));
+    v.on_set_layout(|l| later(move |app| video::set_layout(app, l)));
+    v.on_menu(|| later(crate::menu::video_menu));
+    v.on_mini(|| later(|app| keys::set_mode(app, 2)));
+    v.on_panel_page_changed(|p| later(move |app| {
+        if p == 4 {
+            video::open_panel(app, 4);
+        }
+    }));
     v.on_select_audio(|id| later(move |app| video::select(app, "aid", &id)));
     v.on_select_sub(|id| later(move |app| video::select(app, "sid", &id)));
     v.on_load_sub(|| later(video::load_sub));
@@ -607,7 +635,7 @@ fn wire(ui: &AppWindow) {
     v.on_set_eq(|n, s| later(move |app| video::set(app, &n, s)));
     v.on_set_sub_scale(|s| later(move |app| video::set(app, "sub-scale", s)));
     v.on_set_aspect(|i| later(move |app| video::set_aspect(app, i)));
-    v.on_screenshot(|| later(video::screenshot));
+    v.on_screenshot(|| later(|app| video::screenshot(app, true)));
     v.on_frame_step(|b| later(move |app| video::frame_step(app, b)));
     v.on_ab_loop(|| later(video::ab_loop));
     v.on_hover_controls(|h| later(move |app| app.hover_controls = h));

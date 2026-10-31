@@ -61,11 +61,18 @@ macro_rules! props {
 
 fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
-    props!(v, Theme: dark, accent, tint);
+    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k);
+    props!(v, Prefs:
+        accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
+        video_ui, video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
+        deband, tone_mapping, ambient, video_tint, seek_preview, wheel_action, dblclick_seek, video_autonext,
+        volume_boost, night_mode, downmix, ytdl_format, ytdl, cache_mb, sub_font, sub_color, sub_style,
+        sub_pos, sub_bold, sub_override, sub_auto,
+    );
     props!(v, Prefs:
         accent, accent_from_cover, audio_lang, author_line, auto_eq, autohide_ms, balance, check_updates,
         crossfade, crossfeed, dark, deinterlace, device, devices, eq, eq_on, folders, follow_playing,
-        group_albums, hwdec, keys, limiter, media_keys, global_hotkeys, mono, mpv_info, mpv_ok, online_lyrics, preamp,
+        group_albums, keys, limiter, media_keys, global_hotkeys, mono, mpv_info, mpv_ok, online_lyrics, preamp,
         lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
         soft_pause, speed, sub_lang, sub_size, swap, version, video_fit, video_folders, video_resume,

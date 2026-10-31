@@ -55,7 +55,16 @@ pub fn help() -> Vec<KeyHelp> {
         k("Ctrl + J", "Pokaż bieżący utwór na liście"),
         k("V / Shift + V", "Wideo: przełącz napisy / ścieżkę dźwiękową"),
         k("F lub F11, dwuklik", "Wideo: pełny ekran"),
-        k("Esc", "Wideo: wyjście z pełnego ekranu"),
+        k("Esc", "Wideo: wyjście z pełnego ekranu; w oknie – do biblioteki (film gra dalej)"),
+        k("W", "Wideo: widok kinowy / szeroki"),
+        k("P", "Wideo: obraz w obrazie (miniodtwarzacz)"),
+        k("+ / − / 0", "Wideo: powiększ / pomniejsz / obraz jak w pliku"),
+        k("Ctrl + Shift + strzałki", "Wideo: przesuń powiększony obraz"),
+        k("Ctrl + R", "Wideo: obróć o 90°"),
+        k("C", "Wideo: proporcje obrazu"),
+        k("B / G", "Wideo: usuwanie pasm / poświata z obrazu"),
+        k("I", "Wideo: szczegóły odtwarzania"),
+        k("Shift + S", "Wideo: zrzut ekranu bez napisów"),
         k("[ / ] / Backspace", "Wideo: wolniej / szybciej / normalnie"),
         k(", / .", "Wideo: klatka wstecz / naprzód"),
         k("PgUp / PgDn", "Wideo: poprzedni / następny rozdział"),
@@ -108,16 +117,39 @@ pub fn set_mode(app: &mut App, mode: i32) {
             ui.window().set_maximized(false);
         }
         u.set_mode(2);
-        let sf = ui.window().scale_factor();
-        let (x, y, _, _) = crate::win::geometry(&ui);
-        crate::win::set_geometry(&ui, (x, y, (540.0 * sf) as u32, (150.0 * sf) as u32));
         crate::win::set_ontop(app, true);
+        fit_mini(app);
     } else if mode == 0 {
         u.set_mode(0);
         crate::win::set_ontop(app, app.s.always_on_top);
         if let Some(g) = app.music_geom.take() {
             crate::win::set_geometry(&ui, g);
         }
+    }
+}
+
+/// Rozmiar miniodtwarzacza: pasek muzyki albo obraz w obrazie w proporcjach filmu (w rogu ekranu).
+pub fn fit_mini(app: &mut App) {
+    let Some(ui) = app.ui() else { return };
+    if ui.global::<Ui>().get_mode() != 2 {
+        return;
+    }
+    let sf = ui.window().scale_factor();
+    let (x, y, _, _) = crate::win::geometry(&ui);
+    if ui.global::<Video>().get_active() {
+        let ratio = ui.global::<Video>().get_ratio().clamp(0.5, 3.0);
+        let w = 480.0 * sf;
+        let h = (w / ratio).clamp(160.0 * sf, 640.0 * sf);
+        let (w, h) = (w as u32, h as u32);
+        match crate::win::monitor(&ui) {
+            Some((mx, my, mw, mh)) => {
+                let m = (24.0 * sf) as i32;
+                crate::win::set_geometry(&ui, (mx + mw as i32 - w as i32 - m, my + mh as i32 - h as i32 - m * 3, w, h));
+            }
+            None => crate::win::set_geometry(&ui, (x, y, w, h)),
+        }
+    } else {
+        crate::win::set_geometry(&ui, (x, y, (540.0 * sf) as u32, (150.0 * sf) as u32));
     }
 }
 
@@ -273,7 +305,13 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
                 let i = if shift { (app.store.active + n - 1) % n } else { (app.store.active + 1) % n };
                 crate::lists::switch_tab(app, i);
             }
+            'r' if video => crate::video::rotate(app),
             _ => match c {
+                // Przesuwanie powiększonego obrazu.
+                LEFT if video && shift => crate::video::pan(app, 0.05, 0.0),
+                RIGHT if video && shift => crate::video::pan(app, -0.05, 0.0),
+                UP if video && shift => crate::video::pan(app, 0.0, 0.05),
+                DOWN if video && shift => crate::video::pan(app, 0.0, -0.05),
                 LEFT => crate::player::prev(app),
                 RIGHT => crate::player::next(app),
                 UP => crate::player::set_volume(app, app.s.volume + 0.05),
@@ -325,6 +363,9 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
                     if let Some(ui) = app.ui() {
                         ui.global::<Video>().set_panel(false);
                     }
+                } else {
+                    // Do biblioteki – film gra dalej w miejscu okładki (albo jak w ustawieniach).
+                    crate::video::leave_view(app);
                 }
             } else if app.ui().map(|u| u.global::<Ui>().get_mode() == 2).unwrap_or(false) {
                 set_mode(app, 0);
@@ -342,7 +383,15 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
             'q' => crate::lists::command(app, "enqueue"),
             'f' if video => crate::video::toggle_fullscreen(app),
             't' if video => crate::video::toggle_ontop(app),
-            's' if video => crate::video::screenshot(app),
+            's' if video => crate::video::screenshot(app, !shift),
+            'w' if video => crate::video::set_layout(app, if app.s.video_ui == 1 { 0 } else { 1 }),
+            'p' if video => set_mode(app, 2),
+            'c' if video => crate::video::cycle_aspect(app),
+            'b' if video => crate::video::toggle_deband(app),
+            'g' if video => crate::video::command(app, "v-ambient"),
+            '=' | '+' if video => crate::video::zoom_by(app, 0.25),
+            '-' if video => crate::video::zoom_by(app, -0.25),
+            '0' if video => crate::video::reset_view(app),
             's' => toggle_shuffle(app),
             'l' if video => crate::video::ab_loop(app),
             'l' => {
@@ -371,10 +420,7 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
                 let d = app.ui().map(|u| u.global::<Video>().get_sub_delay()).unwrap_or(0.0);
                 crate::video::set(app, "sub-delay", d + 0.1);
             }
-            'i' if video => {
-                let info = app.ui().map(|u| u.global::<Video>().get_info().to_string()).unwrap_or_default();
-                app.osd(info);
-            }
+            'i' if video => crate::video::open_panel(app, 4),
             _ => {}
         },
     }

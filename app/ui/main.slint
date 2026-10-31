@@ -7,6 +7,7 @@ import { Icon } from "widgets.slint";
 import { Hero, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
+import { Backdrop } from "surface.slint";
 import { MenuWindow } from "popup.slint";
 import { DialogWindow } from "dialogwin.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
@@ -19,8 +20,8 @@ export component AppWindow inherits Window {
     icon: @image-url("../icon.png");
     no-frame: true;
     background: Ui.mode == 1 ? #000000 : Theme.bg;
-    min-width: Ui.mode == 2 ? 360px : Ui.mode == 1 || Prefs.compact ? 480px : 720px;
-    min-height: Ui.mode == 2 ? 140px : Ui.mode == 1 ? 240px : Prefs.compact ? 300px : 560px;
+    min-width: Ui.mode == 2 ? 260px : Ui.mode == 1 || Prefs.compact ? 480px : 720px;
+    min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 240px : Prefs.compact ? 300px : 560px;
     preferred-width: 1180px;
     preferred-height: 780px;
     default-font-family: Theme.font;
@@ -70,13 +71,14 @@ export component AppWindow inherits Window {
 
         // Duże okno: panel nawigacji, okładka z opisem nad listą, panel boczny i dolny pasek.
         if Ui.mode == 0 && !Prefs.compact: Rectangle {
-            // Poświata akcentu z okładki za górną częścią okna.
+            // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
+            if Prefs.backdrop > 0: Backdrop { }
             Rectangle {
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
                 width: parent.width * 0.75;
                 height: parent.height * 0.9;
-                background: @radial-gradient(circle, Theme.tint.with-alpha(0.09) 0%, transparent 65%);
+                background: @radial-gradient(circle, Theme.tint.with-alpha(min(0.09 * Theme.glow-k, 0.3)) 0%, transparent 65%);
             }
             VerticalLayout {
                 HorizontalLayout {
@@ -125,12 +127,13 @@ export component AppWindow inherits Window {
 
         // Widok pomniejszony: okładka z wizualizacją i tytuł po lewej, pod spodem ten sam dolny pasek.
         if Ui.mode == 0 && Prefs.compact: Rectangle {
+            if Prefs.backdrop > 0: Backdrop { }
             Rectangle {
                 x: -parent.width * 0.2;
                 y: -parent.height * 0.5;
                 width: parent.width * 0.9;
                 height: parent.height * 1.2;
-                background: @radial-gradient(circle, Theme.tint.with-alpha(0.10) 0%, transparent 65%);
+                background: @radial-gradient(circle, Theme.tint.with-alpha(min(0.10 * Theme.glow-k, 0.3)) 0%, transparent 65%);
             }
             VerticalLayout {
                 TitleBar {

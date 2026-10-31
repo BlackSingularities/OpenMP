@@ -35,7 +35,16 @@ export component SeekBar inherits Rectangle {
     out property <bool> dragging: ta.pressed;
     out property <float> drag-value;
     in property <length> wave-height: 34px;
+    // Zbuforowana część (strumienie), podgląd klatki i nazwa rozdziału pod kursorem.
+    in property <float> buffered;
+    in property <bool> show-preview;
+    in property <image> preview;
+    in property <bool> has-preview;
+    in property <float> preview-ratio: 1.7778;
+    in property <string> preview-label;
     callback seek(float);
+    // Kursor nad paskiem: ułamek długości, -1 – kursor zjechał.
+    callback hover(float);
     height: show-wave ? wave-height : 18px;
     property <float> shown: ta.pressed ? drag-value : value;
     property <color> c-played: Theme.tint;
@@ -114,7 +123,7 @@ export component SeekBar inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            fill: @linear-gradient(0deg, Theme.tint.brighter(0.3) 0%, #ffffff 100%);
+            fill: @linear-gradient(0deg, Theme.tint.brighter(0.3) 0%, Theme.knob 100%);
             opacity: 0.9;
             stroke-width: 0;
         }
@@ -130,6 +139,13 @@ export component SeekBar inherits Rectangle {
         border-radius: self.height / 2;
         background: root.c-rest;
         animate height { duration: 100ms; }
+        // Zbuforowana część strumienia.
+        if root.buffered > 0: Rectangle {
+            x: 0;
+            width: parent.width * clamp(root.buffered, 0, 1);
+            border-radius: parent.border-radius;
+            background: root.c-rest.brighter(0.6);
+        }
         Rectangle {
             x: 0;
             width: parent.width * clamp(root.shown, 0, 1);
@@ -154,7 +170,7 @@ export component SeekBar inherits Rectangle {
         width: ta.has-hover || ta.pressed ? 13px : 0px;
         height: self.width;
         border-radius: self.width / 2;
-        background: #ffffff;
+        background: Theme.knob;
         animate width { duration: 100ms; }
     }
     if root.show-wave && root.wave != "": Rectangle {
@@ -162,7 +178,7 @@ export component SeekBar inherits Rectangle {
         x: root.width * clamp(root.shown, 0, 1) - 1px;
         width: 2px;
         height: 100%;
-        background: #ffffff;
+        background: Theme.knob;
         drop-shadow-blur: 8px;
         drop-shadow-color: Theme.tint.brighter(0.4);
         for k in 2: Rectangle {
@@ -171,12 +187,12 @@ export component SeekBar inherits Rectangle {
             width: 8px;
             height: 8px;
             border-radius: 4px;
-            background: #ffffff;
+            background: Theme.knob;
             drop-shadow-blur: 6px;
             drop-shadow-color: Theme.tint;
         }
     }
-    if (ta.has-hover || ta.pressed) && root.duration > 0: Rectangle {
+    if (ta.has-hover || ta.pressed) && root.duration > 0 && !(root.show-preview && root.has-preview): Rectangle {
         property <float> at: ta.pressed ? root.drag-value : clamp(ta.mouse-x / root.width, 0, 1);
         x: clamp(root.width * at - self.width / 2, 0, root.width - self.width);
         y: -self.height - 6px;
@@ -185,15 +201,58 @@ export component SeekBar inherits Rectangle {
         border-radius: 4px;
         background: #000000d9;
         ht := Text {
-            text: Fmt.time(parent.at * root.duration);
+            text: (root.preview-label != "" ? root.preview-label + "  ·  " : "") + Fmt.time(parent.at * root.duration);
             color: #ffffff;
             font-size: Theme.fs-sm;
+        }
+    }
+    // Podgląd klatki filmu nad kursorem – z czasem i nazwą rozdziału.
+    if (ta.has-hover || ta.pressed) && root.duration > 0 && root.show-preview && root.has-preview: Rectangle {
+        property <float> at: ta.pressed ? root.drag-value : clamp(ta.mouse-x / root.width, 0, 1);
+        x: clamp(root.width * at - self.width / 2, -40px, root.width - self.width + 40px);
+        y: -self.height - 10px;
+        width: 196px;
+        height: 196px / max(root.preview-ratio, 0.5) + 30px;
+        border-radius: 9px;
+        background: #000000e6;
+        border-width: 1px;
+        border-color: Theme.tint.with-alpha(0.45);
+        drop-shadow-blur: 18px;
+        drop-shadow-color: #000000a0;
+        clip: true;
+        Image {
+            x: 3px;
+            y: 3px;
+            width: parent.width - 6px;
+            height: parent.height - 30px;
+            source: root.preview;
+            image-fit: contain;
+        }
+        Text {
+            x: 8px;
+            y: parent.height - 25px;
+            width: parent.width - 16px;
+            height: 20px;
+            text: (root.preview-label != "" ? root.preview-label + "  ·  " : "") + Fmt.time(parent.at * root.duration);
+            color: #ffffff;
+            font-size: Theme.fs-sm;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            overflow: elide;
         }
     }
     ta := TouchArea {
         enabled: root.enabled && root.duration > 0;
         mouse-cursor: pointer;
+        changed has-hover => {
+            if !self.has-hover {
+                root.hover(-1);
+            }
+        }
         pointer-event(e) => {
+            if e.kind == PointerEventKind.move {
+                root.hover(clamp(self.mouse-x / root.width, 0, 1));
+            }
             if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
                 root.drag-value = clamp(self.mouse-x / root.width, 0, 1);
             }
@@ -204,6 +263,7 @@ export component SeekBar inherits Rectangle {
         moved => {
             if self.pressed {
                 root.drag-value = clamp(self.mouse-x / root.width, 0, 1);
+                root.hover(root.drag-value);
             }
         }
     }

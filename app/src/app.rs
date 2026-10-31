@@ -177,6 +177,17 @@ pub struct App {
     /// Obserwator folderów biblioteki i czas ostatniej zmiany na dysku (ms od epoki, 0 – brak).
     pub watch: Option<(notify::RecommendedWatcher, std::sync::Arc<std::sync::atomic::AtomicU64>)>,
     pub video_size: (i64, i64),
+    /// Rozdziały bieżącego filmu (czas, tytuł).
+    pub chapters: Vec<(f64, String)>,
+    /// Niewidoczny odtwarzacz podglądu klatek, wczytany w nim plik, żądany i wysłany czas.
+    pub preview: Option<Mpv>,
+    pub preview_file: String,
+    pub preview_want: Option<f64>,
+    pub preview_sent: f64,
+    pub preview_at: Instant,
+    /// Barwa obrazu, do której płynnie dąży kolor przewodni.
+    pub tint_target: Option<slint::Color>,
+    pub video_slow: Instant,
     pub awake: bool,
     pub icy: String,
     pub pause_after_load: bool,
