@@ -309,14 +309,12 @@ component HeroLyrics inherits Rectangle {
 // Film w miejscu okładki (okno muzyki): obraz z poświatą, przyciski po najechaniu.
 component HeroVideo inherits Rectangle {
     in property <length> radius: 14px;
-    if Video.has-ambient && Prefs.ambient > 0: Image {
-        x: -26px;
-        y: -20px;
-        width: parent.width + 52px;
-        height: parent.height + 40px;
-        source: Video.ambient;
-        image-fit: fill;
-        opacity: Prefs.ambient == 2 ? 0.75 : 0.45;
+    // Poświata w kolorze przewodnim (który przy filmie podąża za obrazem).
+    Rectangle {
+        border-radius: root.radius;
+        background: #000000;
+        drop-shadow-blur: Prefs.ambient == 2 ? 56px : 36px;
+        drop-shadow-color: Prefs.ambient > 0 ? Theme.glow : transparent;
     }
     VideoStage {
         radius: root.radius;
@@ -376,7 +374,9 @@ component HeroVideo inherits Rectangle {
 export component Hero inherits Rectangle {
     in property <bool> small;
     // Szerokie okno i tekst dostępny – kolumna z tekstem obok opisu.
-    property <bool> show-lyrics: !root.small && root.width >= 1050px && !Player.idle && Player.lyrics.length > 0;
+    // Szerokość okna (nie Hero) – szerokość Hero zależy od tego, czy tekst jest obok (pętla wiązań).
+    in property <length> avail: 1200px;
+    property <bool> show-lyrics: !root.small && root.avail >= 1320px && !Player.idle && Player.lyrics.length > 0;
     init => { Player.hero-lyrics = self.show-lyrics; }
     changed show-lyrics => { Player.hero-lyrics = self.show-lyrics; }
     HorizontalLayout {
@@ -407,7 +407,7 @@ export component Hero inherits Rectangle {
             small: root.small;
         }
         if root.show-lyrics: HeroLyrics {
-            width: min(root.width * 0.34, 520px);
+            width: min(root.avail * 0.27, 520px);
         }
     }
 }

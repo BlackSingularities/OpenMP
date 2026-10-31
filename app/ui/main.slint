@@ -100,6 +100,7 @@ export component AppWindow inherits Window {
                                 horizontal-stretch: 1;
                                 spacing: 20px;
                                 Hero {
+                                    avail: root.width;
                                     height: clamp((root.height - 230px) * 0.5, 150px, 400px);
                                     small: self.height < 220px;
                                 }
@@ -145,6 +146,7 @@ export component AppWindow inherits Window {
                     padding-right: 22px;
                     padding-top: 2px;
                     Hero {
+                        avail: root.width;
                         small: root.height < 560px;
                     }
                 }
