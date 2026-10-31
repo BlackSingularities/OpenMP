@@ -9,6 +9,49 @@ use slint::{Image, ModelRc, VecModel};
 use crate::app::*;
 use crate::*;
 
+/// Okno nadrzędne dla systemowego okna wyboru (po uchwycie – da się je przekazać do wątku).
+struct Owner(isize);
+
+impl raw_window_handle::HasWindowHandle for Owner {
+    fn window_handle(&self) -> Result<raw_window_handle::WindowHandle<'_>, raw_window_handle::HandleError> {
+        let h = std::num::NonZeroIsize::new(self.0).ok_or(raw_window_handle::HandleError::Unavailable)?;
+        let raw = raw_window_handle::RawWindowHandle::Win32(raw_window_handle::Win32WindowHandle::new(h));
+        Ok(unsafe { raw_window_handle::WindowHandle::borrow_raw(raw) })
+    }
+}
+
+impl raw_window_handle::HasDisplayHandle for Owner {
+    fn display_handle(&self) -> Result<raw_window_handle::DisplayHandle<'_>, raw_window_handle::HandleError> {
+        let raw = raw_window_handle::RawDisplayHandle::Windows(raw_window_handle::WindowsDisplayHandle::new());
+        Ok(unsafe { raw_window_handle::DisplayHandle::borrow_raw(raw) })
+    }
+}
+
+/// Systemowe okno wyboru w osobnym wątku: program działa dalej, a anulowanie niczego nie blokuje.
+/// Okno wyboru jest podpięte pod otwarty dialog albo okno programu, więc zawsze jest na wierzchu.
+pub fn ask<T: Send + 'static>(
+    app: &App,
+    make: impl FnOnce(rfd::FileDialog) -> Option<T> + Send + 'static,
+    done: impl FnOnce(&mut App, T) + Send + 'static,
+) {
+    let owner = app
+        .dialogs
+        .as_ref()
+        .filter(|d| d.open)
+        .map(|d| crate::win::hwnd_of(d.win.window()))
+        .or_else(|| app.ui().map(|u| crate::win::hwnd(&u)))
+        .unwrap_or(0);
+    std::thread::spawn(move || {
+        let mut d = rfd::FileDialog::new();
+        if owner != 0 {
+            d = d.set_parent(&Owner(owner));
+        }
+        if let Some(v) = make(d) {
+            let _ = slint::invoke_from_event_loop(move || later(move |app| done(app, v)));
+        }
+    });
+}
+
 fn media_filters(d: rfd::FileDialog) -> rfd::FileDialog {
     let mut all: Vec<&str> = meta::AUDIO.to_vec();
     all.extend_from_slice(meta::VIDEO);
@@ -21,32 +64,42 @@ fn media_filters(d: rfd::FileDialog) -> rfd::FileDialog {
 }
 
 pub fn open_files(app: &mut App) {
-    let Some(files) = media_filters(rfd::FileDialog::new().set_title("Otwórz pliki")).pick_files() else { return };
-    let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
-    crate::player::open_paths(app, paths, true, None);
+    ask(app, |d| media_filters(d.set_title("Otwórz pliki")).pick_files(), |app, files| {
+        let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
+        crate::player::open_paths(app, paths, true, None);
+    });
 }
 
 pub fn add_files(app: &mut App) {
-    let Some(files) = media_filters(rfd::FileDialog::new().set_title("Dodaj do listy")).pick_files() else { return };
-    let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
-    crate::player::open_paths(app, paths, false, None);
+    ask(app, |d| media_filters(d.set_title("Dodaj do listy")).pick_files(), |app, files| {
+        let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
+        crate::player::open_paths(app, paths, false, None);
+    });
 }
 
 pub fn open_folder(app: &mut App) {
-    let Some(dir) = rfd::FileDialog::new().set_title("Otwórz folder").pick_folder() else { return };
-    crate::player::open_paths(app, vec![dir.to_string_lossy().into_owned()], true, None);
+    ask(app, |d| d.set_title("Otwórz folder").pick_folder(), |app, dir| {
+        crate::player::open_paths(app, vec![dir.to_string_lossy().into_owned()], true, None);
+    });
 }
 
 pub fn import_list(app: &mut App, new_tab: bool) {
-    let Some(f) = rfd::FileDialog::new().set_title("Importuj listę").add_filter("Listy odtwarzania", meta::PLAYLISTS).pick_file() else { return };
-    let name = f.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "Lista".into());
-    crate::player::open_paths(app, vec![f.to_string_lossy().into_owned()], false, new_tab.then_some(name));
+    ask(app, |d| d.set_title("Importuj listę").add_filter("Listy odtwarzania", meta::PLAYLISTS).pick_file(), move |app, f| {
+        let name = f.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "Lista".into());
+        crate::player::open_paths(app, vec![f.to_string_lossy().into_owned()], false, new_tab.then_some(name));
+    });
 }
 
 pub fn export_list(app: &mut App) {
     let li = app.store.active;
     let name = app.store.lists[li].name.clone();
-    let Some(f) = rfd::FileDialog::new().set_title("Zapisz listę").set_file_name(format!("{name}.m3u8")).add_filter("Lista M3U8", &["m3u8", "m3u"]).save_file() else { return };
+    ask(app, move |d| d.set_title("Zapisz listę").set_file_name(format!("{name}.m3u8")).add_filter("Lista M3U8", &["m3u8", "m3u"]).save_file(), move |app, f| export_to(app, li, f));
+}
+
+fn export_to(app: &mut App, li: usize, f: std::path::PathBuf) {
+    if li >= app.store.lists.len() {
+        return;
+    }
     match openmp_core::playlist::export_m3u(&f, &app.store.lists[li].items) {
         Ok(()) => app.toast(format!("Zapisano „{}”", f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default())),
         Err(e) => app.toast(format!("Nie udało się zapisać: {e}")),
@@ -145,7 +198,10 @@ pub fn open_tag_editor(app: &mut App, paths: Vec<String>) {
 }
 
 pub fn tag_pick_cover(app: &mut App) {
-    let Some(f) = rfd::FileDialog::new().set_title("Okładka").add_filter("Obrazy", &["jpg", "jpeg", "png", "webp", "bmp"]).pick_file() else { return };
+    ask(app, |d| d.set_title("Okładka").add_filter("Obrazy", &["jpg", "jpeg", "png", "webp", "bmp"]).pick_file(), tag_cover_from);
+}
+
+fn tag_cover_from(app: &mut App, f: std::path::PathBuf) {
     let Ok(bytes) = std::fs::read(&f) else { return };
     // Do pliku zapisujemy JPEG/PNG – inne formaty konwertujemy.
     let bytes = match meta::ext(&f).as_str() {

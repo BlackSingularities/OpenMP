@@ -516,16 +516,22 @@ pub fn goto_chapter(app: &mut App, id: &str) {
 
 pub fn load_sub(app: &mut App) {
     let dir = app.cur.as_ref().and_then(|c| std::path::Path::new(&c.info.path).parent().map(|p| p.to_path_buf()));
-    let mut d = rfd::FileDialog::new().set_title("Wczytaj napisy").add_filter("Napisy", openmp_core::meta::SUBTITLES);
-    if let Some(dir) = dir {
-        d = d.set_directory(dir);
-    }
-    if let Some(p) = d.pick_file() {
-        if let Some(m) = &app.mpv {
-            let _ = m.command(&["sub-add", &p.to_string_lossy(), "select"]);
-        }
-        on_loaded(app);
-    }
+    crate::dialogs::ask(
+        app,
+        move |d| {
+            let mut d = d.set_title("Wczytaj napisy").add_filter("Napisy", openmp_core::meta::SUBTITLES);
+            if let Some(dir) = dir {
+                d = d.set_directory(dir);
+            }
+            d.pick_file()
+        },
+        |app, p| {
+            if let Some(m) = &app.mpv {
+                let _ = m.command(&["sub-add", &p.to_string_lossy(), "select"]);
+            }
+            on_loaded(app);
+        },
+    );
 }
 
 pub fn frame_step(app: &mut App, back: bool) {

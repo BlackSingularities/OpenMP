@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.1.3
+
+- Program nie zawiesza się już po zamknięciu okna wyboru folderu albo pliku bez wyboru. Okna wyboru (pliki, foldery, biblioteka, okładka, napisy, zapis listy) otwierają się w osobnym wątku, nad oknem programu albo dialogu, który je wywołał.
+
 ## 1.1.2
 
 - Ustawienia znów się otwierają: menu było zbudowane na oknie wyskakującym, które gubiło kliknięcia w pozycje.

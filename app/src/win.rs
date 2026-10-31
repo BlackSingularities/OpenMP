@@ -21,6 +21,16 @@ pub fn hwnd(ui: &AppWindow) -> isize {
         .unwrap_or(0)
 }
 
+/// Uchwyt okna Win32 dowolnego okna Slint.
+pub fn hwnd_of(w: &slint::Window) -> isize {
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    w.with_winit_window(|w| match w.window_handle().map(|h| h.as_raw()) {
+        Ok(RawWindowHandle::Win32(h)) => h.hwnd.get(),
+        _ => 0,
+    })
+    .unwrap_or(0)
+}
+
 pub fn drag(ui: &AppWindow) {
     ui.window().with_winit_window(|w| {
         let _ = w.drag_window();

@@ -357,8 +357,9 @@ pub fn eq_reset(app: &mut App) {
 /// Dodanie folderu biblioteki: 0 – muzyka, 1 – wideo.
 pub fn add_folder(app: &mut App, kind: i32) {
     let title = if kind == 1 { "Folder z wideo" } else { "Folder z muzyką" };
-    let Some(dir) = rfd::FileDialog::new().set_title(title).pick_folder() else { return };
-    add_folder_path(app, kind, dir.to_string_lossy().into_owned());
+    crate::dialogs::ask(app, move |d| d.set_title(title).pick_folder(), move |app, dir| {
+        add_folder_path(app, kind, dir.to_string_lossy().into_owned());
+    });
 }
 
 pub fn add_network_folder(app: &mut App, kind: i32) {
@@ -406,11 +407,11 @@ fn publish_folders(app: &mut App) {
 }
 
 pub fn pick_screenshot_dir(app: &mut App) {
-    if let Some(d) = rfd::FileDialog::new().set_title("Folder zrzutów ekranu").pick_folder() {
+    crate::dialogs::ask(app, |d| d.set_title("Folder zrzutów ekranu").pick_folder(), |app, d| {
         app.s.screenshot_dir = d.to_string_lossy().into_owned();
         if let Some(ui) = app.ui() {
             ui.global::<Prefs>().set_screenshot_dir(ss(&app.s.screenshot_dir));
         }
         app.s.save();
-    }
+    });
 }
