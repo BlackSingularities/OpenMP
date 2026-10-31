@@ -692,14 +692,11 @@ export component MiniView inherits Rectangle {
         }
         // Pasek postępu z przyciskami odtwarzania.
         strip := Rectangle {
-            x: 10px;
-            width: parent.width - 20px;
-            height: 52px;
-            y: parent.height - self.height - 10px;
-            border-radius: 26px;
+            x: 0;
+            width: parent.width;
+            height: 56px;
+            y: parent.height - self.height;
             background: Theme.panel2.with-alpha(0.85);
-            border-width: 1px;
-            border-color: Theme.line2;
             HorizontalLayout {
                 padding-left: 6px;
                 padding-right: 16px;
@@ -767,6 +764,7 @@ export component MiniView inherits Rectangle {
             y: root.hover ? strip.y - self.height - 6px : strip.y - self.height + 6px;
             radius: 8px;
             show-chip: false;
+            show-viz: false;
             opacity: root.hover ? 1 : 0;
             visible: self.opacity > 0.01;
             animate opacity, y { duration: 180ms; easing: ease-out; }

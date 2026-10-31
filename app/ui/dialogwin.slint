@@ -1,0 +1,53 @@
+// Okno dialogów: ustawienia, korektor, edytor tagów i pozostałe jako osobne okno, które może
+// wystawać poza okno programu. Stan (Prefs, Ui, Theme) Rust synchronizuje z oknem głównym.
+
+import { Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { EqualizerDialog, SettingsDialog, AboutDialog, UrlDialog, TagEditor, UpdateDialog, RenameDialog } from "dialogs.slint";
+import { Ui } from "state.slint";
+
+export component DialogWindow inherits Window {
+    no-frame: true;
+    always-on-top: true;
+    icon: @image-url("../icon.png");
+    background: Theme.panel;
+    default-font-family: Theme.font;
+    default-font-size: Theme.fs;
+    title: Ui.settings ? "Ustawienia – OpenMP" : Ui.equalizer ? "Korektor – OpenMP" : Ui.tag-editor ? "Edytor tagów – OpenMP" : "OpenMP";
+    // Rozmiar okna = rozmiar aktywnego dialogu.
+    width: Ui.settings ? set.natural-width : Ui.equalizer ? eq.natural-width : Ui.tag-editor ? tag.natural-width : Ui.update-dialog ? upd.natural-width : Ui.url-dialog ? url.natural-width : Ui.rename-dialog ? ren.natural-width : about.natural-width;
+    height: Ui.settings ? set.natural-height : Ui.equalizer ? eq.natural-height : Ui.tag-editor ? tag.natural-height : Ui.update-dialog ? upd.natural-height : Ui.url-dialog ? url.natural-height : Ui.rename-dialog ? ren.natural-height : about.natural-height;
+    init => {
+        Palette.color-scheme = Theme.dark ? ColorScheme.dark : ColorScheme.light;
+    }
+    property <bool> dark: Theme.dark;
+    changed dark => {
+        Palette.color-scheme = Theme.dark ? ColorScheme.dark : ColorScheme.light;
+    }
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape {
+                Ui.settings = false;
+                Ui.equalizer = false;
+                Ui.about = false;
+                Ui.url-dialog = false;
+                Ui.tag-editor = false;
+                Ui.update-dialog = false;
+                Ui.rename-dialog = false;
+            }
+            reject
+        }
+        Rectangle {
+            border-width: 1px;
+            border-color: Theme.line2;
+            z: 10;
+        }
+        set := SettingsDialog { visible: Ui.settings; }
+        eq := EqualizerDialog { visible: Ui.equalizer && !Ui.settings; }
+        tag := TagEditor { visible: Ui.tag-editor && !Ui.settings && !Ui.equalizer; }
+        upd := UpdateDialog { visible: Ui.update-dialog && !Ui.settings && !Ui.equalizer && !Ui.tag-editor; }
+        url := UrlDialog { visible: Ui.url-dialog && !Ui.settings && !Ui.equalizer && !Ui.tag-editor && !Ui.update-dialog; }
+        ren := RenameDialog { visible: Ui.rename-dialog && !Ui.settings && !Ui.equalizer && !Ui.tag-editor && !Ui.update-dialog && !Ui.url-dialog; }
+        about := AboutDialog { visible: Ui.about && !Ui.settings && !Ui.equalizer && !Ui.tag-editor && !Ui.update-dialog && !Ui.url-dialog && !Ui.rename-dialog; }
+    }
+}

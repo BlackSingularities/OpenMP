@@ -206,38 +206,26 @@ pub fn raise(app: &mut App) {
     }
 }
 
-/// Za niskie okno (widok pomniejszony, miniodtwarzacz) rośnie na czas okna dialogowego, żeby było
-/// widać je w całości; po zamknięciu wraca do poprzedniego rozmiaru.
-pub fn fit_dialog(app: &mut App, shown: bool, need: f32) {
-    let Some(ui) = app.ui() else { return };
-    if ui.window().is_maximized() || ui.window().is_fullscreen() {
+/// Okno menu: bez pozycji na pasku zadań i z zaokrąglonymi rogami (Windows 11).
+pub fn popup_style(w: &slint::Window) {
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    let h = w
+        .with_winit_window(|w| match w.window_handle().map(|h| h.as_raw()) {
+            Ok(RawWindowHandle::Win32(h)) => h.hwnd.get(),
+            _ => 0,
+        })
+        .unwrap_or(0);
+    if h == 0 {
         return;
     }
-    let sf = ui.window().scale_factor();
-    if shown {
-        let (x, y, w, h) = geometry(&ui);
-        let want_h = (need * sf) as u32;
-        let want_w = (760.0 * sf) as u32;
-        if h >= want_h && w >= want_w {
-            return;
-        }
-        if app.dialog_geom.is_none() {
-            app.dialog_geom = Some((x, y, w, h));
-        }
-        // Okno rośnie w dół, a gdy brakuje miejsca na ekranie – przesuwa się w górę.
-        let ny = (y + want_h as i32).min(screen_bottom(&ui)) - want_h as i32;
-        set_geometry(&ui, (x, ny.max(0), w.max(want_w), h.max(want_h)));
-    } else if let Some(g) = app.dialog_geom.take() {
-        set_geometry(&ui, g);
+    unsafe {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUNDSMALL};
+        use windows::Win32::UI::WindowsAndMessaging::{GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW};
+        let hw = HWND(h as *mut _);
+        let ex = GetWindowLongPtrW(hw, GWL_EXSTYLE);
+        SetWindowLongPtrW(hw, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW.0 as isize) & !(WS_EX_APPWINDOW.0 as isize));
+        let pref = DWMWCP_ROUNDSMALL;
+        let _ = DwmSetWindowAttribute(hw, DWMWA_WINDOW_CORNER_PREFERENCE, &pref as *const _ as *const _, std::mem::size_of_val(&pref) as u32);
     }
-}
-
-fn screen_bottom(ui: &AppWindow) -> i32 {
-    let mut b = i32::MAX;
-    ui.window().with_winit_window(|w| {
-        if let Some(m) = w.current_monitor() {
-            b = m.position().y + m.size().height as i32;
-        }
-    });
-    b
 }

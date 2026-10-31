@@ -7,11 +7,12 @@ import { Icon } from "widgets.slint";
 import { Hero, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
-import { EqualizerDialog, SettingsDialog, AboutDialog, UrlDialog, TagEditor, UpdateDialog, RenameDialog } from "dialogs.slint";
+import { MenuWindow } from "popup.slint";
+import { DialogWindow } from "dialogwin.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
 import { TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
 
-export { Theme, Player, Lists, Lib, Video, Prefs, Ui, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
+export { MenuWindow, DialogWindow, Theme, Player, Lists, Lib, Video, Prefs, Ui, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
 
 export component AppWindow inherits Window {
     title: Player.idle ? "OpenMP" : Player.title + " – OpenMP";
@@ -34,12 +35,9 @@ export component AppWindow inherits Window {
 
     property <bool> any-dialog: Ui.settings || Ui.equalizer || Ui.about || Ui.url-dialog || Ui.tag-editor || Ui.update-dialog || Ui.rename-dialog;
     changed any-dialog => {
-        Ui.dialog-shown(self.any-dialog, Ui.settings || Ui.equalizer ? 700px : Ui.tag-editor ? 640px : 460px);
+        Ui.dialog-shown(self.any-dialog);
     }
 
-    public function open-menu() {
-        menu-popup.show();
-    }
     public function focus-keys() {
         keys.focus();
     }
@@ -162,13 +160,6 @@ export component AppWindow inherits Window {
             }
         }
 
-        if Ui.equalizer: EqualizerDialog { }
-        if Ui.settings: SettingsDialog { }
-        if Ui.about: AboutDialog { }
-        if Ui.url-dialog: UrlDialog { }
-        if Ui.tag-editor: TagEditor { }
-        if Ui.update-dialog: UpdateDialog { }
-        if Ui.rename-dialog: RenameDialog { }
 
         // Krótki komunikat u dołu okna.
         if Ui.mode != 1: Rectangle {
@@ -211,78 +202,6 @@ export component AppWindow inherits Window {
             pointer-event(ev) => {
                 if ev.kind == PointerEventKind.down && ev.button == PointerEventButton.left {
                     Ui.resize(h.d);
-                }
-            }
-        }
-    }
-
-    menu-popup := PopupWindow {
-        // Menu zawsze w całości w oknie, także gdy okno jest wąskie.
-        x: max(4px, min(Ui.menu-x, root.width - mbox.width - 10px));
-        y: max(4px, min(Ui.menu-y, root.height - mbox.height - 8px));
-        // Okno menu dokładnie w rozmiarze zawartości – inaczej treść jest wyśrodkowana i ucięta.
-        width: mbox.width;
-        height: mbox.height;
-        close-policy: PopupClosePolicy.close-on-click-outside;
-        mbox := Rectangle {
-            x: 0;
-            y: 0;
-            width: min(270px, root.width - 8px);
-            height: mlay.preferred-height;
-            border-radius: 10px;
-            background: Theme.raised;
-            border-width: 1px;
-            border-color: Theme.line2;
-            drop-shadow-blur: 22px;
-            drop-shadow-color: #00000080;
-            mlay := VerticalLayout {
-                padding: 5px;
-                for m in Ui.menu: Rectangle {
-                    height: m.sep ? 9px : 30px;
-                    if m.sep: Rectangle {
-                        height: 1px;
-                        x: 8px;
-                        width: parent.width - 16px;
-                        background: Theme.line;
-                    }
-                    if !m.sep: Rectangle {
-                        border-radius: 6px;
-                        background: mta.has-hover && m.enabled ? Theme.sel : transparent;
-                        HorizontalLayout {
-                            padding-left: 9px;
-                            padding-right: 10px;
-                            spacing: 10px;
-                            Rectangle {
-                                width: 16px;
-                                if m.icon != "" || m.checked: Icon {
-                                    icon: m.checked ? Icons.check : Icons.get(m.icon);
-                                    size: 15px;
-                                    fill: m.checked ? Theme.tint : m.enabled ? Theme.text2 : Theme.text3.with-alpha(0.5);
-                                }
-                            }
-                            Text {
-                                text: m.label;
-                                color: m.enabled ? Theme.text : Theme.text3;
-                                font-size: Theme.fs;
-                                vertical-alignment: center;
-                                overflow: elide;
-                                horizontal-stretch: 1;
-                            }
-                            Text {
-                                text: m.shortcut;
-                                color: Theme.text3;
-                                font-size: Theme.fs-xs;
-                                vertical-alignment: center;
-                            }
-                        }
-                        mta := TouchArea {
-                            enabled: m.enabled;
-                            clicked => {
-                                menu-popup.close();
-                                Ui.menu-activated(m.id);
-                            }
-                        }
-                    }
                 }
             }
         }

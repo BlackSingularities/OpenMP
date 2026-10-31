@@ -1,5 +1,13 @@
 # Zmiany
 
+## 1.1.2
+
+- Ustawienia znów się otwierają: menu było zbudowane na oknie wyskakującym, które gubiło kliknięcia w pozycje.
+- Menu (główne, kontekstowe, wyłącznik czasowy, wybór urządzenia) jako osobne okna – mogą wystawać poza okno programu, w wyglądzie i kolorze akcentu OpenMP.
+- Okna dialogowe (ustawienia, korektor, edytor tagów, aktualizacja, adres, zmiana nazwy, o programie) jako osobne okna, wyśrodkowane nad programem, przeciągane za pasek tytułu.
+- Wybór urządzenia wyjściowego jako sama ikona za suwakiem głośności, lista po kliknięciu.
+- Miniodtwarzacz: okładka bez wizualizacji (została ta w tle) i płaski dolny pasek.
+
 ## 1.1.1
 
 - Naprawione zawieszanie przy zamykaniu: proces potrafił utknąć z widocznym, martwym oknem, w którym nie działał żaden przycisk ani ustawienia, a kolejne uruchomienia trafiały do niego i nic się nie otwierało. Program kończy się teraz od razu po zapisaniu stanu, a nowe uruchomienie oddaje pliki tylko działającemu oknu, które to potwierdzi.

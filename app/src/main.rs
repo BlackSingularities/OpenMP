@@ -8,6 +8,7 @@ slint::include_modules!();
 mod app;
 mod covers;
 mod dialogs;
+mod dialogwin;
 mod display;
 mod keys;
 mod libview;
@@ -131,7 +132,8 @@ fn main() {
         lyrics_text: String::new(),
         wave_raw: Vec::new(),
         music_geom: None,
-        dialog_geom: None,
+        menu_win: None,
+        dialogs: None,
         dirty: false,
         last_save: Instant::now(),
         last_smtc: Instant::now(),
@@ -231,6 +233,7 @@ fn main() {
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(16), move || {
         with(|app| {
             player::tick(app);
+            dialogwin::sync_now(app);
             display::frame(app);
             video::tick(app);
             if let Some(t) = app.toast_until {
@@ -381,7 +384,8 @@ fn wire(ui: &AppWindow) {
     u.on_menu_activated(|id| later(move |app| menu::activated(app, &id)));
     u.on_open_main_menu(|x, y| later(move |app| menu::main_menu(app, x, y)));
     u.on_sleep_menu(|x, y| later(move |app| menu::sleep_menu(app, x, y)));
-    u.on_dialog_shown(|shown, need| later(move |app| win::fit_dialog(app, shown, need)));
+    u.on_device_menu(|x, y| later(move |app| menu::device_menu(app, x, y)));
+    u.on_dialog_shown(|shown| later(move |app| dialogwin::shown(app, shown)));
     u.on_set_mode(|m| later(move |app| keys::set_mode(app, m)));
     u.on_toggle_compact(|| later(keys::toggle_compact));
     u.on_url_accepted(|t| later(move |app| {

@@ -7,48 +7,48 @@ import { Icons } from "icons.slint";
 import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover } from "widgets.slint";
 import { Player, Prefs, Ui } from "state.slint";
 
-// Przyciemnione tło i karta na środku; klik obok zamyka.
+// Okno dialogowe: osobne okno programu (DialogWindow), karta wypełnia całe okno.
 export component Dialog inherits Rectangle {
     in property <string> title;
     in property <length> card-width: 480px;
     in property <length> card-height: 0;
+    // Rozmiar, jaki dialog chce mieć – z niego bierze się rozmiar okna.
+    out property <length> natural-width: card-width;
+    out property <length> natural-height: card-height > 0 ? card-height : lay.preferred-height;
     callback close();
-    background: Theme.scrim;
-    TouchArea {
-        clicked => { root.close(); }
-    }
-    card := Rectangle {
-        width: min(root.card-width, root.width - 32px);
-        height: root.card-height > 0 ? min(root.card-height, root.height - 40px) : min(lay.preferred-height, root.height - 40px);
-        border-radius: Theme.radius-lg + 2px;
-        background: Theme.panel;
-        border-width: 1px;
-        border-color: Theme.line2;
-        drop-shadow-blur: 40px;
-        drop-shadow-color: #00000090;
-        clip: true;
-        TouchArea { }
-        lay := VerticalLayout {
-            HorizontalLayout {
-                height: 50px;
-                padding-left: 20px;
-                padding-right: 10px;
+    background: Theme.panel;
+    lay := VerticalLayout {
+        HorizontalLayout {
+            height: 50px;
+            padding-left: 20px;
+            padding-right: 10px;
+            Rectangle {
+                horizontal-stretch: 1;
+                // Przeciąganie okna dialogu za pasek tytułu.
+                TouchArea {
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                            Ui.dialog-drag();
+                        }
+                    }
+                }
                 Text {
+                    x: 0;
+                    width: parent.width;
                     text: root.title;
                     color: Theme.text;
                     font-size: Theme.fs-lg;
                     font-weight: 600;
                     vertical-alignment: center;
-                    horizontal-stretch: 1;
-                }
-                IconBtn {
-                    y: (parent.height - self.height) / 2;
-                    icon: Icons.close;
-                    clicked => { root.close(); }
                 }
             }
-            @children
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.close;
+                clicked => { root.close(); }
+            }
         }
+        @children
     }
 }
 

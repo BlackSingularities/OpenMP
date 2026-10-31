@@ -314,6 +314,8 @@ export global Ui {
     callback rename-accepted(string);
     callback key(string, bool, bool, bool);
     callback sleep-menu(length, length);
-    // Okno dialogowe otwarte/zamknięte – za niskie okno programu powiększa się na ten czas.
-    callback dialog-shown(bool, length);
+    callback device-menu(length, length);
+    // Okno dialogowe otwarte/zamknięte – dialogi mają własne okno (DialogWindow).
+    callback dialog-shown(bool);
+    callback dialog-drag();
 }

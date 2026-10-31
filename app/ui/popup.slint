@@ -1,0 +1,82 @@
+// Menu kontekstowe jako osobne okno: może wystawać poza okno programu, jak menu systemowe,
+// ale w wyglądzie OpenMP. Pozycje, położenie i kolory ustawia Rust.
+
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon } from "widgets.slint";
+import { MenuEntry } from "types.slint";
+
+export component MenuWindow inherits Window {
+    in property <[MenuEntry]> items;
+    out property <length> content-height: lay.preferred-height;
+    callback activated(string);
+    callback dismiss();
+    no-frame: true;
+    always-on-top: true;
+    title: "OpenMP";
+    width: 280px;
+    height: lay.preferred-height;
+    background: Theme.raised;
+    default-font-family: Theme.font;
+    default-font-size: Theme.fs;
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape {
+                root.dismiss();
+            }
+            accept
+        }
+        Rectangle {
+            border-width: 1px;
+            border-color: Theme.line2;
+            border-radius: 8px;
+        }
+        lay := VerticalLayout {
+            padding: 5px;
+            for m in root.items: Rectangle {
+                height: m.sep ? 9px : 30px;
+                if m.sep: Rectangle {
+                    height: 1px;
+                    x: 8px;
+                    width: parent.width - 16px;
+                    background: Theme.line;
+                }
+                if !m.sep: Rectangle {
+                    border-radius: 6px;
+                    background: mta.has-hover && m.enabled ? Theme.sel : transparent;
+                    HorizontalLayout {
+                        padding-left: 9px;
+                        padding-right: 10px;
+                        spacing: 10px;
+                        Rectangle {
+                            width: 16px;
+                            if m.icon != "" || m.checked: Icon {
+                                icon: m.checked ? Icons.check : Icons.get(m.icon);
+                                size: 15px;
+                                fill: m.checked ? Theme.tint : m.enabled ? Theme.text2 : Theme.text3.with-alpha(0.5);
+                            }
+                        }
+                        Text {
+                            text: m.label;
+                            color: m.enabled ? Theme.text : Theme.text3;
+                            font-size: Theme.fs;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: m.shortcut;
+                            color: Theme.text3;
+                            font-size: Theme.fs-xs;
+                            vertical-alignment: center;
+                        }
+                    }
+                    mta := TouchArea {
+                        enabled: m.enabled;
+                        clicked => { root.activated(m.id); }
+                    }
+                }
+            }
+        }
+    }
+}
