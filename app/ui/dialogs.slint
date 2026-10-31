@@ -662,7 +662,7 @@ export component SettingsDialog inherits Dialog {
                 }
                 SettingRow {
                     title: "ReplayGain";
-                    hint: "Wyrównuje głośność utworów na podstawie tagów";
+                    hint: "Wyrównuje głośność utworów – z tagów, a pliki bez tagów mierzy sam (EBU R128)";
                     Segmented {
                         options: ["Wyłączone", "Utwór", "Album"];
                         selected <=> Prefs.replaygain;

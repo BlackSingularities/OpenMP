@@ -1,5 +1,12 @@
 # Zmiany
 
+## 1.2.2
+
+- ReplayGain bez tagów: pliki bez wpisów ReplayGain są mierzone w tle (EBU R128) i wyrównywane tak samo jak otagowane.
+- Tryb wyłączny: utwór o innej częstotliwości przełącza kartę zamiast być przepróbkowany.
+- Obsługa klawiaturą: Tab między przyciskami, przełącznikami i suwakami, Spacja/Enter, strzałki, Home/End.
+- Testy silnika dźwięku (dither, przepróbkowanie, miks do stereo, wygaszanie bufora).
+
 ## 1.2.1
 
 - Przyciski na miniaturze w pasku zadań: poprzedni, odtwórz/pauza, następny.

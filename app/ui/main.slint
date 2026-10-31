@@ -56,6 +56,10 @@ export component AppWindow inherits Window {
                     return accept;
                 }
             }
+            // Tab (bez Ctrl) przenosi fokus między przyciskami – obsługuje go Slint.
+            if (e.text == Key.Tab || e.text == Key.Backtab) && !e.modifiers.control {
+                return reject;
+            }
             Ui.key(e.text, e.modifiers.control, e.modifiers.shift, e.modifiers.alt);
             accept
         }

@@ -12,19 +12,48 @@ use slint::ComponentHandle;
 use crate::app::*;
 use crate::*;
 
-/// Wzmocnienie ReplayGain (liniowe) dla utworu.
+/// Wzmocnienie ReplayGain (liniowe) dla utworu; bez tagów – z własnego pomiaru R128.
 pub fn gain(app: &App, t: &TrackInfo) -> f32 {
-    let db = match app.s.replaygain {
-        1 => t.rg_track.or(t.rg_album),
-        2 => t.rg_album.or(t.rg_track),
-        _ => None,
+    if app.s.replaygain == 0 {
+        return 1.0;
+    }
+    let tags = if app.s.replaygain == 2 { t.rg_album.or(t.rg_track) } else { t.rg_track.or(t.rg_album) };
+    let (db, peak) = match tags {
+        Some(db) => (db, t.rg_peak),
+        None => match app.loudness.get(&t.path) {
+            Some(l) => (l.gain, Some(l.peak)),
+            None => return 1.0,
+        },
     };
-    let Some(db) = db else { return 1.0 };
     let mut g = 10f32.powf((db + app.s.rg_preamp) / 20.0);
-    if let Some(p) = t.rg_peak.filter(|p| *p > 0.0) {
+    if let Some(p) = peak.filter(|p| *p > 0.0) {
         g = g.min(1.0 / p);
     }
     g
+}
+
+/// Plik bez tagów ReplayGain: pomiar głośności w tle, po nim nowe wzmocnienie dla `item`.
+fn ensure_loudness(app: &mut App, t: &TrackInfo, item: u64) {
+    if app.s.replaygain == 0 || t.rg_track.is_some() || t.rg_album.is_some() || app.loudness.get(&t.path).is_some() {
+        return;
+    }
+    if !app.measuring.insert(openmp_core::library::key(&t.path)) {
+        return;
+    }
+    let t = t.clone();
+    std::thread::spawn(move || {
+        let l = openmp_core::audio::loudness::measure(Path::new(&t.path));
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| {
+                app.measuring.remove(&openmp_core::library::key(&t.path));
+                let Some(l) = l else { return };
+                app.loudness.insert(&t.path, l);
+                app.loudness.save();
+                let g = gain(app, &t);
+                app.engine.set_gain(item, g);
+            });
+        });
+    });
 }
 
 fn engine_ok(t: &TrackInfo) -> bool {
@@ -78,6 +107,7 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
         app.engine.set_loopback(false);
         crate::video::leave_video(app);
         app.engine.load(Item { id: item, path: path.clone(), gain: gain(app, &t) }, resume.unwrap_or(0.0));
+        ensure_loudness(app, &t, item);
         app.engine.set_paused(app.pause_after_load);
         app.cur = Some(Playing { list, idx, item, info: t.clone(), backend: Backend::Engine, video: false, station: None });
         refresh_next(app);
@@ -199,6 +229,7 @@ pub fn refresh_next(app: &mut App) {
                     let item = app.next_seq();
                     let g = gain(app, &t);
                     app.engine.set_next(Some(Item { id: item, path: PathBuf::from(&t.path), gain: g }));
+                    ensure_loudness(app, &t, item);
                     app.pending = Some(Pending { item, list: l, idx: i, from_queue: q });
                 }
             }

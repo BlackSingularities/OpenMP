@@ -3,5 +3,6 @@
 pub mod decoder;
 pub mod dsp;
 pub mod engine;
+pub mod loudness;
 mod exclusive;
 pub mod viz;

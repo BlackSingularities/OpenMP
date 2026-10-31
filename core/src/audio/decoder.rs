@@ -333,3 +333,45 @@ impl Resample {
 pub fn supported(path: &Path) -> bool {
     Source::open(path).is_ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn przeprobkowanie_zachowuje_dlugosc() {
+        let mut r = Resample::new(44100, 48000, 1.0);
+        let input: Vec<f32> = (0..44100).flat_map(|i| {
+            let v = (i as f32 * 0.05).sin() * 0.5;
+            [v, v]
+        }).collect();
+        let mut out = Vec::new();
+        for c in input.chunks(2048) {
+            r.process(c, &mut out);
+        }
+        r.flush(&mut out);
+        let frames = out.len() / 2;
+        // Sekunda dźwięku zostaje sekundą (± opóźnienie filtra).
+        assert!((frames as i64 - 48000).abs() < 600, "{frames}");
+        assert!(out.iter().all(|s| s.abs() < 0.7));
+    }
+
+    #[test]
+    fn bez_przeprobkowania_ta_sama_czestotliwosc() {
+        let mut r = Resample::new(48000, 48000, 1.0);
+        let input = vec![0.25f32; 2000];
+        let mut out = Vec::new();
+        r.process(&input, &mut out);
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn miks_do_stereo() {
+        let mut out = Vec::new();
+        to_stereo(&[0.5], 1, &mut out);
+        assert_eq!(out, vec![0.5, 0.5]);
+        out.clear();
+        to_stereo(&[1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 6, &mut out);
+        assert!(out.iter().all(|s| (*s - 1.0).abs() < 1e-5));
+    }
+}

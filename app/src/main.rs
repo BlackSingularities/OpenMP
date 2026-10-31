@@ -100,6 +100,8 @@ fn main() {
         store: Store::load(),
         lib: Library::load(),
         stats: Stats::load(),
+        loudness: openmp_core::audio::loudness::Store::load(),
+        measuring: Default::default(),
         engine,
         mpv,
         mpv_err,

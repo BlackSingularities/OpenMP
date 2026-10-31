@@ -127,6 +127,7 @@ enum Cmd {
     Device(Option<String>),
     Loopback(bool),
     Exclusive(bool),
+    Gain(u64, f32),
 }
 
 #[derive(Clone, Debug)]
@@ -224,6 +225,10 @@ impl Engine {
     /// Wizualizacja z dźwięku systemu (gdy gra mpv – wideo, radio, nietypowe formaty).
     pub fn set_loopback(&self, on: bool) {
         let _ = self.tx.send(Cmd::Loopback(on));
+    }
+    /// Nowe wzmocnienie utworu `id` (pomiar głośności skończył się w trakcie grania).
+    pub fn set_gain(&self, id: u64, gain: f32) {
+        let _ = self.tx.send(Cmd::Gain(id, gain));
     }
     /// Tryb wyłączny WASAPI: karta gra w częstotliwości pliku, z pominięciem miksera Windows.
     pub fn set_exclusive(&self, on: bool) {
@@ -353,6 +358,8 @@ struct Worker {
     rate: u32,
     cur: Option<Track>,
     next: Option<Track>,
+    /// Następny utwór czekający na przełączenie karty (tryb wyłączny, inna częstotliwość).
+    switch: Option<Track>,
     next_item: Option<Item>,
     fade: Option<(usize, usize)>,
     crossfade: f64,
@@ -375,6 +382,7 @@ impl Worker {
             rate: 48000,
             cur: None,
             next: None,
+            switch: None,
             next_item: None,
             fade: None,
             crossfade: 0.0,
@@ -521,7 +529,7 @@ impl Worker {
 
     fn run(mut self) {
         loop {
-            let busy = self.cur.is_some();
+            let busy = self.cur.is_some() || self.switch.is_some();
             let cmd = if busy { self.rx.recv_timeout(Duration::from_millis(8)) } else { self.rx.recv_timeout(Duration::from_millis(200)) };
             match cmd {
                 Ok(c) => {
@@ -545,6 +553,7 @@ impl Worker {
     fn handle(&mut self, c: Cmd) {
         match c {
             Cmd::Load(it, start) => {
+                self.switch = None;
                 self.fade = None;
                 self.next = None;
                 match Track::open(&it, self.rate, self.speed) {
@@ -589,6 +598,7 @@ impl Worker {
             }
             Cmd::Seek(t) => self.seek(t),
             Cmd::Stop => {
+                self.switch = None;
                 self.cur = None;
                 self.next = None;
                 self.fade = None;
@@ -619,6 +629,13 @@ impl Worker {
             Cmd::Device(d) => {
                 self.device = d;
                 self.open_stream();
+            }
+            Cmd::Gain(id, g) => {
+                for t in [&mut self.cur, &mut self.next, &mut self.switch].into_iter().flatten() {
+                    if t.id == id {
+                        t.gain = g;
+                    }
+                }
             }
             Cmd::Exclusive(on) => {
                 if on != self.want_excl {
@@ -676,7 +693,32 @@ impl Worker {
     }
 
     /// Dopełnia bufor wyjścia do AHEAD_SECS.
+    /// Czy utwór wymaga przełączenia karty na inną częstotliwość (tylko tryb wyłączny).
+    fn needs_switch(&self, t: &Track) -> bool {
+        self.excl.is_some() && t.src.info.rate > 0 && t.src.info.rate != self.rate
+    }
+
+    /// Bufor wybrzmiał – karta na częstotliwość czekającego utworu i od razu dalej.
+    fn finish_switch(&mut self) {
+        let Some(mut nx) = self.switch.take() else { return };
+        let want = nx.src.info.rate;
+        if !self.open_exclusive(want, false) {
+            self.open_stream();
+        }
+        nx.rs = Resample::new(want, self.rate, self.speed);
+        nx.pend.clear();
+        nx.fade_in = 0;
+        let mut r = self.sh.ring.lock();
+        let m = nx.mark(r.written, 0.0, self.speed);
+        r.marks.push_back(m);
+        drop(r);
+        self.cur = Some(nx);
+    }
+
     fn pump(&mut self) {
+        if self.switch.is_some() && self.sh.ring.lock().buf.is_empty() {
+            self.finish_switch();
+        }
         let target = (self.rate as f64 * AHEAD_SECS) as usize;
         for _ in 0..64 {
             if self.cur.is_none() {
@@ -705,7 +747,7 @@ impl Worker {
         if self.fade.is_none() && self.next_item.is_some() && remaining < self.crossfade + 4.0 {
             self.open_next();
         }
-        if self.fade.is_none() && self.crossfade > 0.0 && self.next.is_some() && remaining <= self.crossfade && remaining.is_finite() {
+        if self.fade.is_none() && self.crossfade > 0.0 && self.next.as_ref().is_some_and(|n| !self.needs_switch(n)) && remaining <= self.crossfade && remaining.is_finite() {
             let len = ((remaining.min(self.crossfade)) * rate as f64) as usize;
             if len > rate as usize / 4 {
                 self.fade = Some((0, len));
@@ -748,6 +790,14 @@ impl Worker {
                         // Bez przerwy: następny utwór zaczyna się w tej samej porcji.
                         self.open_next();
                         match self.next.take() {
+                            Some(nx) if self.excl.is_some() && nx.src.info.rate > 0 && nx.src.info.rate != rate => {
+                                // Tryb wyłączny: karta przejdzie na częstotliwość następnego utworu,
+                                // gdy wybrzmi to, co już jest w buforze.
+                                self.switch = Some(nx);
+                                self.cur = None;
+                                self.next_item = None;
+                                break;
+                            }
                             Some(mut nx) => {
                                 nx.fade_in = 0;
                                 new_marks.push(nx.mark(written + i as u64, 0.0, self.speed));
@@ -895,4 +945,46 @@ where
 /// Czy silnik muzyki zagra ten plik (inaczej odtwarza mpv).
 pub fn can_play(path: &Path) -> bool {
     super::decoder::supported(path)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dither_w_granicach_jednego_bitu() {
+        let mut d = Dither::default();
+        let scale = ((1i64 << 15) - 1) as f64;
+        let mut sum = 0.0;
+        for i in 0..20000 {
+            let x = (i as f32 / 20000.0) * 1.6 - 0.8;
+            let q = d.quantize(x, 16) as f64;
+            let exact = x as f64 * scale;
+            assert!((q - exact).abs() <= 2.0, "{q} vs {exact}");
+            sum += q - exact;
+        }
+        // Szum TPDF jest symetryczny – brak przesunięcia stałego.
+        assert!((sum / 20000.0).abs() < 0.05);
+    }
+
+    #[test]
+    fn kwantyzacja_bez_przesterowania() {
+        let mut d = Dither::default();
+        // Dither może zejść o jeden bit poniżej szczytu, nigdy ponad zakres.
+        assert!((32766..=32767).contains(&d.quantize(2.0, 16)));
+        assert!((-32768..=-32766).contains(&d.quantize(-2.0, 16)));
+        assert_eq!(d.quantize(1.0, 32), i32::MAX);
+        assert_eq!(d.quantize(0.0, 32), 0);
+    }
+
+    #[test]
+    fn obciecie_bufora_z_wygaszeniem() {
+        let mut r = Ring { buf: std::iter::repeat(1.0).take(48000).collect(), played: 100, written: 24100, marks: VecDeque::new(), cur: None, end_frame: Some(5) };
+        r.cut(48000);
+        let n = (48000.0 * DECLICK_SECS) as usize;
+        assert_eq!(r.buf.len(), n * 2);
+        assert_eq!(r.written, 100 + n as u64);
+        assert!(r.buf[0] > 0.9 && r.buf[r.buf.len() - 1] < 0.05);
+        assert!(r.end_frame.is_none());
+    }
 }

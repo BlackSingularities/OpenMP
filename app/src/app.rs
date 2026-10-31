@@ -116,6 +116,9 @@ pub struct App {
     pub store: Store,
     pub lib: Library,
     pub stats: Stats,
+    /// Pomiary głośności R128 plików bez ReplayGain i pliki mierzone teraz.
+    pub loudness: openmp_core::audio::loudness::Store,
+    pub measuring: std::collections::HashSet<String>,
     pub engine: Engine,
     pub mpv: Option<Mpv>,
     pub mpv_err: String,
