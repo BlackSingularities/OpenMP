@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.2.4
+
+- Panel nawigacji bez pozycji „Foldery” i „Foldery wideo” – foldery są w sekcji FOLDERY.
+- Folder z sekcji FOLDERY otwiera się jako drzewo podfolderów zamiast płaskiej listy wszystkich plików.
+
 ## 1.2.3
 
 - Globalne skróty klawiszowe, działające także przy oknie w tle: Ctrl+Alt+Spacja (odtwórz/pauza), Ctrl+Alt+←/→ (utwór), Ctrl+Alt+↑/↓ (głośność). Można je wyłączyć w ustawieniach.

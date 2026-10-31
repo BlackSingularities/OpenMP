@@ -52,11 +52,9 @@ pub fn rebuild_nav(app: &mut App) {
         nav("album", "Albumy", "album", String::new()),
         nav("genre", "Gatunki", "tag", String::new()),
         nav("year", "Lata", "calendar", String::new()),
-        nav("folder", "Foldery", "folder", String::new()),
         nav("all", "Wszystkie utwory", "note", n(app.lib.tracks.len())),
         section("sec-video", "WIDEO"),
         nav("v-all", "Wszystkie filmy", "movie", n(app.lib.videos.len())),
-        nav("v-folder", "Foldery wideo", "folder", String::new()),
         nav("v-continue", "Kontynuuj oglądanie", "history", String::new()),
         nav("v-recent", "Ostatnio dodane", "clock", String::new()),
         section("sec-sets", "ZBIORY"),
@@ -256,7 +254,14 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             return;
         }
         if gk == "dir" || gk == "v-dir" {
-            show_dir(app, &source, &name, gk == "v-dir");
+            let video = gk == "v-dir";
+            // Drzewo otwarte z sekcji FOLDERY może być innego rodzaju niż bieżący widok.
+            if video == video_kind {
+                show_dir(app, source, &name, video);
+            } else {
+                let src = other(app, video_kind).to_vec();
+                show_dir(app, &src, &name, video);
+            }
             return;
         }
         let gk = match gk.as_str() {
@@ -369,19 +374,15 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             set_tracks(app, t);
         }
         k if k.starts_with("root:") => {
-            let root = &k[5..];
-            let mut t: Vec<TrackInfo> = library::in_tree(source, root).into_iter().chain(library::in_tree(other(app, video_kind), root)).cloned().collect();
-            t.sort_by_key(|t| natural(&t.path));
-            let dur: f64 = t.iter().map(|t| t.duration).sum();
-            l.set_title(ss(folder_name(root)));
-            let mut s = vec![format!("{} {}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))];
-            if dur > 0.0 {
-                s.push(meta::fmt_total(dur));
+            // Folder biblioteki jako drzewo: podfoldery, a w nich pliki.
+            let root = k[5..].to_string();
+            let video = app.s.video_folders.iter().any(|f| f.eq_ignore_ascii_case(&root));
+            if video == video_kind {
+                show_dir(app, source, &root, video);
+            } else {
+                let src = other(app, video_kind).to_vec();
+                show_dir(app, &src, &root, video);
             }
-            s.push(root.to_string());
-            l.set_subtitle(ss(s.join("  ·  ")));
-            l.set_empty_text(ss("Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."));
-            set_tracks(app, t);
         }
         k if k.starts_with("smart:") => {
             let Some((name, query)) = k[6..].parse::<usize>().ok().and_then(|i| app.s.smart_lists.get(i).cloned()) else {
