@@ -64,7 +64,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
     props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has);
     props!(v, Prefs:
         compact_ui, track_grid, grid_size, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
-        video_ui, video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
+        video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
         deband, tone_mapping, ambient, video_tint, tint_rate, seek_preview, wheel_action, dblclick_seek, video_autonext,
         volume_boost, night_mode, downmix, ytdl_format, ytdl, cache_mb, sub_font, sub_color, sub_style,
         sub_pos, sub_bold, sub_override, sub_auto,
@@ -75,7 +75,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         group_albums, keys, limiter, media_keys, global_hotkeys, mono, mpv_info, mpv_ok, online_lyrics, preamp,
         lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
-        soft_pause, speed, sub_lang, sub_size, swap, version, video_fit, video_folders, video_resume,
+        soft_pause, speed, sub_lang, sub_size, swap, version, video_folders, video_resume,
         viz_bands, viz_sensitivity, wave_style, width,
     );
     props!(v, Prefs:

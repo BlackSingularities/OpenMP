@@ -1,5 +1,5 @@
 //! Wideo zszyte z resztą programu: mpv rysuje klatki do tekstury OpenGL w rozmiarze powierzchni,
-//! na której obraz jest akurat pokazywany – widok filmu (kinowy albo szeroki), miejsce okładki
+//! na której obraz jest akurat pokazywany – widok filmu (okno albo pełny ekran), miejsce okładki
 //! w oknie muzyki albo miniodtwarzacz. Wyjście z widoku filmu nie przerywa odtwarzania.
 //! Z tej samej tekstury powstaje poświata (obraz zmniejszony do kilkudziesięciu pikseli) i barwa
 //! przewodnia, a drugi, niewidoczny odtwarzacz daje podgląd klatek nad paskiem przewijania.
@@ -507,9 +507,6 @@ pub fn enter_video(app: &mut App) {
             if let Some(g) = app.music_geom {
                 crate::win::set_geometry(&ui, g);
             }
-            if app.s.video_fit_window && app.video_size.0 > 0 {
-                crate::win::fit_to(&ui, app.video_size.0 as f64, app.video_size.1 as f64);
-            }
         }
     }
     let v = ui.global::<Video>();
@@ -849,12 +846,7 @@ pub fn on_reconfig(app: &mut App) {
     let mode = ui.global::<Ui>().get_mode();
     if mode == 2 {
         crate::keys::fit_mini(app);
-        return;
     }
-    if !app.s.video_fit_window || ui.window().is_maximized() || ui.global::<Video>().get_fullscreen() || mode != 1 || app.s.video_ui == 1 {
-        return;
-    }
-    crate::win::fit_to(&ui, w as f64, h as f64);
 }
 
 /// Filtry dźwięku mpv: korektor (firequalizer), tryb nocny i przedwzmocnienie.
@@ -907,8 +899,6 @@ pub fn command(app: &mut App, id: &str) {
             leave_video(app);
         }
         "v-mini" => crate::keys::set_mode(app, 2),
-        "v-layout-0" => set_layout(app, 0),
-        "v-layout-1" => set_layout(app, 1),
         "v-rotate" => rotate(app),
         "v-aspect-next" => cycle_aspect(app),
         "v-reset" => reset_view(app),
@@ -939,7 +929,7 @@ pub fn open_panel(app: &mut App, page: i32) {
     }
     let v = ui.global::<Video>();
     v.set_panel_page(page);
-    if app.s.video_ui == 1 && !v.get_fullscreen() {
+    if !v.get_fullscreen() {
         v.set_side(true);
     } else {
         v.set_panel(true);
@@ -947,22 +937,6 @@ pub fn open_panel(app: &mut App, page: i32) {
     if page == 4 {
         stats(app);
     }
-}
-
-/// Kinowy (obraz na całe okno) albo szeroki (obraz z panelami) wygląd widoku filmu.
-pub fn set_layout(app: &mut App, l: i32) {
-    app.s.video_ui = l.clamp(0, 1);
-    if let Some(ui) = app.ui() {
-        ui.global::<Prefs>().set_video_ui(app.s.video_ui);
-        let v = ui.global::<Video>();
-        v.set_panel(false);
-        v.set_controls(true);
-        // Szeroki widok zaczyna od listy, kinowy – od dźwięku.
-        v.set_panel_page(if app.s.video_ui == 1 { 5 } else { 0 });
-    }
-    app.last_mouse = Instant::now();
-    app.osd(if app.s.video_ui == 1 { "Widok szeroki" } else { "Widok kinowy" });
-    app.s.save();
 }
 
 pub fn toggle_ontop(app: &mut App) {
@@ -1337,7 +1311,7 @@ pub fn tick(app: &mut App) {
     }
     let v = ui.global::<Video>();
     let fs = v.get_fullscreen();
-    let wide = app.s.video_ui == 1 && !fs;
+    let wide = !fs;
     let idle = app.last_mouse.elapsed().as_millis() as i32 > app.s.autohide_ms;
     let may_hide = fs || app.s.autohide_window;
     let show = wide || !idle || !may_hide || app.hover_controls || v.get_panel() || !v.get_playing();
@@ -1417,7 +1391,7 @@ fn slow_tick(app: &mut App) {
         }
     }
     skip_tick(app, pos, dur);
-    let wide = app.s.video_ui == 1 && !v.get_fullscreen() && ui.global::<Ui>().get_mode() == 1;
+    let wide = !v.get_fullscreen() && ui.global::<Ui>().get_mode() == 1;
     let visible = v.get_panel_page() == 4 && (v.get_panel() || (wide && v.get_side()));
     if visible {
         stats(app);

@@ -107,7 +107,6 @@ pub fn publish(app: &mut App) {
     p.set_track_grid(s.track_grid);
     p.set_grid_size(s.grid_size);
     publish_theme(app);
-    p.set_video_ui(s.video_ui);
     p.set_video_leave(s.video_leave);
     p.set_video_open_view(s.video_open_view);
     p.set_autohide_window(s.autohide_window);
@@ -116,7 +115,7 @@ pub fn publish(app: &mut App) {
     p.set_interpolation(s.interpolation);
     p.set_deband(s.deband);
     ui.global::<Video>().set_deband(s.deband);
-    ui.global::<Video>().set_panel_page(if s.video_ui == 1 { 5 } else { 0 });
+    ui.global::<Video>().set_panel_page(5);
     p.set_tone_mapping(s.tone_mapping);
     p.set_ambient(s.ambient);
     p.set_video_tint(s.video_tint);
@@ -139,7 +138,6 @@ pub fn publish(app: &mut App) {
     p.set_sub_override(s.sub_override);
     p.set_sub_auto(s.sub_auto);
     p.set_autohide_ms(s.autohide_ms);
-    p.set_video_fit(s.video_fit_window);
     p.set_sub_size(s.sub_size);
     p.set_sub_lang(ss(&s.sub_lang));
     p.set_lb_token(ss(&s.listenbrainz_token));
@@ -392,7 +390,6 @@ pub fn changed(app: &mut App, key: &str) {
         "backdrop" => app.s.backdrop = p.get_backdrop(),
         "backdrop-opacity" => app.s.backdrop_opacity = p.get_backdrop_opacity(),
         "backdrop-motion" => app.s.backdrop_motion = p.get_backdrop_motion(),
-        "video-ui" => crate::video::set_layout(app, p.get_video_ui()),
         "video-leave" => app.s.video_leave = p.get_video_leave(),
         "video-open-view" => app.s.video_open_view = p.get_video_open_view(),
         "autohide-window" => app.s.autohide_window = p.get_autohide_window(),
@@ -452,7 +449,6 @@ pub fn changed(app: &mut App, key: &str) {
         }
         "video-resume" => app.s.video_resume = p.get_video_resume(),
         "autohide-ms" => app.s.autohide_ms = p.get_autohide_ms(),
-        "video-fit" => app.s.video_fit_window = p.get_video_fit(),
         "sub-size" => {
             app.s.sub_size = p.get_sub_size();
             apply_mpv(app, key);

@@ -244,7 +244,6 @@ export global Video {
     callback set-zoom(float);
     callback rotate-view();
     callback reset-view();
-    callback set-layout(int);
     // Menu filmu w punkcie okna (x, y); above – nad punktem (przyciski na dolnym pasku).
     callback menu(length, length, bool);
     callback mini();
@@ -341,7 +340,6 @@ export global Prefs {
         }
     }
     // Wideo – wygląd i obraz
-    in-out property <int> video-ui;
     in-out property <int> video-leave;
     in-out property <bool> video-open-view: true;
     in-out property <bool> autohide-window: true;
@@ -396,7 +394,6 @@ export global Prefs {
     in-out property <float> seek-step: 5;
     in-out property <bool> video-resume: true;
     in-out property <int> autohide-ms: 2200;
-    in-out property <bool> video-fit: true;
     in-out property <int> sub-size: 46;
     in-out property <string> sub-lang;
     in-out property <string> lb-token;

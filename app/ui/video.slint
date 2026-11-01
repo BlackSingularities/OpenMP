@@ -1,6 +1,6 @@
-// Widok filmu w dwóch odsłonach: kinowej (obraz na całe okno, sterowanie chowa się po chwili)
-// i szerokiej (obraz z panelem listy i ustawień, sterowanie jak w oknie muzyki). Na pełnym ekranie
-// zawsze kinowy z autoukrywaniem. Ten sam panel: lista, dźwięk, napisy, obraz, rozdziały, szczegóły.
+// Widok filmu: w oknie szeroki (obraz z panelem listy i ustawień, sterowanie jak w oknie muzyki),
+// na pełnym ekranie sam obraz z chowanym sterowaniem. Ten sam panel: lista, dźwięk, napisy, obraz,
+// rozdziały, szczegóły.
 // Miniodtwarzacz: pasek muzyki albo obraz w obrazie z przyciskami po najechaniu.
 
 import { ListView } from "std-widgets.slint";
@@ -826,8 +826,8 @@ component VideoSeek inherits SeekBar {
     hover(f) => { Video.hover-seek(f); }
 }
 
-// Kinowy: obraz na całe okno, pasek tytułu u góry i pigułka sterowania u dołu – chowają się.
-component CinemaView inherits Rectangle {
+// Pełny ekran: obraz na cały ekran, pasek tytułu u góry i sterowanie u dołu – chowają się.
+component FullView inherits Rectangle {
     background: #000000;
     property <bool> show: Video.controls || !Video.playing || Video.panel;
     property <color> c1: Theme.on-video;
@@ -890,15 +890,6 @@ component CinemaView inherits Rectangle {
                     font-size: Theme.fs-xs;
                     overflow: elide;
                 }
-            }
-            if !Video.fullscreen: IconBtn {
-                y: 4px;
-                icon: Icons.playlist;
-                on-dark: true;
-                icon-color: root.c2;
-                hover-color: #ffffff;
-                tip: "Widok szeroki (W)";
-                clicked => { Video.set-layout(1); }
             }
             IconBtn {
                 y: 4px;
@@ -1344,12 +1335,6 @@ component WideView inherits Rectangle {
                 }
                 IconBtn {
                     y: (parent.height - self.height) / 2;
-                    icon: Icons.movie;
-                    tip: "Widok kinowy (W)";
-                    clicked => { Video.set-layout(0); }
-                }
-                IconBtn {
-                    y: (parent.height - self.height) / 2;
                     icon: Icons.pip;
                     tip: "Obraz w obrazie (P)";
                     clicked => { Video.mini(); }
@@ -1610,8 +1595,9 @@ component WideView inherits Rectangle {
 
 export component VideoView inherits Rectangle {
     background: #000000;
-    if Prefs.video-ui == 1 && !Video.fullscreen: WideView { }
-    if Prefs.video-ui != 1 || Video.fullscreen: CinemaView { }
+    // W oknie zawsze widok szeroki (obraz z panelami), na pełnym ekranie – sam obraz.
+    if !Video.fullscreen: WideView { }
+    if Video.fullscreen: FullView { }
 }
 
 export component MiniView inherits Rectangle {

@@ -91,14 +91,11 @@ pub struct Settings {
     pub hwdec: bool,
     pub video_resume: bool,
     pub autohide_ms: i32,
-    pub video_fit_window: bool,
     pub sub_size: i32,
     pub sub_lang: String,
     pub audio_lang: String,
     pub screenshot_dir: String,
     pub deinterlace: bool,
-    /// Wygląd w trakcie filmu: 0 – kinowy (obraz na całe okno), 1 – szeroki (obraz z panelami).
-    pub video_ui: i32,
     /// Wyjście z widoku filmu: 0 – obraz dalej gra w oknie programu, 1 – tylko dźwięk, 2 – pauza.
     pub video_leave: i32,
     /// Nowy film otwiera widok filmu (inaczej gra w miejscu okładki).
@@ -237,13 +234,11 @@ impl Default for Settings {
             hwdec: true,
             video_resume: true,
             autohide_ms: 2200,
-            video_fit_window: true,
             sub_size: 46,
             sub_lang: "pol,pl,eng,en".into(),
             audio_lang: "pol,pl,eng,en".into(),
             screenshot_dir: pictures,
             deinterlace: false,
-            video_ui: 0,
             video_leave: 0,
             video_open_view: true,
             autohide_window: true,

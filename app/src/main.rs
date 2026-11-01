@@ -632,7 +632,6 @@ fn wire(ui: &AppWindow) {
     v.on_next_cancel(|| later(|app| app.next_cancelled = true));
     v.on_rotate_view(|| later(video::rotate));
     v.on_reset_view(|| later(video::reset_view));
-    v.on_set_layout(|l| later(move |app| video::set_layout(app, l)));
     v.on_menu(|x, y, above| later(move |app| crate::menu::video_menu(app, x, y, above)));
     v.on_mini(|| later(|app| keys::set_mode(app, 2)));
     v.on_panel_page_changed(|p| later(move |app| {

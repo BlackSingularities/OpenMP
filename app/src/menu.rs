@@ -153,15 +153,11 @@ pub fn video_menu(app: &mut App, x: f32, y: f32, above: bool) {
     let ontop = app.ui().map(|u| u.global::<Video>().get_ontop()).unwrap_or(false);
     let aspect = app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0);
     let playing = crate::player::is_playing(app);
-    let wide = app.s.video_ui == 1;
     let mut items = vec![
         item("v-pause", if playing { "Pauza" } else { "Odtwórz" }, if playing { "pause" } else { "play" }, "Spacja"),
         check("v-full", "Pełny ekran", fs, "F"),
         check("v-ontop", "Zawsze na wierzchu", ontop, "T"),
         item("v-mini", "Obraz w obrazie", "pip", "P"),
-        sep(),
-        check("v-layout-0", "Widok kinowy", !wide, "W"),
-        check("v-layout-1", "Widok szeroki (z panelami)", wide, "W"),
         sep(),
         item("v-audio", "Ścieżki dźwiękowe i prędkość…", "audiotrack", "A"),
         item("v-subs", "Napisy…", "subtitles", "V"),

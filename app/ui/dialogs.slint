@@ -1040,18 +1040,6 @@ export component SettingsDialog inherits Dialog {
                 SectionTitle {
                     text: "WIDOK FILMU";
                 }
-                SettingRow {
-                    title: "Wygląd w trakcie filmu";
-                    hint: Prefs.video-ui == 0 ? "Kinowy: obraz na całe okno, sterowanie chowa się po chwili" : "Szeroki: obraz z panelem listy i ustawień, sterowanie jak w oknie muzyki";
-                    Segmented {
-                        options: ["Kinowy", "Szeroki"];
-                        selected: Prefs.video-ui;
-                        changed(i) => {
-                            Prefs.video-ui = i;
-                            Prefs.changed("video-ui");
-                        }
-                    }
-                }
                 SettingSwitch {
                     title: "Otwieraj filmy w widoku filmu";
                     hint: "Wyłączone – film zaczyna grać w miejscu okładki, a widok filmu otwiera się kliknięciem";
@@ -1091,12 +1079,6 @@ export component SettingsDialog inherits Dialog {
                             Prefs.changed("autohide-ms");
                         }
                     }
-                }
-                SettingSwitch {
-                    title: "Dopasuj okno do filmu";
-                    hint: "W widoku kinowym okno przyjmuje proporcje obrazu";
-                    checked <=> Prefs.video-fit;
-                    toggled => { Prefs.changed("video-fit"); }
                 }
                 SettingRow {
                     title: "Poświata z obrazu";

@@ -102,17 +102,6 @@ pub fn monitor(ui: &AppWindow) -> Option<(i32, i32, u32, u32)> {
         .flatten()
 }
 
-/// Okno w proporcjach filmu, wyśrodkowane, najwyżej 80% ekranu.
-pub fn fit_to(ui: &AppWindow, w: f64, h: f64) {
-    let Some((mx, my, mw, mh)) = monitor(ui) else { return };
-    let (maxw, maxh) = (mw as f64 * 0.8, mh as f64 * 0.8);
-    let scale = (maxw / w).min(maxh / h).min(ui.window().scale_factor() as f64);
-    let (nw, nh) = ((w * scale).round().max(480.0), (h * scale).round().max(270.0));
-    let x = mx + ((mw as f64 - nw) / 2.0) as i32;
-    let y = my + ((mh as f64 - nh) / 2.0) as i32;
-    set_geometry(ui, (x, y, nw as u32, nh as u32));
-}
-
 /// Zaokrąglone rogi i cień okna bez ramki (Windows 11).
 pub fn round_corners(ui: &AppWindow) {
     let h = hwnd(ui);
