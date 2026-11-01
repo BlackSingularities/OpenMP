@@ -411,14 +411,13 @@ component HeroVideo inherits Rectangle {
     hta := TouchArea {
         mouse-cursor: pointer;
         clicked => { Video.open-view(); }
-        double-clicked => { Video.toggle-fullscreen(); }
         scroll-event(e) => {
             Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
             accept
         }
     }
     Rectangle {
-        opacity: hta.has-hover || exp.hovered || fsb.hovered ? 1 : 0;
+        opacity: hta.has-hover || fsb.hovered ? 1 : 0;
         visible: self.opacity > 0.01;
         animate opacity { duration: 160ms; }
         border-radius: root.radius;
@@ -429,16 +428,6 @@ component HeroVideo inherits Rectangle {
             padding-right: 8px;
             alignment: end;
             spacing: 2px;
-            exp := IconBtn {
-                icon: Icons.expand;
-                size: 30px;
-                icon-size: 16px;
-                on-dark: true;
-                icon-color: #ffffffe0;
-                hover-color: #ffffff;
-                tip: "Widok filmu";
-                clicked => { Video.open-view(); }
-            }
             fsb := IconBtn {
                 icon: Icons.fullscreen;
                 size: 30px;
@@ -446,14 +435,14 @@ component HeroVideo inherits Rectangle {
                 on-dark: true;
                 icon-color: #ffffffe0;
                 hover-color: #ffffff;
-                tip: "Pełny ekran";
+                tip: "Pełny ekran filmu (F)";
                 clicked => { Video.toggle-fullscreen(); }
             }
         }
     }
 }
 
-// Okładka i opis obok siebie – górna część pełnego okna i cały widok pomniejszony.
+// Okładka (albo obraz filmu) i opis obok siebie – górna część okna, w oknie i na pełnym ekranie.
 // Tryb zaznaczenia: nic nie gra – szczegóły zaznaczonego pliku, kilku plików albo grupy,
 // w tym samym układzie co „Teraz odtwarzane”: nagłówek, tytuł, podtytuł i wiersze z ikonami.
 component SelInfo inherits VerticalLayout {
@@ -831,11 +820,11 @@ export component BottomBar inherits Rectangle {
                 IconBtn {
                     tip-above: true;
                     y: (parent.height - self.height) / 2;
-                    icon: Prefs.compact ? Icons.expand : Icons.compact;
+                    icon: Ui.fullscreen ? Icons.fullscreen-exit : Icons.fullscreen;
                     size: 34px;
                     icon-size: 17px;
-                    tip: Prefs.compact ? "Pełny widok (Ctrl+K)" : "Widok pomniejszony (Ctrl+K)";
-                    clicked => { Ui.toggle-compact(); }
+                    tip: Ui.fullscreen ? "Wyjdź z pełnego ekranu (F11)" : "Pełny ekran (F11)";
+                    clicked => { Ui.toggle-full(); }
                 }
             }
         }

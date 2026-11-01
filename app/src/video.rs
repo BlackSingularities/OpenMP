@@ -491,49 +491,57 @@ pub fn refresh_active(app: &mut App) {
     }
 }
 
-/// Wejście do widoku filmu (tryb 1).
+/// Wejście do widoku filmu (tryb 1) – pełny ekran z samym obrazem.
 pub fn enter_video(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     let u = ui.global::<Ui>();
+    let main_fs = u.get_fullscreen();
     let from = u.get_mode();
     if from != 1 {
-        if from == 0 && !ui.window().is_maximized() {
+        if from == 0 && !main_fs && !ui.window().is_maximized() {
             app.music_geom = Some(crate::win::geometry(&ui));
         }
         u.set_mode(1);
         crate::win::set_ontop(app, ui.global::<Video>().get_ontop());
-        // Z miniodtwarzacza – okno wraca do zwykłego rozmiaru.
-        if from == 2 {
-            if let Some(g) = app.music_geom {
-                crate::win::set_geometry(&ui, g);
-            }
-        }
     }
     let v = ui.global::<Video>();
+    if !v.get_fullscreen() {
+        if !main_fs {
+            crate::win::fullscreen_frame(&ui, true);
+            ui.window().set_fullscreen(true);
+        }
+        v.set_fullscreen(true);
+    }
     v.set_controls(true);
     v.set_error(ss(""));
     app.last_mouse = Instant::now();
     ui.window().request_redraw();
 }
 
-/// Wyjście z widoku filmu do okna muzyki – bez zatrzymywania odtwarzania.
+/// Wyjście z pełnego ekranu filmu do okna – bez zatrzymywania odtwarzania; film gra dalej
+/// w miejscu okładki, obok opisu. Okno na pełnym ekranie zostaje na pełnym ekranie.
 pub fn leave_video(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     let u = ui.global::<Ui>();
     if u.get_mode() != 1 {
         return;
     }
+    let main_fs = u.get_fullscreen();
     let v = ui.global::<Video>();
     if v.get_fullscreen() {
-        crate::win::fullscreen_frame(&ui, false);
-        ui.window().set_fullscreen(false);
+        if !main_fs {
+            crate::win::fullscreen_frame(&ui, false);
+            ui.window().set_fullscreen(false);
+        }
         v.set_fullscreen(false);
     }
     v.set_panel(false);
     u.set_mode(0);
     crate::win::set_ontop(app, app.s.always_on_top);
-    if let Some(g) = app.music_geom.take() {
-        crate::win::set_geometry(&ui, g);
+    if !main_fs {
+        if let Some(g) = app.music_geom.take() {
+            crate::win::set_geometry(&ui, g);
+        }
     }
 }
 
@@ -604,17 +612,14 @@ pub fn clear(app: &mut App) {
     refresh_active(app);
 }
 
+/// Pełny ekran filmu (sam obraz) – włączenie z okna, wyłączenie z powrotem do okna.
 pub fn toggle_fullscreen(app: &mut App) {
     let Some(ui) = app.ui() else { return };
-    if ui.global::<Ui>().get_mode() != 1 {
+    if ui.global::<Ui>().get_mode() == 1 {
+        leave_video(app);
+    } else {
         open_view(app);
     }
-    let v = ui.global::<Video>();
-    let fs = !v.get_fullscreen();
-    crate::win::fullscreen_frame(&ui, fs);
-    ui.window().set_fullscreen(fs);
-    v.set_fullscreen(fs);
-    app.last_mouse = Instant::now();
 }
 
 /// Plik wczytany: ścieżki, napisy, rozdziały, opis, odświeżenie podglądu.

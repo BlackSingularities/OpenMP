@@ -1,6 +1,6 @@
 [package]
 name = "openmp"
-version = "1.4.1"
+version = "1.5.0"
 description = "OpenMP – odtwarzacz muzyki i wideo dla Windows"
 authors = ["Adam Rędzikowski"]
 edition = "2021"

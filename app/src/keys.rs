@@ -50,11 +50,12 @@ pub fn help() -> Vec<KeyHelp> {
         k("Ctrl + N / Ctrl + W", "Nowa lista / zamknij kartę"),
         k("Ctrl + Tab", "Następna karta listy"),
         k("Ctrl + S", "Zapisz listę jako M3U8"),
-        k("Ctrl + K / Ctrl + M", "Widok kompaktowy / miniodtwarzacz"),
+        k("F11 / Ctrl + M", "Pełny ekran / miniodtwarzacz"),
+        k("Ctrl + B", "Panel nawigacji"),
         k("Ctrl + T", "Zawsze na wierzchu"),
         k("Ctrl + J", "Pokaż bieżący utwór na liście"),
         k("V / Shift + V", "Wideo: przełącz napisy / ścieżkę dźwiękową"),
-        k("F lub F11, dwuklik", "Wideo: pełny ekran"),
+        k("F, dwuklik, kliknięcie obrazu", "Wideo: pełny ekran filmu (Esc – z powrotem do okna)"),
         k("Esc", "Wideo: wyjście z pełnego ekranu; w oknie – do biblioteki (film gra dalej)"),
         k("P", "Wideo: obraz w obrazie (miniodtwarzacz)"),
         k("+ / − / 0", "Wideo: powiększ / pomniejsz / obraz jak w pliku"),
@@ -81,22 +82,25 @@ pub fn open_settings(app: &mut App, page: i32) {
     }
 }
 
-pub fn toggle_compact(app: &mut App) {
+/// Pełny ekran okna – ten sam układ co w oknie (okładka albo obraz filmu z opisem obok,
+/// lista, panel nawigacji). Z pełnego ekranu filmu – powrót do okna.
+pub fn toggle_full(app: &mut App) {
     let Some(ui) = app.ui() else { return };
-    app.s.compact = !app.s.compact;
-    ui.global::<Prefs>().set_compact(app.s.compact);
-    if !ui.window().is_maximized() {
-        let (x, y, w, h) = crate::win::geometry(&ui);
-        let sf = ui.window().scale_factor();
-        if app.s.compact {
-            app.session.window = Some((x, y, w, h));
-            crate::win::set_geometry(&ui, (x, y, w, (380.0 * sf) as u32));
-        } else {
-            let h2 = app.session.window.map(|g| g.3).filter(|&hh| hh as f32 > 420.0 * sf).unwrap_or((760.0 * sf) as u32);
-            crate::win::set_geometry(&ui, (x, y, w, h2));
-        }
+    let u = ui.global::<Ui>();
+    match u.get_mode() {
+        1 => return crate::video::leave_video(app),
+        2 => return,
+        _ => {}
     }
-    app.s.save();
+    let fs = !u.get_fullscreen();
+    if fs && !ui.window().is_maximized() {
+        app.music_geom = Some(crate::win::geometry(&ui));
+    } else if !fs {
+        app.music_geom = None;
+    }
+    crate::win::fullscreen_frame(&ui, fs);
+    ui.window().set_fullscreen(fs);
+    u.set_fullscreen(fs);
 }
 
 pub fn set_mode(app: &mut App, mode: i32) {
@@ -110,7 +114,12 @@ pub fn set_mode(app: &mut App, mode: i32) {
         if cur == 1 {
             crate::video::leave_video(app);
         }
-        if !ui.window().is_maximized() {
+        if u.get_fullscreen() {
+            // Z pełnego ekranu: okno wraca do poprzedniego rozmiaru (zapamiętanego przy wejściu).
+            crate::win::fullscreen_frame(&ui, false);
+            ui.window().set_fullscreen(false);
+            u.set_fullscreen(false);
+        } else if !ui.window().is_maximized() {
             app.music_geom = Some(crate::win::geometry(&ui));
         } else {
             ui.window().set_maximized(false);
@@ -223,7 +232,7 @@ pub fn action(app: &mut App, id: &str) {
             let (x, y) = app.ui().map(|u| (u.window().size().width as f32 / u.window().scale_factor() - 300.0, 360.0)).unwrap_or((200.0, 300.0));
             crate::menu::sleep_menu(app, x, y);
         }
-        "compact" => toggle_compact(app),
+        "full" => toggle_full(app),
         "mini" => set_mode(app, 2),
         "ontop" => {
             app.s.always_on_top = !app.s.always_on_top;
@@ -288,7 +297,6 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
                 crate::lists::close_tab(app, i);
             }
             's' => crate::dialogs::export_list(app),
-            'k' => toggle_compact(app),
             'm' => set_mode(app, 2),
             't' => action(app, "ontop"),
             'q' => quit(app),
@@ -297,6 +305,14 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
             'd' => crate::lists::command(app, "fav"),
             '0'..='5' => crate::lists::command(app, &format!("rate-{lc}")),
             'i' => crate::lists::command(app, "info"),
+            // Panel nawigacji – w oknie i na pełnym ekranie (poza miniodtwarzaczem).
+            'b' if !video => {
+                if let Some(ui) = app.ui().filter(|u| u.global::<Ui>().get_mode() == 0) {
+                    app.s.show_sidebar = !app.s.show_sidebar;
+                    ui.global::<Prefs>().set_show_sidebar(app.s.show_sidebar);
+                    app.dirty = true;
+                }
+            }
             'j' => {
                 crate::lists::scroll_to_current(app);
             }
@@ -355,26 +371,22 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         DEL => crate::lists::remove_selected(app),
         F1 => action(app, "about"),
         F2 => crate::lists::command(app, "tags"),
-        F11 => {
-            if video {
-                crate::video::toggle_fullscreen(app);
-            }
-        }
+        F11 if video => crate::video::toggle_fullscreen(app),
+        F11 => toggle_full(app),
         ESC => {
             if video {
-                let fs = app.ui().map(|u| u.global::<Video>().get_fullscreen()).unwrap_or(false);
-                if fs {
-                    crate::video::toggle_fullscreen(app);
-                } else if app.ui().map(|u| u.global::<Video>().get_panel()).unwrap_or(false) {
+                if app.ui().map(|u| u.global::<Video>().get_panel()).unwrap_or(false) {
                     if let Some(ui) = app.ui() {
                         ui.global::<Video>().set_panel(false);
                     }
                 } else {
-                    // Do biblioteki – film gra dalej w miejscu okładki (albo jak w ustawieniach).
-                    crate::video::leave_view(app);
+                    // Z pełnego ekranu filmu do okna – film gra dalej obok opisu.
+                    crate::video::leave_video(app);
                 }
             } else if app.ui().map(|u| u.global::<Ui>().get_mode() == 2).unwrap_or(false) {
                 set_mode(app, 0);
+            } else if app.ui().map(|u| u.global::<Ui>().get_fullscreen()).unwrap_or(false) {
+                toggle_full(app);
             }
         }
         BACKSPACE if video => crate::video::set(app, "speed", 1.0),
@@ -388,6 +400,8 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
             'e' => action(app, "equalizer"),
             'q' => crate::lists::command(app, "enqueue"),
             'f' if video => crate::video::toggle_fullscreen(app),
+            // Film gra w oknie obok opisu – F otwiera jego pełny ekran.
+            'f' if app.cur.as_ref().is_some_and(|c| c.video) => crate::video::toggle_fullscreen(app),
             't' if video => crate::video::toggle_ontop(app),
             's' if video => crate::video::screenshot(app, !shift),
             'p' if video => set_mode(app, 2),

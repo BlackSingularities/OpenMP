@@ -98,7 +98,9 @@ pub struct Settings {
     pub deinterlace: bool,
     /// Wyjście z widoku filmu: 0 – obraz dalej gra w oknie programu, 1 – tylko dźwięk, 2 – pauza.
     pub video_leave: i32,
-    /// Nowy film otwiera widok filmu (inaczej gra w miejscu okładki).
+    /// Nowy film od razu na pełnym ekranie (inaczej gra w oknie, w miejscu okładki obok opisu).
+    /// Nowy klucz – dawne „otwieraj widok filmu” (domyślnie włączone) nie przechodzi.
+    #[serde(rename = "video_start_fullscreen")]
     pub video_open_view: bool,
     /// Chowanie sterowania także w oknie (na pełnym ekranie zawsze).
     pub autohide_window: bool,
@@ -240,7 +242,7 @@ impl Default for Settings {
             screenshot_dir: pictures,
             deinterlace: false,
             video_leave: 0,
-            video_open_view: true,
+            video_open_view: false,
             autohide_window: true,
             video_quality: 1,
             hwdec_mode: 1,

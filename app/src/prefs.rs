@@ -59,7 +59,6 @@ pub fn publish(app: &mut App) {
     openmp_core::coverart::set_enabled(s.online_covers);
     p.set_group_albums(s.group_albums);
     p.set_remaining(s.show_remaining);
-    p.set_compact(s.compact);
     p.set_ontop(s.always_on_top);
     p.set_show_sidebar(s.show_sidebar);
     p.set_sidebar_width(s.sidebar_width.clamp(180.0, 420.0));

@@ -714,6 +714,8 @@ pub fn tick(app: &mut App) {
 pub fn open_paths(app: &mut App, paths: Vec<String>, play_first: bool, new_list: Option<String>) {
     let list_id = match new_list {
         Some(name) => crate::lists::create_list(app, &name),
+        // Otwarte do grania – na kartę „Kolejka”; samo dodawanie – na oglądaną listę.
+        None if play_first => crate::lists::queue_list(app),
         None => app.active_id(),
     };
     let weak = app.ui.clone();

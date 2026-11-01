@@ -122,7 +122,7 @@ pub fn device_menu(app: &mut App, x: f32, y: f32) {
 }
 
 pub fn main_menu(app: &mut App, x: f32, y: f32) {
-    let compact = app.s.compact;
+    let full = app.ui().map(|u| u.global::<Ui>().get_fullscreen()).unwrap_or(false);
     let items = vec![
         item("open-files", "Otwórz pliki…", "file", "Ctrl+O"),
         item("open-folder", "Otwórz folder…", "folder-open", "Ctrl+Shift+O"),
@@ -134,7 +134,7 @@ pub fn main_menu(app: &mut App, x: f32, y: f32) {
         sep(),
         item("equalizer", "Korektor i efekty", "equalizer", "E"),
         item("sleep", "Wyłącznik czasowy…", "timer", ""),
-        check("compact", "Widok kompaktowy", compact, "Ctrl+K"),
+        check("full", "Pełny ekran", full, "F11"),
         item("mini", "Miniodtwarzacz", "pip", "Ctrl+M"),
         check("ontop", "Zawsze na wierzchu", app.s.always_on_top, "Ctrl+T"),
         sep(),

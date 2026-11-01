@@ -1041,14 +1041,14 @@ export component SettingsDialog inherits Dialog {
                     text: "WIDOK FILMU";
                 }
                 SettingSwitch {
-                    title: "Otwieraj filmy w widoku filmu";
-                    hint: "Wyłączone – film zaczyna grać w miejscu okładki, a widok filmu otwiera się kliknięciem";
+                    title: "Otwieraj filmy na pełnym ekranie";
+                    hint: "Wyłączone – film gra w oknie, w miejscu okładki obok opisu; pełny ekran otwiera kliknięcie obrazu albo F";
                     checked <=> Prefs.video-open-view;
                     toggled => { Prefs.changed("video-open-view"); }
                 }
                 SettingRow {
-                    title: "Wyjście z widoku filmu (Esc)";
-                    hint: "Co dzieje się z filmem, gdy wracasz do biblioteki";
+                    title: "Przycisk „Biblioteka” na filmie";
+                    hint: "Co dzieje się z filmem, gdy wracasz nim do biblioteki (Esc wraca do okna, film gra dalej)";
                     ComboBox {
                         width: 240px;
                         model: ["Obraz gra dalej w oknie", "Gra tylko dźwięk", "Pauza"];

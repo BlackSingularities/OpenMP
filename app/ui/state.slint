@@ -304,7 +304,6 @@ export global Prefs {
     in-out property <bool> online-lyrics: true;
     in-out property <bool> group-albums: true;
     in-out property <bool> remaining;
-    in-out property <bool> compact;
     in-out property <bool> ontop;
     in-out property <bool> show-sidebar: true;
     in-out property <float> sidebar-width: 236;
@@ -444,6 +443,8 @@ export global Prefs {
 export global Ui {
     in-out property <int> mode;
     in-out property <bool> maximized;
+    // Okno na pełnym ekranie (ten sam układ co w oknie; F11).
+    in-out property <bool> fullscreen;
     in-out property <bool> settings;
     in-out property <int> settings-page;
     // Okno ustawień: rozmiar zmieniony przez użytkownika (0 – domyślny) i wyszukiwanie.
@@ -488,7 +489,7 @@ export global Ui {
     callback menu-activated(string);
     callback open-main-menu(length, length);
     callback set-mode(int);
-    callback toggle-compact();
+    callback toggle-full();
     callback url-accepted(string);
     callback tag-save([string]);
     callback tag-pick-cover();

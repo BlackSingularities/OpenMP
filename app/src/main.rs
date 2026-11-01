@@ -391,7 +391,7 @@ fn wire(ui: &AppWindow) {
     // Okno
     let u = ui.global::<Ui>();
     u.on_drag(|| later(|app| {
-        if let Some(ui) = app.ui() {
+        if let Some(ui) = app.ui().filter(|u| !u.window().is_fullscreen()) {
             win::drag(&ui);
         }
     }));
@@ -406,7 +406,7 @@ fn wire(ui: &AppWindow) {
         }
     }));
     u.on_toggle_maximize(|| later(|app| {
-        if let Some(ui) = app.ui() {
+        if let Some(ui) = app.ui().filter(|u| !u.window().is_fullscreen()) {
             let m = !ui.window().is_maximized();
             ui.window().set_maximized(m);
             ui.global::<Ui>().set_maximized(m);
@@ -419,7 +419,7 @@ fn wire(ui: &AppWindow) {
     u.on_device_menu(|x, y| later(move |app| menu::device_menu(app, x, y)));
     u.on_dialog_shown(|shown| later(move |app| dialogwin::shown(app, shown)));
     u.on_set_mode(|m| later(move |app| keys::set_mode(app, m)));
-    u.on_toggle_compact(|| later(keys::toggle_compact));
+    u.on_toggle_full(|| later(keys::toggle_full));
     u.on_url_accepted(|t| later(move |app| {
         if let Some(ui) = app.ui() {
             ui.global::<Ui>().set_url_dialog(false);

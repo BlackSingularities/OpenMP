@@ -392,6 +392,40 @@ pub fn selected_tracks(app: &App) -> Vec<TrackInfo> {
     selected_sorted(app).into_iter().filter_map(|i| list.items.get(i).cloned()).collect()
 }
 
+/// Nazwa karty bieżącego odtwarzania.
+pub const QUEUE_NAME: &str = "Kolejka";
+
+/// Karta „Kolejka” – bieżące odtwarzanie: tu trafia to, co gramy z biblioteki, otwarte pliki
+/// i pozycje dodane do kolejki. Dawne karty „Biblioteka”/„Wideo”/„Domyślna” stają się kolejką.
+pub fn queue_list(app: &mut App) -> u64 {
+    if let Some(l) = app.store.lists.iter().find(|l| l.name == QUEUE_NAME) {
+        return l.id;
+    }
+    if let Some(l) = app.store.lists.iter_mut().find(|l| l.name == "Biblioteka" || l.name == "Domyślna" || l.name == "Wideo") {
+        l.name = QUEUE_NAME.into();
+        app.dirty = true;
+        return l.id;
+    }
+    let id = app.store.next_id();
+    app.store.lists.insert(0, Playlist { id, name: QUEUE_NAME.into(), ..Default::default() });
+    if app.store.lists.len() > 1 {
+        app.store.active += 1;
+    }
+    app.dirty = true;
+    id
+}
+
+/// Kopie utworów na koniec kolejki; zwraca indeksy dodanych pozycji.
+fn append_to_queue(app: &mut App, tracks: Vec<TrackInfo>) -> (u64, Vec<usize>) {
+    let qid = queue_list(app);
+    let li = app.list_index(qid).unwrap();
+    let start = app.store.lists[li].items.len();
+    let n = tracks.len();
+    app.store.lists[li].items.extend(tracks);
+    app.dirty = true;
+    (qid, (start..start + n).collect())
+}
+
 pub fn create_list(app: &mut App, name: &str) -> u64 {
     let id = app.store.next_id();
     app.store.lists.push(Playlist { id, name: name.to_string(), ..Default::default() });
@@ -534,20 +568,31 @@ pub fn command(app: &mut App, id: &str) {
                 crate::player::play(app, list, i, None);
             }
         }
-        "play-next" => {
-            for (n, &i) in sel.iter().enumerate() {
-                app.queue.insert(n, (list, i));
+        "play-next" | "enqueue" => {
+            // Z innej karty utwory są dopisywane do karty „Kolejka”, a kolejność grania
+            // ustawia lista kolejki (app.queue).
+            let in_queue = app.store.lists.get(app.store.active).is_some_and(|l| l.name == QUEUE_NAME);
+            let (qlist, idx) = if in_queue || sel.is_empty() {
+                (list, sel.clone())
+            } else {
+                let tracks = selected_tracks(app);
+                append_to_queue(app, tracks)
+            };
+            if id == "play-next" {
+                for (n, &i) in idx.iter().enumerate() {
+                    app.queue.insert(n, (qlist, i));
+                }
+                app.toast("Zagra jako następne");
+            } else {
+                for &i in &idx {
+                    app.queue.push((qlist, i));
+                }
+                app.toast(format!("W kolejce: {}", app.queue.len()));
             }
-            app.toast("Zagra jako następne");
-            refresh_playing(app);
-            update_queue_panel(app);
-            crate::player::refresh_next(app);
-        }
-        "enqueue" => {
-            for &i in &sel {
-                app.queue.push((list, i));
+            if qlist != list {
+                rebuild(app);
+                crate::libview::rebuild_nav(app);
             }
-            app.toast(format!("W kolejce: {}", app.queue.len()));
             refresh_playing(app);
             update_queue_panel(app);
             crate::player::refresh_next(app);

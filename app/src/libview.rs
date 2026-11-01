@@ -808,8 +808,8 @@ pub fn back(app: &mut App) {
     }
 }
 
-/// Granie z biblioteki: utwory trafiają na kartę „Biblioteka” (filmy – „Wideo”),
-/// żeby działały następny/poprzedni i kolejka.
+/// Granie z biblioteki: utwory (i filmy) trafiają na kartę „Kolejka” – bieżące odtwarzanie,
+/// żeby działały następny/poprzedni.
 pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuffle: bool) {
     if tracks.is_empty() {
         return;
@@ -820,16 +820,7 @@ pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuf
         tracks.shuffle(&mut rand::rng());
         start = 0;
     }
-    let video = tracks[start].video || meta::is_video(std::path::Path::new(&tracks[start].path));
-    let name = if video { "Wideo" } else { "Biblioteka" };
-    let id = match app.store.lists.iter().find(|l| l.name == name) {
-        Some(l) => l.id,
-        None => {
-            let id = app.store.next_id();
-            app.store.lists.push(openmp_core::playlist::Playlist { id, name: name.into(), ..Default::default() });
-            id
-        }
-    };
+    let id = crate::lists::queue_list(app);
     let li = app.list_index(id).unwrap();
     app.store.lists[li].items = tracks;
     app.queue.retain(|q| q.0 != id);

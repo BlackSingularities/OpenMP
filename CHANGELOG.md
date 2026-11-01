@@ -1,5 +1,16 @@
 # Zmiany
 
+## 1.5.0
+
+Porządek w trybach okna – są trzy: okno, pełny ekran i miniodtwarzacz.
+
+- **Okno i pełny ekran mają ten sam układ:** okładka (albo obraz filmu) z opisem obok, lista, panel boczny i dolny pasek. Pełny ekran okna – F11 albo przycisk na dolnym pasku; Esc wraca do okna.
+- **Film gra w oknie obok opisu**, jak muzyka. Kliknięcie obrazu, F albo przycisk otwiera pełny ekran filmu z samym obrazem; Esc wraca do okna, a film gra dalej. Osobny „szeroki widok filmu” zniknął.
+- **Miniodtwarzacz** (Ctrl+M) bez zmian; „Widok kompaktowy” usunięty.
+- **Panel nawigacji** można włączyć zawsze poza miniodtwarzaczem – przyciskiem albo Ctrl+B, także na pełnym ekranie.
+- **Karta „Kolejka” – bieżące odtwarzanie:** granie z biblioteki, otwarte pliki i pozycje „Dodaj do kolejki”/„Odtwórz jako następne” z innych list trafiają na jedną kartę zamiast tworzyć nowe listy. Dawna karta „Biblioteka” staje się „Kolejką”. Nowe listy powstają tylko przy imporcie albo ręcznie.
+- Ustawienie „Otwieraj filmy na pełnym ekranie” (domyślnie wyłączone – film zaczyna grać w oknie).
+
 ## 1.3.0
 
 Wideo przestaje być osobnym trybem – jest częścią programu.

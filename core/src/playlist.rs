@@ -39,7 +39,7 @@ impl Store {
     pub fn load() -> Store {
         let mut s: Store = crate::paths::read_sealed(&file()).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
         if s.lists.is_empty() {
-            s.lists.push(Playlist { id: 1, name: "Domyślna".into(), ..Default::default() });
+            s.lists.push(Playlist { id: 1, name: "Kolejka".into(), ..Default::default() });
         }
         s.active = s.active.min(s.lists.len() - 1);
         s
