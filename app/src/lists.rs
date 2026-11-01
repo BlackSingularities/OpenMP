@@ -78,7 +78,8 @@ pub fn rebuild(app: &mut App) {
     let li = app.store.active.min(app.store.lists.len().saturating_sub(1));
     let list = app.store.lists[li].clone();
     let words = openmp_core::library::words(&app.filter);
-    let grouped = app.s.group_albums && words.is_empty();
+    let grid = app.s.track_grid;
+    let grouped = app.s.group_albums && words.is_empty() && !grid;
     let mut rows: Vec<TrackRow> = Vec::with_capacity(list.items.len() + 16);
     app.row_of.clear();
     let mut last_key: Option<String> = None;
@@ -133,6 +134,12 @@ pub fn rebuild(app: &mut App) {
         app.row_of.insert(i, rows.len());
         let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
         with_rating(&mut r, rating);
+        if grid {
+            if let Some(img) = crate::covers::get(&t.path) {
+                r.h_cover = img;
+                r.h_has_cover = true;
+            }
+        }
         rows.push(r);
         i += 1;
     }
@@ -214,7 +221,7 @@ fn refresh_selection(app: &mut App) {
 pub fn refresh_covers(app: &mut App, key: &str) {
     for r in 0..app.m.rows.row_count() {
         let Some(mut row) = app.m.rows.row_data(r) else { continue };
-        if !row.header {
+        if row.h_has_cover || (!row.header && !app.s.track_grid) {
             continue;
         }
         let li = app.store.active;

@@ -62,6 +62,7 @@ fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, a
     mt.set_scope(t.get_scope());
     mt.set_corners(t.get_corners());
     mt.set_text_scale(t.get_text_scale());
+    mt.set_dense(t.get_dense());
     mw.set_items(ModelRc::new(VecModel::from(items)));
     let sf = ui.window().scale_factor();
     let w = 280.0 * sf;

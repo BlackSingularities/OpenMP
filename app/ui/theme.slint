@@ -15,6 +15,14 @@ export global Theme {
     // 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
     in-out property <int> title-font;
     in-out property <float> glow-k: 1;
+    // Kompaktowy interfejs: niższe wiersze, mniejsze odstępy.
+    in-out property <bool> dense;
+    out property <length> row-h: dense ? 24px : 30px;
+    out property <length> head-h: dense ? 42px : 54px;
+    out property <length> nav-h: dense ? 30px : 40px;
+    out property <length> item-h: dense ? 34px : 44px;
+    out property <length> gap: dense ? 10px : 20px;
+    out property <length> pad: dense ? 14px : 26px;
     // Barwy okładki do gradientu tła.
     in-out property <color> grad-a: tint;
     in-out property <color> grad-b: tint;

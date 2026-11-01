@@ -609,6 +609,37 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
+                SettingSwitch {
+                    title: "Kompaktowy interfejs";
+                    hint: "Niższe wiersze list i panelu nawigacji, mniejsze odstępy i okładka – więcej utworów na ekranie";
+                    checked <=> Prefs.compact-ui;
+                    toggled => { Prefs.changed("compact-ui"); }
+                }
+                SettingSwitch {
+                    title: "Utwory jako okładki";
+                    hint: "Listy i biblioteka jako siatka kafelków z okładkami zamiast wierszy (przełącznik też nad listą)";
+                    checked <=> Prefs.track-grid;
+                    toggled => { Prefs.changed("track-grid"); }
+                }
+                if Prefs.track-grid: SettingRow {
+                    title: "Wielkość okładek";
+                    hint: round(Prefs.grid-size) + " px";
+                    HSlider {
+                        width: 180px;
+                        minimum: 100;
+                        maximum: 280;
+                        step: 10;
+                        value: Prefs.grid-size;
+                        moved(v) => {
+                            Prefs.grid-size = v;
+                            Prefs.changed("grid-size");
+                        }
+                        reset => {
+                            Prefs.grid-size = 160;
+                            Prefs.changed("grid-size");
+                        }
+                    }
+                }
                 SettingRow {
                     title: "Czcionka tytułów";
                     Segmented {

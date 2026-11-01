@@ -89,6 +89,9 @@ pub fn publish(app: &mut App) {
     p.set_corners(s.corners);
     p.set_text_scale(s.text_scale);
     p.set_title_font(s.title_font);
+    p.set_compact_ui(s.compact_ui);
+    p.set_track_grid(s.track_grid);
+    p.set_grid_size(s.grid_size);
     publish_theme(app);
     p.set_video_ui(s.video_ui);
     p.set_video_leave(s.video_leave);
@@ -164,6 +167,7 @@ pub fn publish_theme(app: &App) {
     t.set_text_scale(app.s.text_scale.clamp(0.8, 1.4));
     t.set_title_font(app.s.title_font.clamp(0, 2));
     t.set_glow_k(app.s.glow.clamp(0.0, 2.0));
+    t.set_dense(app.s.compact_ui);
 }
 
 /// Opcje mpv zależne od ustawienia `key` (po zmianie w oknie ustawień).
@@ -327,6 +331,16 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.glow = p.get_glow();
             publish_theme(app);
         }
+        "compact-ui" => {
+            app.s.compact_ui = p.get_compact_ui();
+            publish_theme(app);
+        }
+        "track-grid" => {
+            app.s.track_grid = p.get_track_grid();
+            crate::lists::rebuild(app);
+            crate::libview::refresh_grid_covers(app);
+        }
+        "grid-size" => app.s.grid_size = (p.get_grid_size() / 10.0).round() * 10.0,
         "backdrop" => app.s.backdrop = p.get_backdrop(),
         "backdrop-opacity" => app.s.backdrop_opacity = p.get_backdrop_opacity(),
         "backdrop-motion" => app.s.backdrop_motion = p.get_backdrop_motion(),

@@ -580,6 +580,7 @@ fn set_tracks(app: &mut App, tracks: Vec<TrackInfo>) {
 
 fn rows(app: &mut App) {
     let playing = app.cur.as_ref().filter(|c| c.item != 0).map(|c| c.info.path.to_lowercase());
+    let grid = app.s.track_grid;
     let rows: Vec<TrackRow> = app
         .libv
         .tracks
@@ -589,6 +590,12 @@ fn rows(app: &mut App) {
             let st = app.stats.get(&t.path);
             let mut r = crate::lists::track_row(t, i, (i + 1).to_string(), playing.as_deref() == Some(&t.path.to_lowercase()), app.libv.sel.contains(&i), st.rating >= 5, String::new());
             crate::lists::with_rating(&mut r, st.rating);
+            if grid {
+                if let Some(img) = crate::covers::get(&t.path) {
+                    r.h_cover = img;
+                    r.h_has_cover = true;
+                }
+            }
             if t.video && st.resume > 10.0 {
                 let pct = if t.duration > 0.0 { format!("{}%", (st.resume / t.duration * 100.0).round()) } else { meta::fmt_time(st.resume) };
                 r.info = ss(format!("obejrzano {pct}"));
@@ -611,7 +618,42 @@ pub fn refresh_playing(app: &mut App) {
     }
 }
 
+/// Okładki w kafelkach utworów biblioteki (po włączeniu siatki – bez przebudowy widoku).
+pub fn refresh_grid_covers(app: &mut App) {
+    if !app.s.track_grid {
+        return;
+    }
+    for r in 0..app.m.lib_rows.row_count() {
+        let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
+        if row.h_has_cover {
+            continue;
+        }
+        let Some(p) = app.libv.tracks.get(row.idx as usize).map(|t| t.path.clone()) else { continue };
+        if let Some(img) = crate::covers::get(&p) {
+            row.h_cover = img;
+            row.h_has_cover = true;
+            app.m.lib_rows.set_row_data(r, row);
+        }
+    }
+}
+
 pub fn refresh_covers(app: &mut App, key: &str) {
+    if app.s.track_grid {
+        for r in 0..app.m.lib_rows.row_count() {
+            let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
+            if row.h_has_cover {
+                continue;
+            }
+            let Some(p) = app.libv.tracks.get(row.idx as usize).map(|t| t.path.clone()) else { continue };
+            if crate::covers::key(&p) == key {
+                if let Some(img) = crate::covers::get(&p) {
+                    row.h_cover = img;
+                    row.h_has_cover = true;
+                    app.m.lib_rows.set_row_data(r, row);
+                }
+            }
+        }
+    }
     for r in 0..app.m.tiles.row_count() {
         let Some(mut t) = app.m.tiles.row_data(r) else { continue };
         if t.has_cover {

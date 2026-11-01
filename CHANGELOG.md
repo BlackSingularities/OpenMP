@@ -18,6 +18,8 @@ Wideo przestaje być osobnym trybem – jest częścią programu.
 - **Kolor przewodni wszędzie:** do wyboru zasięg – same akcenty, także ikony, gałki i znaczniki (zamiast bieli) albo cały interfejs z tłami i tytułami. Własny kolor szesnastkowo i więcej gotowych barw.
 - **Tło z okładki:** rozmyta okładka albo gradient jej barw jako subtelna nakładka pod całym oknem, z regulowanym kryciem i opcjonalnym powolnym ruchem.
 - Wygląd: siła poświaty, zaokrąglenia, wielkość tekstu (90–125%), czcionka tytułów (szeryfowa, bezszeryfowa, techniczna).
+- **Utwory jako okładki:** listy odtwarzania i biblioteka jako siatka kafelków z okładkami (grający utwór podświetlony, ulubione, kolejka, odtwarzanie z kafelka), wielkość z suwaka nad listą albo Ctrl+kółkiem.
+- **Kompaktowy interfejs:** niższe wiersze list i panelu nawigacji, mniejsze odstępy i okładka – więcej utworów na ekranie.
 - Nowa strona ustawień „Napisy” i rozbudowana strona „Wideo” (widok, obraz, sterowanie, dźwięk filmów, sieć: yt-dlp, jakość, bufor).
 
 ## 1.2.7

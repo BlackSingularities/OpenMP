@@ -1,6 +1,6 @@
 // Lista utworów z nagłówkami albumów – wspólna dla list odtwarzania i biblioteki.
 
-import { ListView } from "std-widgets.slint";
+import { ListView, ScrollView } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, Cover } from "widgets.slint";
@@ -13,6 +13,9 @@ export component TrackList inherits Rectangle {
     in property <int> scroll-gen;
     in property <string> empty-text;
     in property <string> empty-icon: Icons.playlist;
+    // Siatka okładek zamiast wierszy i szerokość kafelka.
+    in property <bool> grid;
+    in property <length> tile: 160px;
     callback clicked(int, bool, bool);
     callback double(int);
     callback menu(int, length, length);
@@ -20,6 +23,7 @@ export component TrackList inherits Rectangle {
     callback header-double(int);
     callback fav(int);
     callback empty-clicked();
+    callback zoom(float);
     changed scroll-gen => {
         lv.content-y = -root.scroll-y;
     }
@@ -47,10 +51,151 @@ export component TrackList inherits Rectangle {
     if root.rows.length == 0: TouchArea {
         double-clicked => { root.empty-clicked(); }
     }
+    // Siatka okładek: kafelek na utwór, wielkość z suwaka. Treść powstaje tylko dla widocznych
+    // kafelków – tysiące utworów nie spowalniają przewijania.
+    if root.grid && root.rows.length > 0: sv := ScrollView {
+        property <int> cols: max(1, floor((self.visible-width - 16px) / root.tile));
+        property <length> cell: (self.visible-width - 16px) / cols;
+        property <length> cell-h: cell + 44px;
+        content-height: ceil(root.rows.length / cols) * cell-h + 16px;
+        for r[i] in root.rows: cellr := Rectangle {
+            x: 8px + mod(i, sv.cols) * sv.cell;
+            y: 8px + floor(i / sv.cols) * sv.cell-h;
+            width: sv.cell;
+            height: sv.cell-h;
+            property <bool> shown: self.y + self.height > -sv.viewport-y - sv.cell-h && self.y < -sv.viewport-y + sv.visible-height + sv.cell-h;
+            if cellr.shown && !r.header: Rectangle {
+                x: 5px;
+                y: 5px;
+                width: parent.width - 10px;
+                height: parent.height - 10px;
+                border-radius: Theme.radius;
+                background: r.selected ? Theme.sel : gta.has-hover ? Theme.hover : transparent;
+                border-width: r.playing ? 1px : 0;
+                border-color: Theme.tint.with-alpha(0.6);
+                Cover {
+                    x: 5px;
+                    y: 5px;
+                    width: parent.width - 10px;
+                    height: self.width;
+                    source: r.h-cover;
+                    has: r.h-has-cover;
+                    fallback: r.video ? Icons.movie : Icons.note;
+                    border-radius: Theme.radius - 2px;
+                    drop-shadow-blur: r.playing ? 18px : 0;
+                    drop-shadow-color: Theme.glow;
+                }
+                if r.playing: Rectangle {
+                    x: 11px;
+                    y: 11px;
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 13px;
+                    background: Theme.tint;
+                    Icon {
+                        icon: Icons.equalizer;
+                        size: 15px;
+                        fill: #ffffff;
+                    }
+                }
+                if !r.playing && r.queued != "": Rectangle {
+                    x: 11px;
+                    y: 11px;
+                    width: 22px;
+                    height: 22px;
+                    border-radius: 11px;
+                    background: Theme.tint;
+                    Text {
+                        text: r.queued;
+                        color: #ffffff;
+                        font-size: 10px;
+                        font-weight: 700;
+                    }
+                }
+                if r.fav || gta.has-hover: Rectangle {
+                    x: parent.width - 36px;
+                    y: 10px;
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 13px;
+                    background: #00000090;
+                    Icon {
+                        icon: r.fav ? Icons.heart : Icons.heart-outline;
+                        size: 14px;
+                        fill: r.fav ? #ff5d7a : #ffffffd0;
+                    }
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.fav(r.idx); }
+                    }
+                }
+                if gta.has-hover: Rectangle {
+                    x: parent.width - self.width - 12px;
+                    y: parent.width - self.height - 12px;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 18px;
+                    background: Theme.tint;
+                    drop-shadow-blur: 10px;
+                    drop-shadow-color: #00000090;
+                    Icon {
+                        icon: Icons.play;
+                        size: 20px;
+                        fill: #ffffff;
+                    }
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.double(r.idx); }
+                    }
+                }
+                Text {
+                    x: 8px;
+                    y: parent.width + 1px;
+                    width: parent.width - 16px;
+                    text: r.title;
+                    color: r.missing ? Theme.text3 : r.playing ? Theme.tint-hi : Theme.text;
+                    font-size: Theme.fs;
+                    font-weight: 600;
+                    overflow: elide;
+                }
+                Text {
+                    x: 8px;
+                    y: parent.width + 18px;
+                    width: parent.width - 16px;
+                    text: r.artist + (r.dur != "" ? "  ·  " + r.dur : "");
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    overflow: elide;
+                }
+            }
+            gta := TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                        root.clicked(r.idx, e.modifiers.control, e.modifiers.shift);
+                    }
+                    if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                        if !r.selected {
+                            root.clicked(r.idx, false, false);
+                        }
+                        root.menu(r.idx, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                    }
+                }
+                double-clicked => { root.double(r.idx); }
+                // Ctrl + kółko – wielkość okładek.
+                scroll-event(e) => {
+                    if e.modifiers.control {
+                        root.zoom(e.delta-y > 0 ? 10 : -10);
+                        return accept;
+                    }
+                    reject
+                }
+            }
+        }
+    }
     lv := ListView {
-        visible: root.rows.length > 0;
+        visible: root.rows.length > 0 && !root.grid;
         for r[i] in root.rows: Rectangle {
-            height: r.header ? 54px : 30px;
+            height: r.header ? Theme.head-h : Theme.row-h;
             if r.header: Rectangle {
                 y: 8px;
                 height: parent.height - 10px;
@@ -62,8 +207,8 @@ export component TrackList inherits Rectangle {
                     spacing: 11px;
                     Cover {
                         y: (parent.height - self.height) / 2;
-                        width: 38px;
-                        height: 38px;
+                        width: Theme.dense ? 28px : 38px;
+                        height: self.width;
                         source: r.h-cover;
                         has: r.h-has-cover;
                         border-radius: 5px;

@@ -44,6 +44,11 @@ pub struct Settings {
     pub text_scale: f32,
     /// Czcionka tytułu: 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
     pub title_font: i32,
+    /// Kompaktowy interfejs: niższe wiersze i mniejsze odstępy.
+    pub compact_ui: bool,
+    /// Utwory jako siatka okładek zamiast listy i szerokość kafelka.
+    pub track_grid: bool,
+    pub grid_size: f32,
     // Dźwięk
     pub volume: f32,
     pub muted: bool,
@@ -181,6 +186,9 @@ impl Default for Settings {
             corners: 1,
             text_scale: 1.0,
             title_font: 0,
+            compact_ui: false,
+            track_grid: false,
+            grid_size: 160.0,
             volume: 0.8,
             muted: false,
             device: None,

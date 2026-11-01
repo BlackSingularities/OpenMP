@@ -92,16 +92,16 @@ export component AppWindow inherits Window {
                         }
                         HorizontalLayout {
                             vertical-stretch: 1;
-                            padding-left: 26px;
-                            padding-right: 14px;
-                            padding-bottom: 10px;
-                            spacing: 16px;
+                            padding-left: Theme.pad;
+                            padding-right: Theme.dense ? 8px : 14px;
+                            padding-bottom: Theme.dense ? 6px : 10px;
+                            spacing: Theme.dense ? 10px : 16px;
                             VerticalLayout {
                                 horizontal-stretch: 1;
-                                spacing: 20px;
+                                spacing: Theme.gap;
                                 Hero {
                                     avail: root.width;
-                                    height: clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                    height: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
                                     small: self.height < 220px;
                                 }
                                 if Lib.view == 0: PlaylistView {
