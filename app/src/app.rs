@@ -159,6 +159,8 @@ pub struct App {
     pub osd_until: Option<Instant>,
     pub last_mouse: Instant,
     pub hover_controls: bool,
+    /// Kursor na pasku przewijania filmu albo trwa przeciąganie.
+    pub seek_hover: bool,
     /// Odliczanie do następnego odcinka anulowane dla bieżącego filmu.
     pub next_cancelled: bool,
     pub ab: (Option<f64>, Option<f64>),

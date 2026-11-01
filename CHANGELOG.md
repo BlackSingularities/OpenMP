@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.7.1
+
+- Sterowanie filmu nie chowa się, gdy kursor jest na pasku przewijania albo trwa wybieranie momentu (także przy przeciąganiu poza pasek).
+
 ## 1.7.0
 
 - **Ustawienia uporządkowane**: wspólne dla muzyki i filmów w „Odtwarzaniu”, muzyka w „Dźwięku”, wszystko o filmach w „Wideo” – każda strona podzielona na sekcje.

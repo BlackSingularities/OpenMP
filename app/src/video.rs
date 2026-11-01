@@ -1260,6 +1260,8 @@ pub fn frame_step(app: &mut App, back: bool) {
 
 /// Kursor nad paskiem przewijania (ułamek długości; ujemny – kursor zjechał).
 pub fn hover_seek(app: &mut App, frac: f32) {
+    // Kursor na pasku przewijania (albo go przeciąga) – sterowanie się nie chowa.
+    app.seek_hover = frac >= 0.0;
     if frac < 0.0 {
         app.preview_want = None;
         return;
@@ -1374,7 +1376,7 @@ pub fn tick(app: &mut App) {
     let wide = !fs;
     let idle = app.last_mouse.elapsed().as_millis() as i32 > app.s.autohide_ms;
     let may_hide = fs || app.s.autohide_window;
-    let show = wide || !idle || !may_hide || app.hover_controls || v.get_panel() || !v.get_playing();
+    let show = wide || !idle || !may_hide || app.hover_controls || app.seek_hover || v.get_panel() || !v.get_playing();
     if v.get_controls() != show {
         v.set_controls(show);
     }

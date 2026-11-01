@@ -181,6 +181,7 @@ fn main() {
         osd_until: None,
         last_mouse: Instant::now(),
         hover_controls: false,
+        seek_hover: false,
         next_cancelled: false,
         ab: (None, None),
         lyrics: Vec::new(),

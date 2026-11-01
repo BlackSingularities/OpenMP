@@ -245,8 +245,9 @@ export component SeekBar inherits Rectangle {
     ta := TouchArea {
         enabled: root.enabled && root.duration > 0;
         mouse-cursor: pointer;
+        // Przeciąganie poza paskiem to nadal wybieranie momentu – koniec dopiero po puszczeniu.
         changed has-hover => {
-            if !self.has-hover {
+            if !self.has-hover && !self.pressed {
                 root.hover(-1);
             }
         }
@@ -259,6 +260,9 @@ export component SeekBar inherits Rectangle {
             }
             if e.kind == PointerEventKind.up && e.button == PointerEventButton.left {
                 root.seek(root.drag-value);
+                if !self.has-hover {
+                    root.hover(-1);
+                }
             }
         }
         moved => {
