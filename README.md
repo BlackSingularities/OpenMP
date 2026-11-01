@@ -41,7 +41,7 @@ Klawisze multimedialne i systemowa nakładka odtwarzania, skojarzenia plików i 
 
 ## Instalacja
 
-Pobierz `OpenMP-Setup-x.y.z.exe` ze strony [redzikowski.com](https://redzikowski.com) i uruchom go. Instalacja dotyczy bieżącego użytkownika i nie wymaga uprawnień administratora. Do wyboru jest też wersja przenośna `OpenMP-x.y.z-portable.zip`.
+Pobierz `OpenMP-Setup-x.y.z.exe` ze strony [redzikowski.com](https://redzikowski.com) i uruchom go. Instalacja dotyczy bieżącego użytkownika i nie wymaga uprawnień administratora.
 
 ## Budowanie
 
@@ -49,7 +49,7 @@ Pobierz `OpenMP-Setup-x.y.z.exe` ze strony [redzikowski.com](https://redzikowski
 cargo build --release -p openmp
 ```
 
-Do odtwarzania wideo obok `OpenMP.exe` musi leżeć `libmpv-2.dll` (np. z [mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake/releases), paczka `mpv-dev-x86_64`). Wydanie powstaje wyłącznie po wypchnięciu tagu `vX.Y.Z`. CI buduje wtedy program, instalator (Inno Setup) i wersję przenośną, liczy sumy SHA-256 i publikuje wydanie z numerem wersji z tagu.
+Do odtwarzania wideo obok `OpenMP.exe` musi leżeć `libmpv-2.dll` (np. z [mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake/releases), paczka `mpv-dev-x86_64`). Wydanie powstaje wyłącznie po wypchnięciu tagu `vX.Y.Z`. CI buduje wtedy program, instalator (Inno Setup), liczy sumy SHA-256 i publikuje wydanie z numerem wersji z tagu.
 
 ## Języki
 

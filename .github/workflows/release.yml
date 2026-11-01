@@ -65,7 +65,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Podpisywanie nie powiodło się" }
           Remove-Item $pfx
 
-      - name: Instalator i wersja przenośna
+      - name: Instalator
         shell: pwsh
         run: |
           $v = "${{ steps.ver.outputs.version }}"
@@ -77,7 +77,6 @@ jobs:
           New-Item -ItemType Directory out | Out-Null
           & $iscc "/DAppVersion=$v" installer/OpenMP.iss
           if ($LASTEXITCODE -ne 0) { throw "Instalator nie powstał" }
-          Compress-Archive -Path dist/OpenMP.exe, dist/libmpv-2.dll -DestinationPath "out/OpenMP-$v-portable.zip"
           Get-FileHash out/* -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content out/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
@@ -98,5 +97,5 @@ jobs:
             $m = [regex]::Match($text, "(?ms)^## \[?$([regex]::Escape($v))\]?[^\n]*\n(.*?)(?=^## |\z)")
             if ($m.Success) { $notes = $m.Groups[1].Value.Trim() }
           }
-          $notes += "`n`n**OpenMP-Setup-$v.exe** – instalator dla bieżącego użytkownika (bez uprawnień administratora); kolejne wersje program pobiera sam.`n**OpenMP-$v-portable.zip** – wersja przenośna.`n`nPomysł i wykonanie: Adam Rędzikowski · [redzikowski.com](https://redzikowski.com) · [Postaw kawę](https://buycoffee.to/adamredzikowski)"
+          $notes += "`n`n**OpenMP-Setup-$v.exe** – instalator dla bieżącego użytkownika (bez uprawnień administratora); kolejne wersje program pobiera sam.`n`nPomysł i wykonanie: Adam Rędzikowski · [redzikowski.com](https://redzikowski.com) · [Postaw kawę](https://buycoffee.to/adamredzikowski)"
           gh release create "${{ github.ref_name }}" out/* --title "OpenMP $v" --notes $notes
