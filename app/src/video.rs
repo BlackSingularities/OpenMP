@@ -1453,6 +1453,11 @@ fn slow_tick(app: &mut App) {
         }
     }
     skip_tick(app, pos, dur);
+    // Miejsce w filmie zapisywane co minutę – po zamknięciu bez pauzy (awaria, wyłączenie) nie przepada.
+    if app.resume_at.elapsed() >= Duration::from_secs(60) {
+        app.resume_at = Instant::now();
+        crate::player::save_resume(app);
+    }
     let wide = !v.get_fullscreen() && ui.global::<Ui>().get_mode() == 1;
     let visible = v.get_panel_page() == 4 && (v.get_panel() || (wide && v.get_side()));
     if visible {

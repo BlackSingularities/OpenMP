@@ -347,6 +347,9 @@ pub struct Session {
     pub pos: f64,
     pub window: Option<(i32, i32, u32, u32)>,
     pub maximized: bool,
+    /// Ostatni widok: pozycja panelu nawigacji i ścieżka w głąb biblioteki (folder, serial…).
+    pub nav: String,
+    pub nav_stack: Vec<(String, String, String)>,
 }
 
 impl Session {

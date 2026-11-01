@@ -182,6 +182,7 @@ fn main() {
         last_mouse: Instant::now(),
         hover_controls: false,
         seek_hover: false,
+        resume_at: Instant::now(),
         next_cancelled: false,
         ab: (None, None),
         lyrics: Vec::new(),
@@ -241,6 +242,15 @@ fn main() {
         if let Some(ui) = app.ui() {
             let id = app.active_id();
             ui.global::<Lib>().set_nav_selected(ss(format!("list:{id}")));
+        }
+        // Ten sam widok co przy zamknięciu: lista, folder, serial…
+        let nav = app.session.nav.clone();
+        if !nav.is_empty() && nav != "pod-add" {
+            libview::nav_clicked(app, &nav);
+            if !app.session.nav_stack.is_empty() {
+                app.libv.stack = app.session.nav_stack.clone();
+                libview::show(app);
+            }
         }
         if let Some(m) = app.mpv.clone() {
             app.preview = video::create_preview();

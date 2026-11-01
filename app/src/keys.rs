@@ -188,6 +188,9 @@ pub fn save_all(app: &mut App) {
         } else if let Some(g) = app.music_geom {
             app.session.window = Some(g);
         }
+        let l = ui.global::<Lib>();
+        app.session.nav = l.get_nav_selected().to_string();
+        app.session.nav_stack = if l.get_view() == 1 { app.libv.stack.clone() } else { Vec::new() };
     }
     if let Some(c) = &app.cur {
         app.session.list_id = c.list.unwrap_or(0);

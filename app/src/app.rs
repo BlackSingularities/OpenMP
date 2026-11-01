@@ -161,6 +161,8 @@ pub struct App {
     pub hover_controls: bool,
     /// Kursor na pasku przewijania filmu albo trwa przeciąganie.
     pub seek_hover: bool,
+    /// Ostatni okresowy zapis miejsca w filmie.
+    pub resume_at: std::time::Instant,
     /// Odliczanie do następnego odcinka anulowane dla bieżącego filmu.
     pub next_cancelled: bool,
     pub ab: (Option<f64>, Option<f64>),

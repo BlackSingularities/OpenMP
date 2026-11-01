@@ -554,7 +554,7 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             set_tracks(app, t);
         }
         "history" => {
-            let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.last > 0).map(|(k, s)| (k.clone(), s.last)).collect();
+            let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.last > 0 && s.listened >= 5.0).map(|(k, s)| (k.clone(), s.last)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 300);
             l.set_subtitle(ss(tr!("Recently played")));
             l.set_empty_text(ss(tr!("History is empty.")));
@@ -1071,9 +1071,20 @@ pub fn play_tracks_at(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, s
     }
     let id = crate::lists::queue_list(app);
     let li = app.list_index(id).unwrap();
-    // Dopisane na koniec – to, co już było w kolejce, zostaje.
-    let base = app.store.lists[li].items.len();
-    app.store.lists[li].items.extend(tracks);
+    // Karta „Kolejka” to bieżące odtwarzanie: zastępuje ją to, co teraz gramy (folder, serial,
+    // album), więc „następny” idzie po tym folderze, a stare foldery się nie doklejają.
+    // Zostają tylko pozycje dodane ręcznie „Dodaj do kolejki”, jeszcze nie zagrane – na końcu.
+    let old = std::mem::take(&mut app.store.lists[li].items);
+    let mut items = tracks;
+    for q in app.queue.iter_mut().filter(|q| q.0 == id) {
+        if let Some(t) = old.get(q.1) {
+            items.push(t.clone());
+            q.1 = items.len() - 1;
+        }
+    }
+    app.history.retain(|h| h.0 != id);
+    app.store.lists[li].items = items;
+    let base = 0;
     app.shuffle_len = 0;
     app.dirty = true;
     crate::lists::fix_current(app, id);
@@ -1147,12 +1158,12 @@ pub fn row_clicked(app: &mut App, i: usize, ctrl: bool, shift: bool) {
 }
 
 pub fn row_double(app: &mut App, i: usize) {
-    // Film – do kolejki tylko on, nie cały widok (np. wszystkie filmy z biblioteki).
-    // Na stronie serialu – kolejne odcinki od klikniętego.
-    let show_page = app.libv.stack.last().is_some_and(|g| g.0 == "v-show");
-    if show_page {
-        let t = app.libv.tracks[i.min(app.libv.tracks.len().saturating_sub(1))..].to_vec();
-        play_tracks(app, t, 0, false);
+    // Folder, serial, album – cały jako bieżące odtwarzanie, od klikniętego; „następny” to
+    // kolejny plik / odcinek. Film z przekrojów („Wszystkie filmy”, ostatnie, wyniki) – sam.
+    let in_group = !app.libv.stack.is_empty() || app.libv.kind == "v-folder" || app.libv.kind.starts_with("root:");
+    if in_group && app.libv.search.trim().is_empty() {
+        let t = app.libv.tracks.clone();
+        play_tracks(app, t, i, false);
         return;
     }
     if let Some(v) = app.libv.tracks.get(i).filter(|t| t.video).cloned() {

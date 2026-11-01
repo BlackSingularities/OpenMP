@@ -1,5 +1,12 @@
 # Zmiany
 
+## 1.7.2
+
+- **Kolejka uporządkowana**: karta „Kolejka” to teraz bieżące odtwarzanie – granie z folderu, serialu czy albumu zastępuje jej zawartość (od klikniętego pliku), zamiast doklejać kolejne foldery. „Następny” to kolejny plik z folderu albo kolejny odcinek. Pozycje dodane ręcznie przez „Dodaj do kolejki” (jeszcze niezagrane) zostają i grają w swojej kolejności. Film kliknięty we „Wszystkich filmach”, ostatnio dodanych czy wynikach wyszukiwania gra sam.
+- Program otwiera się na tym samym widoku, na którym go zamknięto – ta sama lista, folder, serial czy album.
+- Miejsce w filmie („Kontynuuj oglądanie”) zapisuje się co minutę w trakcie oglądania, nie tylko przy pauzie i zmianie pliku – nie przepada po awarii czy wyłączeniu komputera.
+- Historia pomija pliki odtwarzane krócej niż 5 sekund.
+
 ## 1.7.1
 
 - Sterowanie filmu nie chowa się, gdy kursor jest na pasku przewijania albo trwa wybieranie momentu (także przy przeciąganiu poza pasek).
