@@ -31,6 +31,25 @@ pub fn hwnd_of(w: &slint::Window) -> isize {
     .unwrap_or(0)
 }
 
+/// Pełny ekran bez ramki Windows 11: obramowanie DWM (1 px) i zaokrąglone rogi wyłączone,
+/// po wyjściu – z powrotem domyślne.
+pub fn fullscreen_frame(ui: &AppWindow, fs: bool) {
+    let h = hwnd(ui);
+    if h == 0 {
+        return;
+    }
+    unsafe {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_BORDER_COLOR, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_DEFAULT, DWMWCP_DONOTROUND};
+        let hw = HWND(h as *mut _);
+        // 0xFFFFFFFE – bez obramowania, 0xFFFFFFFF – kolor domyślny systemu.
+        let color: u32 = if fs { 0xFFFF_FFFE } else { 0xFFFF_FFFF };
+        let _ = DwmSetWindowAttribute(hw, DWMWA_BORDER_COLOR, &color as *const _ as *const _, 4);
+        let pref = if fs { DWMWCP_DONOTROUND } else { DWMWCP_DEFAULT };
+        let _ = DwmSetWindowAttribute(hw, DWMWA_WINDOW_CORNER_PREFERENCE, &pref as *const _ as *const _, std::mem::size_of_val(&pref) as u32);
+    }
+}
+
 pub fn drag(ui: &AppWindow) {
     ui.window().with_winit_window(|w| {
         let _ = w.drag_window();

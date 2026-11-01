@@ -518,6 +518,7 @@ pub fn leave_video(app: &mut App) {
     }
     let v = ui.global::<Video>();
     if v.get_fullscreen() {
+        crate::win::fullscreen_frame(&ui, false);
         ui.window().set_fullscreen(false);
         v.set_fullscreen(false);
     }
@@ -603,6 +604,7 @@ pub fn toggle_fullscreen(app: &mut App) {
     }
     let v = ui.global::<Video>();
     let fs = !v.get_fullscreen();
+    crate::win::fullscreen_frame(&ui, fs);
     ui.window().set_fullscreen(fs);
     v.set_fullscreen(fs);
     app.last_mouse = Instant::now();

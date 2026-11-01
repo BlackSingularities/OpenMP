@@ -167,7 +167,9 @@ export component NowInfo inherits VerticalLayout {
         font-size: Theme.fs;
         wrap: word-wrap;
         overflow: elide;
-        max-height: 3 * 1.4 * Theme.fs;
+        // Stała wysokość – przy zawijaniu wysokość zależałaby od szerokości (pętla układu).
+        height: 3 * 1.4 * Theme.fs;
+        preferred-width: 0px;
     }
     if !Player.idle: Rectangle {
         height: root.small ? 2px : 8px;
