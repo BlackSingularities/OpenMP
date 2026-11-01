@@ -533,11 +533,25 @@ pub fn save_resume(app: &mut App) {
     }
     let st = app.stats.entry(&c.info.path);
     st.resume = if pos > 10.0 && (dur <= 0.0 || pos < dur - 15.0) { pos } else { 0.0 };
+    // Film obejrzany prawie do końca.
+    if c.video && dur > 0.0 && pos >= dur * 0.9 {
+        st.watched = true;
+    }
     app.dirty = true;
 }
 
 /// Zegar stanu (co klatkę): pozycja, zmiany utworu, końce, zdarzenia mpv.
 pub fn tick(app: &mut App) {
+    // Czas słuchania i oglądania do statystyk.
+    let now = std::time::Instant::now();
+    let dt = now.duration_since(app.listen_at).as_secs_f64();
+    app.listen_at = now;
+    if dt < 2.0 {
+        let playing = app.ui().map(|u| u.global::<Player>().get_playing()).unwrap_or(false);
+        if let Some(c) = app.cur.clone().filter(|c| playing && c.station.is_none() && !meta::is_url(&c.info.path)) {
+            app.stats.listen(&c.info.path, dt, c.video);
+        }
+    }
     // Silnik muzyki
     while let Ok(ev) = app.engine.events.try_recv() {
         match ev {

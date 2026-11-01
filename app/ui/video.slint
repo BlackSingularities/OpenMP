@@ -632,20 +632,64 @@ component VideoPages inherits VerticalLayout {
 }
 
 // Komunikat na środku (głośność, przewinięcie, prędkość).
+// Komunikat u góry obrazu: karta z ikoną w kolorze akcentu i – dla wartości – cienkim paskiem.
 component Osd inherits Rectangle {
-    width: osdt.preferred-width + 30px;
-    height: 38px;
-    border-radius: 19px;
-    background: #000000b8;
-    border-width: 1px;
-    border-color: Theme.tint.with-alpha(0.35);
+    property <bool> level: Video.osd-level >= 0;
+    width: max(lay.preferred-width, 200px);
+    height: lay.preferred-height;
     opacity: Video.osd-visible ? 1 : 0;
-    animate opacity { duration: 180ms; }
-    osdt := Text {
-        text: Video.osd;
-        color: #ffffff;
-        font-size: Theme.fs-md;
-        font-weight: 600;
+    animate opacity { duration: 180ms; easing: ease-out; }
+    card := Rectangle {
+        y: Video.osd-visible ? 0 : -10px;
+        animate y { duration: 220ms; easing: ease-out; }
+        border-radius: 12px;
+        background: @linear-gradient(180deg, #1a1d24f0 0%, #0e1014f0 100%);
+        border-width: 1px;
+        border-color: #ffffff17;
+        drop-shadow-blur: 28px;
+        drop-shadow-offset-y: 6px;
+        drop-shadow-color: #000000a0;
+        lay := HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 20px;
+            padding-top: 9px;
+            padding-bottom: 9px;
+            spacing: 12px;
+            Rectangle {
+                y: (parent.height - self.height) / 2;
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+                background: Theme.tint.with-alpha(0.18);
+                Icon {
+                    icon: Icons.get(Video.osd-icon);
+                    size: 17px;
+                    fill: Theme.tint-hi;
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 6px;
+                Text {
+                    text: Video.osd;
+                    color: #ffffff;
+                    font-size: Theme.fs-md;
+                    font-weight: 600;
+                }
+                if root.level: Rectangle {
+                    height: 3px;
+                    border-radius: 1.5px;
+                    background: #ffffff1f;
+                    Rectangle {
+                        x: 0;
+                        width: parent.width * clamp(Video.osd-level, 0, 1);
+                        border-radius: 1.5px;
+                        background: Theme.tint;
+                        animate width { duration: 120ms; }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -830,12 +874,14 @@ component CinemaView inherits Rectangle {
         x: (parent.width - self.width) / 2;
     }
     // Dolny panel sterowania.
-    bar := Pill {
-        property <length> w: min(root.width - 24px, 860px);
-        x: (root.width - self.width) / 2;
-        y: root.height - self.height - (root.show ? 14px : -10px);
-        width: w;
-        height: 128px;
+    // Pasek na całą szerokość, wtopiony w dół obrazu – bez ramki i zaokrągleń.
+    bar := Rectangle {
+        property <length> w: root.width;
+        x: 0;
+        y: root.height - self.height + (root.show ? 0 : 16px);
+        width: root.width;
+        height: 150px;
+        background: @linear-gradient(180deg, transparent 0%, #000000a0 35%, #000000e0 100%);
         opacity: root.show ? 1 : 0;
         visible: self.opacity > 0.01;
         animate opacity, y { duration: 220ms; easing: ease-out; }
@@ -844,9 +890,9 @@ component CinemaView inherits Rectangle {
         }
         // Ten sam układ co pasek muzyki: taśma, czasy, głośność – odtwarzanie – przełączniki.
         VerticalLayout {
-            padding-left: 20px;
-            padding-right: 20px;
-            padding-top: 12px;
+            padding-left: 24px;
+            padding-right: 24px;
+            padding-top: 34px;
             padding-bottom: 8px;
             spacing: 2px;
             VideoSeek {

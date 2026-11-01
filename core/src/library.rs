@@ -18,6 +18,19 @@ pub struct Stat {
     pub added: u64,
     /// Miejsce, w którym przerwano (wideo, audiobooki).
     pub resume: f64,
+    /// Film obejrzany do końca (albo oznaczony ręcznie).
+    pub watched: bool,
+    /// Łączny czas słuchania / oglądania (s) i pierwsze odtworzenie.
+    pub listened: f64,
+    pub first: u64,
+}
+
+/// Czas odtwarzania jednego dnia (s): muzyka i filmy.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Day {
+    pub music: f64,
+    pub video: f64,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -25,6 +38,10 @@ pub struct Stat {
 pub struct Stats {
     pub map: HashMap<String, Stat>,
     pub recent: Vec<String>,
+    /// Dziennik odtworzeń: (czas, klucz pliku) – najnowsze na końcu.
+    pub log: Vec<(u64, String)>,
+    /// Czas odtwarzania wg dnia (numer dnia od 1970 w czasie lokalnym przybliżonym do UTC).
+    pub days: std::collections::BTreeMap<u32, Day>,
 }
 
 impl Stats {
@@ -45,12 +62,35 @@ impl Stats {
         let s = self.entry(p);
         s.plays += 1;
         s.last = now;
+        if s.first == 0 {
+            s.first = now;
+        }
+        self.log.push((now, key(p)));
+        if self.log.len() > 50_000 {
+            let cut = self.log.len() - 50_000;
+            self.log.drain(..cut);
+        }
+    }
+    /// Dolicza czas słuchania / oglądania pliku i bieżącego dnia.
+    pub fn listen(&mut self, p: &str, secs: f64, video: bool) {
+        self.entry(p).listened += secs;
+        let d = self.days.entry(day(now())).or_default();
+        if video {
+            d.video += secs;
+        } else {
+            d.music += secs;
+        }
     }
     pub fn touch_recent(&mut self, p: &str) {
         self.recent.retain(|r| !r.eq_ignore_ascii_case(p));
         self.recent.insert(0, p.to_string());
         self.recent.truncate(30);
     }
+}
+
+/// Numer dnia (od 1970) – do statystyk dziennych.
+pub fn day(t: u64) -> u32 {
+    (t / 86_400) as u32
 }
 
 pub fn key(p: &str) -> String {
@@ -79,10 +119,10 @@ fn file() -> PathBuf {
 
 impl Library {
     pub fn load() -> Library {
-        std::fs::read(file()).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+        crate::paths::read_sealed(&file()).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
     }
     pub fn save(&self) {
-        crate::paths::write_atomic(&file(), &serde_json::to_vec(self).unwrap_or_default());
+        crate::paths::write_sealed(&file(), &serde_json::to_vec(self).unwrap_or_default());
     }
 }
 

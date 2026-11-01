@@ -19,6 +19,29 @@ export struct TrackRow {
     h-sub: string,
     h-cover: image,
     h-has-cover: bool,
+    // Film: obejrzana część (0..1, -1 – brak) i obejrzany do końca.
+    progress: float,
+    watched: bool,
+}
+
+export struct StatCard {
+    label: string,
+    value: string,
+    sub: string,
+}
+
+export struct StatDay {
+    label: string,
+    music: float,
+    video: float,
+    tip: string,
+}
+
+export struct StatTop {
+    title: string,
+    sub: string,
+    value: string,
+    frac: float,
 }
 
 export struct NavItem {

@@ -37,7 +37,7 @@ fn file() -> PathBuf {
 
 impl Store {
     pub fn load() -> Store {
-        let mut s: Store = std::fs::read(file()).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+        let mut s: Store = crate::paths::read_sealed(&file()).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
         if s.lists.is_empty() {
             s.lists.push(Playlist { id: 1, name: "Domyślna".into(), ..Default::default() });
         }
@@ -46,7 +46,7 @@ impl Store {
     }
 
     pub fn save(&self) {
-        crate::paths::write_atomic(&file(), &serde_json::to_vec(self).unwrap_or_default());
+        crate::paths::write_sealed(&file(), &serde_json::to_vec(self).unwrap_or_default());
     }
 
     pub fn next_id(&self) -> u64 {

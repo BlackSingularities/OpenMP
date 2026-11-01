@@ -64,6 +64,7 @@ pub fn rebuild_nav(app: &mut App) {
         nav("recent", "Ostatnio dodana muzyka", "clock", String::new()),
         nav("history", "Historia", "history", String::new()),
         nav("radio", "Radio internetowe", "radio", String::new()),
+        nav("stats", "Statystyki", "trending", String::new()),
     ];
     if !app.s.smart_lists.is_empty() {
         v.push(section("sec-smart", "INTELIGENTNE LISTY"));
@@ -162,6 +163,11 @@ pub fn nav_clicked(app: &mut App, id: &str) {
     }
     if id == "playlist" {
         l.set_view(0);
+        return;
+    }
+    if id == "stats" {
+        l.set_view(3);
+        crate::statsview::show(app);
         return;
     }
     if id == "radio" {
@@ -601,6 +607,7 @@ fn rows(app: &mut App) {
             let st = app.stats.get(&t.path);
             let mut r = crate::lists::track_row(t, i, (i + 1).to_string(), playing.as_deref() == Some(&t.path.to_lowercase()), app.libv.sel.contains(&i), st.rating >= 5, String::new());
             crate::lists::with_rating(&mut r, st.rating);
+            crate::lists::with_progress(&mut r, t, &st);
             if grid {
                 if let Some(img) = crate::covers::get(&t.path) {
                     r.h_cover = img;
@@ -886,6 +893,7 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::item("l-explorer", "Pokaż w Eksploratorze", "folder-open", ""),
         crate::menu::sep(),
         crate::menu::item("l-resume-reset", "Zapomnij miejsce wznowienia", "history", ""),
+        crate::menu::item("l-watched", "Obejrzany / nieobejrzany (przełącz)", "check", ""),
         crate::menu::item_en("l-save-smart", "Zapisz wyszukiwanie jako inteligentną listę", "playlist", "", !app.libv.search.trim().is_empty()),
     ];
     crate::menu::open(app, MenuCtx::Lib, items, x, y);
@@ -937,6 +945,20 @@ pub fn command(app: &mut App, cmd: &str) {
                 rebuild_nav(app);
                 app.toast(format!("Zapisano inteligentną listę „{q}”"));
             }
+        }
+        "l-watched" => {
+            // Wszystkie zaznaczone obejrzane – odznaczamy, inaczej oznaczamy wszystkie.
+            let all = sel.iter().all(|t| app.stats.get(&t.path).watched);
+            for t in &sel {
+                let st = app.stats.entry(&t.path);
+                st.watched = !all;
+                if !all {
+                    st.resume = 0.0;
+                }
+            }
+            app.dirty = true;
+            show(app);
+            app.toast(if all { "Oznaczono jako nieobejrzane" } else { "Oznaczono jako obejrzane" });
         }
         "l-resume-reset" => {
             for t in &sel {

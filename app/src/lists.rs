@@ -36,6 +36,17 @@ pub fn with_rating(r: &mut TrackRow, rating: u8) {
     }
 }
 
+/// Postęp filmu na kafelku: obejrzana część i znacznik „obejrzany”.
+pub fn with_progress(r: &mut TrackRow, t: &TrackInfo, st: &openmp_core::library::Stat) {
+    if !r.video {
+        return;
+    }
+    r.watched = st.watched;
+    if st.resume > 0.0 && t.duration > 0.0 {
+        r.progress = (st.resume / t.duration).clamp(0.0, 1.0) as f32;
+    }
+}
+
 pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected: bool, fav: bool, queued: String) -> TrackRow {
     let mut info = t.format();
     if t.bitrate > 0 {
@@ -55,6 +66,8 @@ pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected
         fav,
         queued: ss(queued),
         missing: false,
+        progress: -1.0,
+        watched: false,
         video: t.video || meta::is_video(Path::new(&t.path)),
         h_title: ss(""),
         h_sub: ss(""),
@@ -130,10 +143,12 @@ pub fn rebuild(app: &mut App) {
             }
         }
         let num = if grouped && t.track > 0 && last_key.is_some() { format!("{:02}", t.track) } else { (i + 1).to_string() };
-        let rating = app.stats.get(&t.path).rating;
+        let st = app.stats.get(&t.path);
+        let rating = st.rating;
         app.row_of.insert(i, rows.len());
         let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
         with_rating(&mut r, rating);
+        with_progress(&mut r, t, &st);
         if grid {
             if let Some(img) = crate::covers::get(&t.path) {
                 r.h_cover = img;

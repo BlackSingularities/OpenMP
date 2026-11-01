@@ -141,6 +141,8 @@ pub struct App {
     pub libv: LibState,
     pub analyzer: Analyzer,
     pub last_frame: Instant,
+    /// Ostatnie doliczenie czasu słuchania do statystyk.
+    pub listen_at: Instant,
     pub menu: MenuCtx,
     /// Okno menu kontekstowego (tworzone przy pierwszym użyciu).
     pub menu_win: Option<MenuWindow>,
@@ -247,9 +249,14 @@ impl App {
     }
 
     pub fn osd(&mut self, text: impl AsRef<str>) {
+        let t = text.as_ref();
+        let (icon, level) = osd_style(t);
         if let Some(ui) = self.ui() {
-            ui.global::<Video>().set_osd(ss(text));
-            ui.global::<Video>().set_osd_visible(true);
+            let v = ui.global::<Video>();
+            v.set_osd(ss(t));
+            v.set_osd_icon(ss(icon));
+            v.set_osd_level(level);
+            v.set_osd_visible(true);
         }
         self.osd_until = Some(Instant::now() + std::time::Duration::from_millis(1300));
     }
@@ -270,4 +277,52 @@ impl App {
     pub fn is_video_mode(&self) -> bool {
         self.ui().map(|u| u.global::<Ui>().get_mode() == 1).unwrap_or(false)
     }
+}
+
+/// Ikona i wartość paska dla komunikatu na obrazie – z jego treści.
+fn osd_style(t: &str) -> (&'static str, f32) {
+    // Liczba przed „%” albo „×” w tekście.
+    let num = |end: char| -> Option<f32> {
+        let i = t.find(end)?;
+        let head = &t[..i];
+        let start = head.rfind(|c: char| !(c.is_ascii_digit() || c == '.' || c == ',')).map(|k| k + 1).unwrap_or(0);
+        head[start..].replace(',', ".").parse().ok()
+    };
+    if t.starts_with("Głośność") {
+        return ("volume", num('%').map(|v| v / 100.0).unwrap_or(-1.0));
+    }
+    if t.starts_with("Wyciszono") {
+        return ("volume-off", -1.0);
+    }
+    if t.starts_with("Dźwięk włączony") {
+        return ("volume", -1.0);
+    }
+    if t.starts_with("Prędkość") {
+        return ("speed", num('×').map(|v| (v - 0.25) / 3.75).unwrap_or(-1.0));
+    }
+    if t.starts_with("Powiększenie") {
+        return ("expand", num('%').map(|v| (v / 800.0).sqrt()).unwrap_or(-1.0));
+    }
+    let icon = if t.starts_with("Zawsze na wierzchu") || t.starts_with("Zwykłe okno") {
+        "pin"
+    } else if t.starts_with("Napisy") {
+        "subtitles"
+    } else if t.starts_with("Dźwięk") {
+        "audiotrack"
+    } else if t.starts_with("Obrót") || t.starts_with("Proporcje") || t.starts_with("Obraz") {
+        "aspect"
+    } else if t.starts_with("Zrzut") {
+        "camera"
+    } else if t.starts_with("Wznowiono") {
+        "history"
+    } else if t.starts_with('+') || t.starts_with('−') || t.starts_with('-') {
+        "forward"
+    } else if t.starts_with("Poświata") || t.starts_with("Usuwanie pasm") {
+        "tune"
+    } else if t.starts_with("Widok") {
+        "movie"
+    } else {
+        "info"
+    };
+    (icon, -1.0)
 }

@@ -18,6 +18,7 @@ mod player;
 mod prefs;
 mod radio;
 mod sleep;
+mod statsview;
 mod video;
 mod vizpaths;
 mod wave;
@@ -123,6 +124,7 @@ fn main() {
         libv: LibState { kind: "album".into(), ..Default::default() },
         analyzer: Analyzer::new(),
         last_frame: Instant::now(),
+        listen_at: Instant::now(),
         menu: MenuCtx::None,
         rename: RenameCtx::None,
         sleep: None,

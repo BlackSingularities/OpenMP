@@ -1,6 +1,6 @@
 // Stan programu wymieniany z Rustem – globalne obiekty zamiast setek właściwości okna.
 
-import { TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
+import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
 
 // Odtwarzanie, wyświetlacz i analizator.
 export global Player {
@@ -111,6 +111,13 @@ export global Lib {
     in-out property <[NavItem]> nav;
     in-out property <string> nav-selected: "playlist";
     in-out property <int> view;
+    // Statystyki (widok 3).
+    in-out property <[StatCard]> stat-cards;
+    in-out property <[StatDay]> stat-days;
+    in-out property <[StatTop]> stat-tracks;
+    in-out property <[StatTop]> stat-artists;
+    in-out property <[StatTop]> stat-videos;
+    in-out property <[StatTop]> stat-history;
     in-out property <string> title;
     in-out property <string> subtitle;
     in-out property <bool> grid;
@@ -170,6 +177,9 @@ export global Video {
     in-out property <[Opt]> chapter-list;
     in-out property <string> osd;
     in-out property <bool> osd-visible;
+    // Ikona komunikatu (nazwa z Icons.get) i wartość 0..1 do paska (-1 – bez paska).
+    in-out property <string> osd-icon: "info";
+    in-out property <float> osd-level: -1;
     in-out property <bool> panel;
     in-out property <int> panel-page;
     in-out property <float> speed: 1;

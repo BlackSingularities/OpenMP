@@ -1,0 +1,233 @@
+// Widok statystyk: podsumowanie, ostatnie 14 dni, najczęściej odtwarzane i historia.
+
+import { ScrollView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Lib } from "state.slint";
+import { StatTop } from "types.slint";
+
+component Card inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <string> sub;
+    height: 96px;
+    border-radius: Theme.radius;
+    background: Theme.panel2;
+    border-width: 1px;
+    border-color: Theme.line;
+    VerticalLayout {
+        padding: 14px;
+        spacing: 4px;
+        Text {
+            text: root.label;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+        }
+        Text {
+            text: root.value;
+            color: Theme.heading;
+            font-size: 24px * Theme.text-scale;
+            font-weight: 700;
+        }
+        Text {
+            text: root.sub;
+            color: Theme.text2;
+            font-size: Theme.fs-sm;
+            overflow: elide;
+        }
+    }
+}
+
+component TopList inherits VerticalLayout {
+    in property <string> heading;
+    in property <[StatTop]> items;
+    in property <bool> history;
+    spacing: 2px;
+    Text {
+        text: root.heading;
+        color: Theme.text3;
+        font-size: Theme.fs-xs;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    Rectangle {
+        height: 6px;
+    }
+    if root.items.length == 0: Text {
+        text: "Jeszcze nic tu nie ma";
+        color: Theme.text3;
+        font-size: Theme.fs-sm;
+    }
+    for t[i] in root.items: Rectangle {
+        height: 40px;
+        // Pasek udziału w tle wiersza.
+        if !root.history: Rectangle {
+            x: 0;
+            width: parent.width * t.frac;
+            border-radius: 6px;
+            background: Theme.tint.with-alpha(0.09);
+        }
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 8px;
+            spacing: 10px;
+            Text {
+                width: 18px;
+                text: root.history ? (t.frac > 0.5 ? "▶" : "♪") : "" + (i + 1);
+                color: Theme.text3;
+                font-size: Theme.fs-sm;
+                vertical-alignment: center;
+            }
+            VerticalLayout {
+                alignment: center;
+                horizontal-stretch: 1;
+                Text {
+                    text: t.title;
+                    color: Theme.text;
+                    font-size: Theme.fs;
+                    overflow: elide;
+                }
+                if t.sub != "": Text {
+                    text: t.sub;
+                    color: Theme.text3;
+                    font-size: Theme.fs-xs;
+                    overflow: elide;
+                }
+            }
+            Text {
+                text: t.value;
+                color: Theme.text2;
+                font-size: Theme.fs-sm;
+                vertical-alignment: center;
+                horizontal-alignment: right;
+            }
+        }
+    }
+}
+
+export component StatsView inherits Rectangle {
+    background: Theme.pane;
+    ScrollView {
+        VerticalLayout {
+            padding: 24px;
+            spacing: 22px;
+            Text {
+                text: "Statystyki";
+                color: Theme.heading;
+                font-size: Theme.fs-lg * 1.4;
+                font-weight: 700;
+            }
+            HorizontalLayout {
+                spacing: 12px;
+                for c in Lib.stat-cards: Card {
+                    horizontal-stretch: 1;
+                    label: c.label;
+                    value: c.value;
+                    sub: c.sub;
+                }
+            }
+            // Ostatnie 14 dni: słupki muzyki (akcent) i filmów (jaśniejsze) jeden na drugim.
+            VerticalLayout {
+                spacing: 8px;
+                HorizontalLayout {
+                    spacing: 16px;
+                    Text {
+                        text: "OSTATNIE 14 DNI";
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                        font-weight: 700;
+                        letter-spacing: 1px;
+                        horizontal-stretch: 1;
+                    }
+                    Rectangle {
+                        width: 10px;
+                        height: 10px;
+                        y: 3px;
+                        border-radius: 2px;
+                        background: Theme.tint;
+                    }
+                    Text {
+                        text: "muzyka";
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                    }
+                    Rectangle {
+                        width: 10px;
+                        height: 10px;
+                        y: 3px;
+                        border-radius: 2px;
+                        background: Theme.tint.brighter(0.6).with-alpha(0.6);
+                    }
+                    Text {
+                        text: "filmy";
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                    }
+                }
+                HorizontalLayout {
+                    height: 150px;
+                    spacing: 6px;
+                    for d in Lib.stat-days: VerticalLayout {
+                        horizontal-stretch: 1;
+                        spacing: 4px;
+                        Rectangle {
+                            vertical-stretch: 1;
+                            property <length> h: self.height;
+                            Rectangle {
+                                y: parent.height - self.height;
+                                height: max(2px, h * (d.music + d.video));
+                                border-radius: 4px;
+                                background: Theme.line;
+                                clip: true;
+                                Rectangle {
+                                    y: parent.height - self.height;
+                                    height: h * d.music;
+                                    background: Theme.tint;
+                                }
+                                Rectangle {
+                                    y: 0;
+                                    height: h * d.video;
+                                    background: Theme.tint.brighter(0.6).with-alpha(0.6);
+                                }
+                            }
+                        }
+                        Text {
+                            text: d.label;
+                            color: Theme.text3;
+                            font-size: 10px;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+            }
+            HorizontalLayout {
+                spacing: 28px;
+                alignment: stretch;
+                TopList {
+                    horizontal-stretch: 1;
+                    heading: "NAJCZĘŚCIEJ SŁUCHANE";
+                    items: Lib.stat-tracks;
+                }
+                TopList {
+                    horizontal-stretch: 1;
+                    heading: "WYKONAWCY";
+                    items: Lib.stat-artists;
+                }
+            }
+            HorizontalLayout {
+                spacing: 28px;
+                alignment: stretch;
+                TopList {
+                    horizontal-stretch: 1;
+                    heading: "FILMY – CZAS OGLĄDANIA";
+                    items: Lib.stat-videos;
+                }
+                TopList {
+                    horizontal-stretch: 1;
+                    heading: "OSTATNIO ODTWARZANE";
+                    items: Lib.stat-history;
+                    history: true;
+                }
+            }
+        }
+    }
+}

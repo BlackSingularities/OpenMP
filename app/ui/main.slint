@@ -8,12 +8,13 @@ import { Hero, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
 import { Backdrop } from "surface.slint";
+import { StatsView } from "stats.slint";
 import { MenuWindow } from "popup.slint";
 import { DialogWindow } from "dialogwin.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
-import { TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
+import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
 
-export { MenuWindow, DialogWindow, Theme, Player, Lists, Lib, Video, Prefs, Ui, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
+export { MenuWindow, DialogWindow, Theme, Player, Lists, Lib, Video, Prefs, Ui, StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
 
 export component AppWindow inherits Window {
     title: Player.idle ? "OpenMP" : Player.title + " – OpenMP";
@@ -111,6 +112,9 @@ export component AppWindow inherits Window {
                                     vertical-stretch: 1;
                                 }
                                 if Lib.view == 2: RadioView {
+                                    vertical-stretch: 1;
+                                }
+                                if Lib.view == 3: StatsView {
                                     vertical-stretch: 1;
                                 }
                             }
