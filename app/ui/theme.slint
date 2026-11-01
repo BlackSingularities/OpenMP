@@ -70,7 +70,9 @@ export global Theme {
     out property <color> sel-strong: tint.with-alpha(dark ? 0.30 : 0.24);
     // Poświata akcentu za okładką i pod przyciskiem odtwarzania.
     out property <color> glow: tint.with-alpha(min(0.38 * glow-k, 0.9));
-    out property <color> on-accent: #ffffff;
+    // Tekst na wypełnieniu akcentem: ciemny na jasnym akcencie (np. z jasnej okładki), inaczej biały.
+    out property <float> tint-lum: (tint.red * 0.299 + tint.green * 0.587 + tint.blue * 0.114) / 255;
+    out property <color> on-accent: tint-lum > 0.62 ? #121014 : #ffffff;
     out property <color> danger: #ef5a5a;
     out property <color> ok: #3ccf8e;
     out property <color> scrim: #00000099;

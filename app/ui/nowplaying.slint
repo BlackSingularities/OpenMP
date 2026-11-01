@@ -150,7 +150,7 @@ export component NowInfo inherits VerticalLayout {
     in property <bool> small;
     property <bool> movie: Video.active || Video.bg-audio || Player.subs-mode;
     alignment: center;
-    spacing: root.small ? 4px : 7px;
+    spacing: root.small ? 2px : 4px;
     // Stan: pulsująca kropka, „teraz odtwarzane” / „wstrzymane”, rodzaj i miejsce na liście.
     if !root.small: HorizontalLayout {
         spacing: 8px;
@@ -252,7 +252,7 @@ export component NowInfo inherits VerticalLayout {
         }
     }
     if !Player.idle: Rectangle {
-        height: root.small ? 2px : 6px;
+        height: root.small ? 0px : 2px;
     }
     // Parametry techniczne – ikona i wartość, oddzielone odstępem, bez ramek.
     if !Player.idle && Player.badges.length > 0: HorizontalLayout {
@@ -461,7 +461,7 @@ component HeroVideo inherits Rectangle {
 component SelInfo inherits VerticalLayout {
     in property <bool> small;
     alignment: center;
-    spacing: root.small ? 4px : 7px;
+    spacing: root.small ? 2px : 4px;
     if !root.small: Text {
         text: "ZAZNACZENIE";
         color: Theme.text3;
@@ -508,7 +508,7 @@ component SelInfo inherits VerticalLayout {
         }
     }
     Rectangle {
-        height: root.small ? 2px : 6px;
+        height: root.small ? 0px : 2px;
     }
     // Szczegóły w dwóch kolumnach (w wąskim miejscu – w jednej). Gdy brak miejsca w pionie,
     // znikają całe wiersze od dołu – bez przyciętych w pół.
@@ -567,8 +567,8 @@ export component Hero inherits Rectangle {
     HorizontalLayout {
         spacing: root.small ? 18px : 36px;
         padding-left: root.small ? 4px : 8px;
-        padding-top: root.small ? 6px : 4px;
-        padding-bottom: root.small ? 6px : 4px;
+        padding-top: root.small ? 2px : 0px;
+        padding-bottom: root.small ? 2px : 0px;
         // Tryb zaznaczenia: okładka zaznaczonego pliku / grupy.
         if Player.idle && Player.sel-mode: Cover {
             width: self.height;
@@ -651,9 +651,9 @@ export component BottomBar inherits Rectangle {
     VerticalLayout {
         padding-left: 24px;
         padding-right: 24px;
-        padding-top: root.small ? 6px : 12px;
-        padding-bottom: root.small ? 10px : 14px;
-        spacing: 2px;
+        padding-top: root.small ? 4px : 6px;
+        padding-bottom: root.small ? 4px : 6px;
+        spacing: 0px;
         SeekBar {
             wave-height: root.small ? 30px : 40px;
             value: Player.duration > 0 ? Player.pos / Player.duration : 0;
@@ -681,7 +681,7 @@ export component BottomBar inherits Rectangle {
             }
         }
         HorizontalLayout {
-            height: 20px;
+            height: 16px;
             Text {
                 text: Fmt.time(Player.pos);
                 color: Theme.text2;
@@ -708,7 +708,7 @@ export component BottomBar inherits Rectangle {
             }
         }
         HorizontalLayout {
-            height: root.small ? 60px : 72px;
+            height: root.small ? 54px : 64px;
             spacing: 8px;
             // Lewa strona: wyjście dźwięku i głośność.
             HorizontalLayout {

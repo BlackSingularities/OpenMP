@@ -124,20 +124,22 @@ export component TrackList inherits Rectangle {
                 width: parent.width - 10px;
                 height: parent.height - 10px;
                 border-radius: Theme.radius;
-                background: r.selected ? Theme.sel : gta.has-hover ? Theme.hover : transparent;
-                border-width: r.playing ? 1px : 0;
-                border-color: Theme.tint.with-alpha(0.6);
+                background: r.selected ? Theme.sel : transparent;
+                border-width: r.selected ? 1px : 0;
+                border-color: Theme.tint.with-alpha(0.35);
                 Cover {
                     x: 5px;
-                    y: 5px;
+                    y: gta.has-hover ? 1px : 5px;
+                    animate y, drop-shadow-blur, drop-shadow-offset-y { duration: 180ms; easing: ease-out; }
                     width: parent.width - 10px;
                     height: self.width;
                     source: r.h-cover;
                     has: r.h-has-cover;
                     fallback: r.video ? Icons.movie : Icons.note;
                     border-radius: Theme.radius - 2px;
-                    drop-shadow-blur: r.playing ? 18px : 0;
-                    drop-shadow-color: Theme.glow;
+                    drop-shadow-blur: r.playing || gta.has-hover ? 24px : 10px;
+                    drop-shadow-offset-y: r.playing || gta.has-hover ? 8px : 3px;
+                    drop-shadow-color: r.playing || gta.has-hover ? Theme.glow : #00000080;
                 }
                 // Film: obejrzana część u dołu okładki i znacznik obejrzanego.
                 if r.video && r.progress > 0 && !r.watched: Rectangle {
@@ -188,7 +190,7 @@ export component TrackList inherits Rectangle {
                     Icon {
                         icon: Icons.equalizer;
                         size: 15px;
-                        fill: #ffffff;
+                        fill: Theme.on-accent;
                     }
                 }
                 if !r.playing && r.queued != "": Rectangle {
@@ -200,7 +202,7 @@ export component TrackList inherits Rectangle {
                     background: Theme.tint;
                     Text {
                         text: r.queued;
-                        color: #ffffff;
+                        color: Theme.on-accent;
                         font-size: 10px;
                         font-weight: 700;
                     }
@@ -321,9 +323,9 @@ export component TrackList inherits Rectangle {
                         spacing: 1px;
                         Text {
                             text: r.h-title;
-                            color: Theme.text;
-                            font-size: Theme.fs-md;
-                            font-weight: 600;
+                            color: Theme.heading;
+                            font-size: Theme.fs-lg;
+                            font-family: Theme.font-serif;
                             overflow: elide;
                         }
                         Text {

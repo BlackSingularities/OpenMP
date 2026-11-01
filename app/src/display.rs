@@ -256,8 +256,10 @@ pub fn show_track(app: &mut App) {
 
 /// Barwa przewodnia okładki: najczęstszy nasycony odcień, rozjaśniony do czytelności.
 /// Okładka czarno-biała (bez wyraźnych barw) – biel zamiast niebieskiego.
+/// Okładka bez wyraźnych barw (czarno-biała, szara) – szampańskie złoto zamiast bieli,
+/// na której giną przyciski i taśma utworu.
 fn dominant(img: &image::RgbaImage) -> (u8, u8, u8) {
-    palette(img, 1).first().copied().unwrap_or((0xe8, 0xe8, 0xe8))
+    palette(img, 1).first().copied().unwrap_or((0xd6, 0xb9, 0x87))
 }
 
 /// Do `n` najmocniejszych odcieni obrazu (od najczęstszego), rozjaśnionych do czytelności.

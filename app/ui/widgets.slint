@@ -638,4 +638,10 @@ export component Cover inherits Rectangle {
         source: root.source;
         image-fit: ImageFit.cover;
     }
+    // Cienka krawędź światła – okładka odcina się od czerni jak oprawiony druk.
+    Rectangle {
+        border-radius: root.border-radius;
+        border-width: 1px;
+        border-color: Theme.dark ? #ffffff17 : #00000012;
+    }
 }

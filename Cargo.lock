@@ -3710,7 +3710,7 @@ dependencies = [
 
 [[package]]
 name = "openmp"
-version = "1.5.2"
+version = "1.5.3"
 dependencies = [
  "crossbeam-channel",
  "glow 0.16.0",

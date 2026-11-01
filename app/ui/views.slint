@@ -632,9 +632,9 @@ export component LibraryView inherits Rectangle {
                 horizontal-stretch: 1;
                 Text {
                     text: Lib.title;
-                    color: Theme.text;
-                    font-size: Theme.fs-lg;
-                    font-weight: 600;
+                    color: Theme.heading;
+                    font-size: Theme.fs-xl;
+                    font-family: Theme.font-serif;
                     overflow: elide;
                 }
                 if Lib.subtitle != "": Text {
@@ -709,21 +709,25 @@ export component LibraryView inherits Rectangle {
                     width: parent.width - 12px;
                     height: parent.height - 12px;
                     border-radius: Theme.radius;
-                    background: gta.has-hover ? Theme.hover : transparent;
+                    background: transparent;
                     Cover {
                         x: 6px;
-                        y: 6px;
+                        y: gta.has-hover ? 2px : 6px;
                         width: parent.width - 12px;
                         height: self.width;
                         source: t.cover;
                         has: t.has-cover;
+                        drop-shadow-blur: gta.has-hover ? 26px : 10px;
+                        drop-shadow-offset-y: gta.has-hover ? 8px : 3px;
+                        drop-shadow-color: gta.has-hover ? Theme.glow : #00000080;
+                        animate y, drop-shadow-blur, drop-shadow-offset-y { duration: 180ms; easing: ease-out; }
                     }
                     Text {
                         x: 8px;
                         y: parent.width;
                         width: parent.width - 16px;
                         text: t.name;
-                        color: Theme.text;
+                        color: gta.has-hover ? Theme.tint-hi : Theme.text;
                         font-size: Theme.fs;
                         font-weight: 600;
                         overflow: elide;
@@ -850,9 +854,9 @@ export component RadioView inherits Rectangle {
                 alignment: center;
                 Text {
                     text: "Radio internetowe";
-                    color: Theme.text;
-                    font-size: Theme.fs-lg;
-                    font-weight: 600;
+                    color: Theme.heading;
+                    font-size: Theme.fs-xl;
+                    font-family: Theme.font-serif;
                 }
                 Text {
                     text: "Katalog radio-browser.info – dziesiątki tysięcy stacji z całego świata";

@@ -1,5 +1,12 @@
 # Zmiany
 
+## 1.5.3
+
+- **Naprawione okładki:** każdy plik ma własną okładkę – utwory z różnych albumów w jednym folderze nie dostają już okładki pierwszego z nich.
+- **Ciemny motyw przy jasnych okładkach:** okładka bez wyraźnych barw (czarno-biała, szara) daje akcent w kolorze szampańskiego złota zamiast bieli; tekst na przyciskach i znacznikach w kolorze akcentu ciemnieje, gdy akcent jest jasny – „Odtwórz” znów jest czytelne.
+- **Bardziej elegancki wygląd:** szeryfowe nagłówki biblioteki i albumów, okładki z cienką krawędzią światła, kafelki unoszące się z poświatą po najechaniu zamiast szarego tła.
+- **Ciaśniejszy widok odtwarzania:** mniejsze pionowe odstępy w opisie utworu, zaznaczeniu i dolnym pasku.
+
 ## 1.5.2
 
 - **Kafelki i wiersze bez ikonek** serduszka i odtwarzania. Wszędzie (biblioteka, foldery, historia, listy) oznaczony jest tylko grający plik i pliki, które są już na karcie „Kolejka” („W kolejce”).

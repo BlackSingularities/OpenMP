@@ -1,5 +1,6 @@
 //! Miniatury okładek (albumy, foldery filmów) wczytywane w tle i trzymane w pamięci.
-//! Klucz: folder pliku – utwory jednego albumu dzielą okładkę.
+//! Klucz: sam plik – w jednym folderze bywają różne albumy. Te same obrazy (okładka
+//! folderu, wspólna okładka albumu) są dekodowane raz i współdzielone.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -16,12 +17,26 @@ thread_local! {
 
 static WORKER: std::sync::OnceLock<crossbeam_channel::Sender<(String, String)>> = std::sync::OnceLock::new();
 
-/// Klucz okładki: folder (utwory albumu dzielą okładkę), a dla filmu – sam plik (własna miniatura).
+/// Zdekodowane miniatury wg skrótu treści – utwory jednego albumu nie dekodują jej po kilka razy.
+static DECODED: std::sync::Mutex<Option<HashMap<u64, SharedPixelBuffer<Rgba8Pixel>>>> = std::sync::Mutex::new(None);
+
+/// Klucz okładki: sam plik (folder może mieścić utwory z różnych albumów).
 pub fn key(path: &str) -> String {
-    if openmp_core::meta::is_video(Path::new(path)) {
-        return path.to_lowercase();
+    path.to_lowercase()
+}
+
+fn decode_shared(bytes: &[u8]) -> Option<SharedPixelBuffer<Rgba8Pixel>> {
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    std::hash::Hash::hash(bytes, &mut h);
+    let id = std::hash::Hasher::finish(&h);
+    if let Some(b) = DECODED.lock().ok().and_then(|g| g.as_ref().and_then(|m| m.get(&id).cloned())) {
+        return Some(b);
     }
-    Path::new(path).parent().map(|p| p.to_string_lossy().to_lowercase()).unwrap_or_default()
+    let buf = decode(bytes, 200)?;
+    if let Ok(mut g) = DECODED.lock() {
+        g.get_or_insert_with(HashMap::new).insert(id, buf.clone());
+    }
+    Some(buf)
 }
 
 /// Miniatura filmu: obraz obok pliku (nazwa.jpg, nazwa-poster.jpg), zapisana wcześniej klatka
@@ -120,7 +135,7 @@ fn worker() -> &'static crossbeam_channel::Sender<(String, String)> {
                             openmp_core::coverart::fetch(artist, &t.album)
                         })
                     };
-                    let buf = bytes.and_then(|b| decode(&b, 200));
+                    let buf = bytes.and_then(|b| decode_shared(&b));
                     let _ = slint::invoke_from_event_loop(move || {
                         let img = buf.map(Image::from_rgba8);
                         CACHE.with(|c| c.borrow_mut().insert(k.clone(), img));
