@@ -63,6 +63,7 @@ pub fn rebuild_nav(app: &mut App) {
         nav("top", tr!("Most played"), "trending", String::new()),
         nav("recent", tr!("Recently added music"), "clock", String::new()),
         nav("history", tr!("History"), "history", String::new()),
+        nav("dupes", tr!("Duplicates"), "file", String::new()),
         nav("radio", tr!("Internet radio"), "radio", String::new()),
         nav("stats", tr!("Statistics"), "trending", String::new()),
     ];
@@ -270,6 +271,7 @@ fn title_for(kind: &str) -> &'static str {
         "rated" => tr!("Rated"),
         "recent" => tr!("Recently added music"),
         "history" => tr!("History"),
+        "dupes" => tr!("Duplicates"),
         "v-all" => tr!("All videos"),
         "v-folder" => tr!("Video folders"),
         "v-continue" => tr!("Continue watching"),
@@ -438,6 +440,13 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             l.set_empty_text(ss(tr!("Nothing is rated yet. Select tracks and press Ctrl+1…5.")));
             set_tracks(app, t);
         }
+        "dupes" => {
+            let t = duplicates(&app.lib.tracks);
+            let groups = t.iter().map(|t| dupe_key(t).0).collect::<std::collections::HashSet<_>>().len();
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} group", "{n} groups", groups), tr!("the same artist and title, similar length"))));
+            l.set_empty_text(ss(tr!("No duplicates in the music library.")));
+            set_tracks(app, t);
+        }
         "top" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.plays > 0).map(|(k, s)| (k.clone(), s.plays as u64)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 200);
@@ -513,6 +522,47 @@ fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, _video: bool) {
 
 /// Znacznik grupy plików leżących wprost w otwartym folderze (nie nazwa do wyświetlenia).
 const FILES_HERE: &str = "\u{1}files-here";
+
+/// Klucz duplikatu: wykonawca i tytuł bez wielkości liter, znaków i dopisków w nawiasach
+/// („(Remastered)”, „[Live]”), oraz długość w sekundach.
+fn dupe_key(t: &TrackInfo) -> (String, f64) {
+    let clean = |s: &str| -> String {
+        let mut out = String::new();
+        let mut depth = 0;
+        for c in s.chars() {
+            match c {
+                '(' | '[' => depth += 1,
+                ')' | ']' => depth = (depth - 1).max(0),
+                c if depth == 0 && c.is_alphanumeric() => out.extend(c.to_lowercase()),
+                _ => {}
+            }
+        }
+        out
+    };
+    (format!("{}\u{1}{}", clean(&t.display_artist()), clean(&t.display_title())), t.duration)
+}
+
+/// Utwory, które są w bibliotece więcej niż raz (ten sam klucz, długość różna najwyżej o 3 s),
+/// pogrupowane obok siebie.
+fn duplicates(tracks: &[TrackInfo]) -> Vec<TrackInfo> {
+    let mut by: HashMap<String, Vec<&TrackInfo>> = HashMap::new();
+    for t in tracks {
+        let (k, _) = dupe_key(t);
+        if !k.starts_with('\u{1}') && !k.ends_with('\u{1}') {
+            by.entry(k).or_default().push(t);
+        }
+    }
+    let mut groups: Vec<(String, Vec<&TrackInfo>)> = by.into_iter().filter(|(_, v)| v.len() > 1).collect();
+    groups.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut out = Vec::new();
+    for (_, mut v) in groups {
+        v.sort_by(|a, b| a.duration.total_cmp(&b.duration));
+        // Tylko pliki o podobnej długości – inna wersja (np. koncertowa) nie jest duplikatem.
+        let close: Vec<&TrackInfo> = v.iter().enumerate().filter(|(i, t)| v.iter().enumerate().any(|(j, o)| j != *i && (o.duration - t.duration).abs() <= 3.0)).map(|(_, t)| *t).collect();
+        out.extend(close.into_iter().cloned());
+    }
+    out
+}
 
 /// Porządek „naturalny”: odcinek 2 przed odcinkiem 10.
 fn natural(s: &str) -> Vec<(String, u64)> {
