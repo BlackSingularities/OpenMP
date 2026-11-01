@@ -105,6 +105,7 @@ pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected
         selected,
         fav,
         queued: ss(queued),
+        in_queue: false,
         missing: false,
         progress: -1.0,
         watched: false,
@@ -114,6 +115,19 @@ pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected
         h_cover: Image::default(),
         h_has_cover: false,
     }
+}
+
+/// Jak `queue_paths`, ale na samej karcie „Kolejka” pusto – tam znacznik nic nie mówi.
+fn active_queue_paths(app: &App) -> std::collections::HashSet<String> {
+    if app.store.lists.get(app.store.active).is_some_and(|l| l.name == QUEUE_NAME) {
+        return Default::default();
+    }
+    queue_paths(app)
+}
+
+/// Ścieżki (małymi literami) z karty „Kolejka” – do znacznika na innych listach i w bibliotece.
+pub fn queue_paths(app: &App) -> std::collections::HashSet<String> {
+    app.store.lists.iter().find(|l| l.name == QUEUE_NAME).map(|l| l.items.iter().map(|t| t.path.to_lowercase()).collect()).unwrap_or_default()
 }
 
 fn queued_label(app: &App, list: u64, idx: usize) -> String {
@@ -136,6 +150,7 @@ pub fn rebuild(app: &mut App) {
     let mut rows: Vec<TrackRow> = Vec::with_capacity(list.items.len() + 16);
     app.row_of.clear();
     let mut last_key: Option<String> = None;
+    let qpaths = active_queue_paths(app);
     let mut i = 0;
     while i < list.items.len() {
         let t = &list.items[i];
@@ -187,6 +202,7 @@ pub fn rebuild(app: &mut App) {
         let rating = st.rating;
         app.row_of.insert(i, rows.len());
         let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
+        r.in_queue = qpaths.contains(&t.path.to_lowercase());
         with_rating(&mut r, rating);
         with_progress(&mut r, t, &st);
         if grid {
@@ -243,6 +259,8 @@ pub fn rebuild_tabs(app: &mut App) {
 /// Odświeża wiersze, które zmieniły stan „gra” (bez przebudowy całej listy).
 pub fn refresh_playing(app: &mut App) {
     let id = app.active_id();
+    let qpaths = active_queue_paths(app);
+    let li = app.store.active;
     for r in 0..app.m.rows.row_count() {
         let Some(mut row) = app.m.rows.row_data(r) else { continue };
         if row.header {
@@ -250,9 +268,11 @@ pub fn refresh_playing(app: &mut App) {
         }
         let p = is_playing_item(app, id, row.idx as usize);
         let q = queued_label(app, id, row.idx as usize);
-        if row.playing != p || row.queued.as_str() != q {
+        let iq = app.store.lists.get(li).and_then(|l| l.items.get(row.idx as usize)).is_some_and(|t| qpaths.contains(&t.path.to_lowercase()));
+        if row.playing != p || row.queued.as_str() != q || row.in_queue != iq {
             row.playing = p;
             row.queued = ss(q);
+            row.in_queue = iq;
             app.m.rows.set_row_data(r, row);
         }
     }
@@ -460,6 +480,30 @@ pub fn close_tab(app: &mut App, i: usize) {
         return;
     }
     let id = app.store.lists[i].id;
+    if app.store.lists[i].name == QUEUE_NAME {
+        // Kolejka nie znika – zaczyna się od nowa, z grającym utworem (jeśli coś gra).
+        let playing = app.cur.as_ref().filter(|c| c.station.is_none() && c.item != 0).map(|c| c.info.clone());
+        app.store.lists[i].items = playing.iter().cloned().collect();
+        if let Some(c) = &mut app.cur {
+            if playing.is_some() {
+                c.list = Some(id);
+                c.idx = 0;
+            } else if c.list == Some(id) {
+                c.list = None;
+            }
+        }
+        app.queue.retain(|q| q.0 != id);
+        app.shuffle_len = 0;
+        app.pending = None;
+        if app.store.active == i {
+            app.sel.clear();
+        }
+        app.dirty = true;
+        rebuild(app);
+        crate::libview::rebuild_nav(app);
+        crate::player::refresh_next(app);
+        return;
+    }
     if app.store.lists.len() == 1 {
         app.store.lists[0].items.clear();
     } else {

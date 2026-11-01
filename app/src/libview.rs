@@ -597,6 +597,7 @@ fn set_tracks(app: &mut App, tracks: Vec<TrackInfo>) {
 
 fn rows(app: &mut App) {
     let playing = app.cur.as_ref().filter(|c| c.item != 0).map(|c| c.info.path.to_lowercase());
+    let qpaths = crate::lists::queue_paths(app);
     let grid = app.s.track_grid;
     let rows: Vec<TrackRow> = app
         .libv
@@ -606,6 +607,7 @@ fn rows(app: &mut App) {
         .map(|(i, t)| {
             let st = app.stats.get(&t.path);
             let mut r = crate::lists::track_row(t, i, (i + 1).to_string(), playing.as_deref() == Some(&t.path.to_lowercase()), app.libv.sel.contains(&i), st.rating >= 5, String::new());
+            r.in_queue = qpaths.contains(&t.path.to_lowercase());
             crate::lists::with_rating(&mut r, st.rating);
             crate::lists::with_progress(&mut r, t, &st);
             if grid {
@@ -661,11 +663,18 @@ fn with_seasons(tracks: &[TrackInfo], rows: Vec<TrackRow>) -> Vec<TrackRow> {
 
 pub fn refresh_playing(app: &mut App) {
     let playing = app.cur.as_ref().filter(|c| c.item != 0).map(|c| c.info.path.to_lowercase());
+    let qpaths = crate::lists::queue_paths(app);
     for r in 0..app.m.lib_rows.row_count() {
         let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
-        let p = app.libv.tracks.get(row.idx as usize).is_some_and(|t| playing.as_deref() == Some(&t.path.to_lowercase()));
-        if row.playing != p {
+        if row.header {
+            continue;
+        }
+        let path = app.libv.tracks.get(row.idx as usize).map(|t| t.path.to_lowercase());
+        let p = path.is_some() && playing == path;
+        let iq = path.as_ref().is_some_and(|p| qpaths.contains(p));
+        if row.playing != p || row.in_queue != iq {
             row.playing = p;
+            row.in_queue = iq;
             app.m.lib_rows.set_row_data(r, row);
         }
     }
@@ -810,7 +819,12 @@ pub fn back(app: &mut App) {
 
 /// Granie z biblioteki: utwory (i filmy) są dopisywane na koniec karty „Kolejka” – bieżące
 /// odtwarzanie – i od razu gra wybrany; następny/poprzedni idą dalej po kolejce.
-pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuffle: bool) {
+pub fn play_tracks(app: &mut App, tracks: Vec<TrackInfo>, start: usize, shuffle: bool) {
+    play_tracks_at(app, tracks, start, shuffle, None);
+}
+
+/// Jak `play_tracks`, z początkiem od podanej sekundy (klik w wiersz tekstu w zaznaczeniu).
+pub fn play_tracks_at(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuffle: bool, pos: Option<f64>) {
     if tracks.is_empty() {
         return;
     }
@@ -833,7 +847,7 @@ pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuf
     }
     crate::lists::rebuild(app);
     rebuild_nav(app);
-    crate::player::play(app, id, base + start, None);
+    crate::player::play(app, id, base + start, pos);
 }
 
 fn add_to_active(app: &mut App, tracks: Vec<TrackInfo>) {

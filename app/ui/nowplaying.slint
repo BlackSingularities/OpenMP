@@ -373,18 +373,31 @@ component HeroLyrics inherits Rectangle {
             }
         }
         animate content-y { duration: 400ms; easing: ease-out; }
-        for l[i] in Player.lyrics: Text {
+        for l[i] in Player.lyrics: Rectangle {
             x: 0;
             y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px) + i * lyr.line-h;
             width: lyr.width;
             height: lyr.line-h;
-            text: l.text;
-            color: !Player.lyrics-synced ? Theme.text2 : l.active ? Theme.text : Theme.text2.with-alpha(max(0.22, 0.85 - abs(i - Player.lyrics-active) * 0.16));
-            font-size: l.active ? 22px : 17px;
-            font-weight: l.active ? 700 : 400;
-            vertical-alignment: center;
-            overflow: elide;
-            animate color { duration: 250ms; }
+            Text {
+                width: parent.width;
+                height: parent.height;
+                text: l.text;
+                color: !Player.lyrics-synced ? Theme.text2 : l.active ? Theme.text : Theme.text2.with-alpha(max(0.22, 0.85 - abs(i - Player.lyrics-active) * 0.16));
+                font-size: l.active ? 22px : 17px;
+                font-weight: l.active ? 700 : 400;
+                vertical-alignment: center;
+                overflow: elide;
+                animate color { duration: 250ms; }
+            }
+            // Klik – przewinięcie do tej linii (w zaznaczeniu: utwór zaczyna grać od niej).
+            TouchArea {
+                mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
+                clicked => {
+                    if Player.lyrics-synced {
+                        Player.lyrics-seek(i);
+                    }
+                }
+            }
         }
     }
 }
@@ -468,32 +481,76 @@ component SelInfo inherits VerticalLayout {
         font-size: root.small ? Theme.fs-md : 18px;
         overflow: elide;
     }
+    if Player.sel-credits != "": Text {
+        text: Player.sel-credits;
+        color: Theme.text3;
+        font-size: Theme.fs-sm;
+        overflow: elide;
+    }
+    // Opis w prostokącie o stałych wymiarach (jak przy odtwarzaniu); przy braku miejsca
+    // zostaje mniej wierszy, zakończonych wielokropkiem.
+    if !root.small && Player.sel-overview != "": Rectangle {
+        preferred-height: 3 * 1.4 * Theme.fs;
+        min-height: 1.4 * Theme.fs;
+        min-width: 0px;
+        preferred-width: 0px;
+        Text {
+            x: 0;
+            y: 0;
+            width: parent.width;
+            height: parent.height;
+            text: Player.sel-overview;
+            color: Theme.text2;
+            font-size: Theme.fs;
+            wrap: word-wrap;
+            overflow: elide;
+            vertical-alignment: top;
+        }
+    }
     Rectangle {
         height: root.small ? 2px : 6px;
     }
-    for r in Player.sel-rows: HorizontalLayout {
-        spacing: 8px;
-        height: 20px;
-        Icon {
-            y: (parent.height - self.height) / 2;
-            icon: Icons.get(r.id);
-            size: 14px;
-            fill: Theme.text3;
-        }
-        Text {
-            text: r.label;
-            color: Theme.text3;
-            font-size: Theme.fs-sm;
-            vertical-alignment: center;
-            min-width: 90px;
-        }
-        Text {
-            horizontal-stretch: 1;
-            text: r.sub;
-            color: Theme.text2;
-            font-size: Theme.fs-sm;
-            vertical-alignment: center;
-            overflow: elide;
+    // Szczegóły w dwóch kolumnach (w wąskim miejscu – w jednej). Gdy brak miejsca w pionie,
+    // znikają całe wiersze od dołu – bez przyciętych w pół.
+    rows := Rectangle {
+        property <int> cols: self.width >= 560px ? 2 : 1;
+        property <length> row-h: 20px;
+        property <length> gap: 4px;
+        min-width: 0px;
+        preferred-width: 0px;
+        min-height: self.row-h;
+        preferred-height: ceil(Player.sel-rows.length / self.cols) * (self.row-h + self.gap);
+        clip: true;
+        for r[i] in Player.sel-rows: Rectangle {
+            x: mod(i, rows.cols) * (rows.width / rows.cols);
+            y: floor(i / rows.cols) * (rows.row-h + rows.gap);
+            width: rows.width / rows.cols - (rows.cols > 1 ? 16px : 0px);
+            height: rows.row-h;
+            visible: self.y + self.height <= rows.height;
+            HorizontalLayout {
+                spacing: 8px;
+                Icon {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.get(r.id);
+                    size: 14px;
+                    fill: Theme.text3;
+                }
+                Text {
+                    text: r.label;
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    min-width: 90px;
+                }
+                Text {
+                    horizontal-stretch: 1;
+                    text: r.sub;
+                    color: Theme.text2;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+            }
         }
     }
 }
@@ -503,7 +560,8 @@ export component Hero inherits Rectangle {
     // Szerokie okno i tekst dostępny – kolumna z tekstem obok opisu.
     // Szerokość okna (nie Hero) – szerokość Hero zależy od tego, czy tekst jest obok (pętla wiązań).
     in property <length> avail: 1200px;
-    property <bool> show-lyrics: !root.small && root.avail >= 1320px && !Player.idle && Player.lyrics.length > 0;
+    // Przy odtwarzaniu i w trybie zaznaczenia (tekst zaznaczonego utworu).
+    property <bool> show-lyrics: !root.small && root.avail >= 1320px && (!Player.idle || Player.sel-mode) && Player.lyrics.length > 0;
     init => { Player.hero-lyrics = self.show-lyrics; }
     changed show-lyrics => { Player.hero-lyrics = self.show-lyrics; }
     HorizontalLayout {

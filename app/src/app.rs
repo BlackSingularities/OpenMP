@@ -162,6 +162,9 @@ pub struct App {
     pub ab: (Option<f64>, Option<f64>),
     pub lyrics: Vec<(f64, String)>,
     pub lyrics_text: String,
+    /// Tryb zaznaczenia: plik, którego opis i tekst są pokazane (pusty – brak) i opis z TMDB.
+    pub sel_text: String,
+    pub sel_desc: Option<openmp_core::tmdb::Info>,
     /// Napisy filmu w panelu tekstu: ścieżki tekstowe i wybrana (id mpv, 0 – brak).
     pub sub_panel: Vec<openmp_core::mpv::TrackEntry>,
     pub sub_panel_id: i64,

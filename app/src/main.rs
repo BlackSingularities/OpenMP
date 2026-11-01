@@ -137,6 +137,8 @@ fn main() {
         ab: (None, None),
         lyrics: Vec::new(),
         lyrics_text: String::new(),
+        sel_text: String::new(),
+        sel_desc: None,
         sub_panel: Vec::new(),
         sub_panel_id: 0,
         sub_live: false,

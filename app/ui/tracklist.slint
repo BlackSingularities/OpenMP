@@ -205,40 +205,29 @@ export component TrackList inherits Rectangle {
                         font-weight: 700;
                     }
                 }
-                if r.fav || gta.has-hover: Rectangle {
-                    x: parent.width - 36px;
-                    y: 10px;
-                    width: 26px;
-                    height: 26px;
-                    border-radius: 13px;
-                    background: #00000090;
-                    Icon {
-                        icon: r.fav ? Icons.heart : Icons.heart-outline;
-                        size: 14px;
-                        fill: r.fav ? #ff5d7a : #ffffffd0;
-                    }
-                    TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => { root.fav(r.idx); }
-                    }
-                }
-                if gta.has-hover: Rectangle {
-                    x: parent.width - self.width - 12px;
-                    y: parent.width - self.height - 12px;
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 18px;
-                    background: Theme.tint;
-                    drop-shadow-blur: 10px;
-                    drop-shadow-color: #00000090;
-                    Icon {
-                        icon: Icons.play;
-                        size: 20px;
-                        fill: #ffffff;
-                    }
-                    TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => { root.double(r.idx); }
+                // Już na karcie „Kolejka” – jedyny znacznik poza grającym i miejscem w kolejce.
+                if !r.playing && r.queued == "" && r.in-queue: Rectangle {
+                    x: 11px;
+                    y: 11px;
+                    height: 22px;
+                    width: qtx.preferred-width + 30px;
+                    border-radius: 11px;
+                    background: #000000b0;
+                    HorizontalLayout {
+                        padding-left: 7px;
+                        spacing: 4px;
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.queue;
+                            size: 12px;
+                            fill: Theme.tint-hi;
+                        }
+                        qtx := Text {
+                            text: "W kolejce";
+                            color: #ffffffe0;
+                            font-size: 10px;
+                            vertical-alignment: center;
+                        }
                     }
                 }
                 Text {
@@ -427,16 +416,13 @@ export component TrackList inherits Rectangle {
                         horizontal-alignment: right;
                         overflow: elide;
                     }
+                    // Już na karcie „Kolejka”.
                     Rectangle {
                         width: 22px;
-                        if r.fav || ta.has-hover: Icon {
-                            icon: r.fav ? Icons.heart : Icons.heart-outline;
+                        if !r.playing && r.queued == "" && r.in-queue: Icon {
+                            icon: Icons.queue;
                             size: 14px;
-                            fill: r.fav ? #ff5d7a : Theme.text3;
-                        }
-                        if r.fav || ta.has-hover: TouchArea {
-                            mouse-cursor: pointer;
-                            clicked => { root.fav(r.idx); }
+                            fill: Theme.tint;
                         }
                     }
                     Text {

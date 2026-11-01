@@ -650,6 +650,20 @@ pub fn lyrics_next(app: &mut App, d: i32) {
 /// Klik w wiersz: utwór albo film przewija się do tej linii (tekst z czasami / napisy).
 pub fn lyrics_seek(app: &mut App, i: i32) {
     let Some(&(t, _)) = app.lyrics.get(i.max(0) as usize) else { return };
+    if app.cur.is_none() {
+        // Zaznaczenie: zaznaczony utwór zaczyna grać od tej linii.
+        let in_lib = app.ui().is_some_and(|u| u.global::<Lib>().get_view() == 1);
+        if in_lib {
+            let sel = crate::libview::selected(app);
+            if sel.len() == 1 {
+                crate::libview::play_tracks_at(app, sel, 0, false, Some(t));
+            }
+        } else if let Some(&idx) = crate::lists::selected_sorted(app).first() {
+            let id = app.active_id();
+            crate::player::play(app, id, idx, Some(t));
+        }
+        return;
+    }
     let video = app.cur.as_ref().is_some_and(|c| c.video);
     let delay = match app.ui() {
         Some(ui) if video => ui.global::<Video>().get_sub_delay() as f64,
@@ -829,11 +843,14 @@ pub fn sel_info(app: &mut App) {
     let p = ui.global::<Player>();
     if app.cur.is_some() {
         p.set_sel_mode(false);
+        app.sel_text.clear();
+        app.sel_desc = None;
         return;
     }
     let lib = ui.global::<Lib>();
     let in_lib = lib.get_view() == 1;
     let sel: Vec<TrackInfo> = if in_lib { crate::libview::selected(app) } else { crate::lists::selected_tracks(app) };
+    let single = (sel.len() == 1).then(|| sel[0].clone());
     let mut rows: Vec<(&str, &str, String)> = Vec::new();
     let (title, sub, cover_path);
     let fmt_size = |b: u64| if b >= 1 << 30 { format!("{:.2} GB", b as f64 / (1u64 << 30) as f64).replace('.', ",") } else { format!("{:.1} MB", b as f64 / 1_048_576.0).replace('.', ",") };
@@ -872,6 +889,7 @@ pub fn sel_info(app: &mut App) {
         let group: Vec<TrackInfo> = if sel.len() > 1 { sel } else if in_lib && !app.libv.stack.is_empty() { app.libv.tracks.clone() } else { Vec::new() };
         if group.is_empty() {
             p.set_sel_mode(false);
+            sel_extras(app, None);
             return;
         }
         let n = group.len();
@@ -919,7 +937,91 @@ pub fn sel_info(app: &mut App) {
         }
         None => p.set_sel_has_cover(false),
     }
+    sel_extras(app, single);
     p.set_sel_mode(true);
+}
+
+/// Zaznaczony jeden plik: opis (film – z TMDB, muzyka – komentarz z tagów) i tekst piosenki
+/// obok, jak przy odtwarzaniu. Przy zmianie zaznaczenia ładowane od nowa.
+fn sel_extras(app: &mut App, t: Option<TrackInfo>) {
+    let Some(ui) = app.ui() else { return };
+    let p = ui.global::<Player>();
+    let path = t.as_ref().map(|t| t.path.clone()).unwrap_or_default();
+    let fresh = app.sel_text != path;
+    if fresh {
+        app.sel_text = path.clone();
+        app.sel_desc = None;
+        set_lyrics(app, None, "");
+    }
+    p.set_sel_overview(ss(""));
+    p.set_sel_credits(ss(""));
+    let Some(t) = t else { return };
+    if meta::is_url(&t.path) {
+        return;
+    }
+    if t.video || meta::is_video(Path::new(&t.path)) {
+        if let Some(info) = &app.sel_desc {
+            apply_sel_desc(&p, info);
+        } else if fresh && !app.s.tmdb_key.is_empty() {
+            std::thread::spawn(move || {
+                let Some(info) = openmp_core::tmdb::lookup(Path::new(&path)) else { return };
+                let _ = slint::invoke_from_event_loop(move || {
+                    later(move |app| {
+                        if app.cur.is_some() || app.sel_text != path {
+                            return;
+                        }
+                        if let Some(ui) = app.ui() {
+                            apply_sel_desc(&ui.global::<Player>(), &info);
+                        }
+                        app.sel_desc = Some(info);
+                    });
+                });
+            });
+        }
+        return;
+    }
+    let comment = t.comment.trim();
+    if comment.chars().count() >= 20 {
+        p.set_sel_overview(ss(comment));
+    }
+    if !fresh {
+        return;
+    }
+    if let Some(text) = meta::lyrics(Path::new(&t.path)) {
+        return set_lyrics(app, Some(text), "plik / tagi");
+    }
+    if !app.s.online_lyrics {
+        return;
+    }
+    match openmp_core::lrclib::cached(&t.artist, &t.title) {
+        Some(text) if !text.trim().is_empty() => set_lyrics(app, Some(text), "LRCLIB"),
+        Some(_) => {}
+        None => {
+            std::thread::spawn(move || {
+                let Some(text) = openmp_core::lrclib::fetch(&t.artist, &t.title, &t.album, t.duration) else { return };
+                let _ = slint::invoke_from_event_loop(move || {
+                    later(move |app| {
+                        if app.cur.is_none() && app.sel_text == path {
+                            set_lyrics(app, Some(text), "LRCLIB");
+                        }
+                    });
+                });
+            });
+        }
+    }
+}
+
+/// Opis filmu z TMDB w zaznaczeniu: polski tytuł, rok i gatunki, opis, reżyseria i obsada.
+fn apply_sel_desc(p: &Player, info: &openmp_core::tmdb::Info) {
+    if !info.title.is_empty() {
+        p.set_sel_title(ss(&info.title));
+    }
+    let line = info.line();
+    if !line.is_empty() {
+        p.set_sel_sub(ss(line));
+    }
+    p.set_sel_overview(ss(&info.overview));
+    p.set_sel_credits(ss(info.credits()));
 }
 
 /// Bez zaznaczenia w otwartym folderze / grupie – opis dotyczy całej grupy.

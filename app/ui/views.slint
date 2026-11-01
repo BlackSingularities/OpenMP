@@ -737,25 +737,6 @@ export component LibraryView inherits Rectangle {
                         font-size: Theme.fs-sm;
                         overflow: elide;
                     }
-                    if gta.has-hover: Rectangle {
-                        x: parent.width - 46px;
-                        y: parent.width - 46px;
-                        width: 34px;
-                        height: 34px;
-                        border-radius: 17px;
-                        background: Theme.tint;
-                        drop-shadow-blur: 8px;
-                        drop-shadow-color: #00000080;
-                        Icon {
-                            icon: Icons.play;
-                            size: 20px;
-                            fill: #ffffff;
-                        }
-                        TouchArea {
-                            mouse-cursor: pointer;
-                            clicked => { Lib.tile-double(t.key); }
-                        }
-                    }
                 }
                 gta := TouchArea {
                     clicked => { Lib.tile-clicked(t.key); }
