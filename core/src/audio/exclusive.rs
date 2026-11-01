@@ -172,6 +172,24 @@ fn encode(src: &[f32], fmt: Fmt, d: &mut Dither, out: &mut [u8]) {
     }
 }
 
+/// Głośność sesji aplikacji w mikserze Windows (tryb współdzielony) – suwak OpenMP w „Mikserze głośności”.
+/// Windows nakłada na nią głośność główną urządzenia, jak w każdym innym programie.
+pub(super) fn session_volume(name: Option<&str>) -> Option<windows::Win32::Media::Audio::ISimpleAudioVolume> {
+    use windows::core::PCWSTR;
+    use windows::Win32::Media::Audio::{IAudioSessionManager, IMMDeviceEnumerator, MMDeviceEnumerator};
+    use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED};
+    let id = find_device(name).ok()?.get_id().ok()?;
+    unsafe {
+        let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+        let en: IMMDeviceEnumerator = CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).ok()?;
+        let w: Vec<u16> = id.encode_utf16().chain(std::iter::once(0)).collect();
+        let dev = en.GetDevice(PCWSTR(w.as_ptr())).ok()?;
+        let m: IAudioSessionManager = dev.Activate(CLSCTX_ALL, None).ok()?;
+        // Sesja domyślna procesu – tę samą otwiera cpal.
+        m.GetSimpleAudioVolume(None, 0).ok()
+    }
+}
+
 /// Regulacja głośności Windows dla urządzenia – gdy karta nie robi tego sprzętowo.
 fn endpoint_volume(id: &str) -> Option<windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume> {
     use windows::core::PCWSTR;

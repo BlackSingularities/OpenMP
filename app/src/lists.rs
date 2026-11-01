@@ -281,6 +281,33 @@ pub fn select_click(app: &mut App, idx: usize, ctrl: bool, shift: bool) {
     update_summary_only(app);
 }
 
+/// Pozycje siatki okładek w prostokącie: wiersze r0..r1 i kolumny c0..c1 przy `cols` kolumnach.
+pub fn band_items(rows: &slint::VecModel<TrackRow>, (r0, r1, c0, c1, cols): (i32, i32, i32, i32, i32)) -> Vec<usize> {
+    use slint::Model;
+    let cols = cols.max(1) as usize;
+    (0..rows.row_count())
+        .filter(|&i| {
+            let (r, c) = ((i / cols) as i32, (i % cols) as i32);
+            r >= r0 && r <= r1 && c >= c0 && c <= c1
+        })
+        .filter_map(|i| rows.row_data(i).filter(|r| !r.header).map(|r| r.idx as usize))
+        .collect()
+}
+
+/// Zaznaczenie prostokątem w siatce (z Ctrl – dołożone do kotwicy zamiast od nowa).
+pub fn select_band(app: &mut App, band: (i32, i32, i32, i32, i32), ctrl: bool) {
+    let items = band_items(&app.m.rows, band);
+    app.sel.clear();
+    if ctrl {
+        if let Some(a) = app.anchor {
+            app.sel.insert(a);
+        }
+    }
+    app.sel.extend(items);
+    refresh_selection(app);
+    update_summary_only(app);
+}
+
 fn update_summary_only(app: &mut App) {
     // Podsumowanie zależy od zaznaczenia – przebudowa jest tania w porównaniu z resztą.
     let Some(ui) = app.ui() else { return };

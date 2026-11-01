@@ -51,6 +51,9 @@ pub fn publish(app: &mut App) {
     p.set_show_waveform(s.show_waveform);
     p.set_auto_eq(s.auto_eq);
     p.set_wave_style(s.wave_style);
+    p.set_live_style(s.live_style);
+    p.set_live_span(s.live_span);
+    p.set_live_glow(s.live_glow);
     p.set_online_lyrics(s.online_lyrics);
     p.set_online_covers(s.online_covers);
     openmp_core::coverart::set_enabled(s.online_covers);
@@ -59,6 +62,14 @@ pub fn publish(app: &mut App) {
     p.set_compact(s.compact);
     p.set_ontop(s.always_on_top);
     p.set_show_sidebar(s.show_sidebar);
+    p.set_sidebar_width(s.sidebar_width.clamp(180.0, 420.0));
+    let shown = |id: &str| !s.nav_hidden.iter().any(|h| h == id);
+    p.set_nav_playlist(shown("playlist"));
+    p.set_nav_music(shown("sec-music"));
+    p.set_nav_video(shown("sec-video"));
+    p.set_nav_sets(shown("sec-sets"));
+    p.set_nav_smart(shown("sec-smart"));
+    p.set_nav_folders(shown("sec-folders"));
     p.set_scroll_title(s.scroll_title);
     p.set_crossfade(s.crossfade as f32);
     p.set_soft_pause(s.soft_pause);
@@ -88,6 +99,8 @@ pub fn publish(app: &mut App) {
     p.set_glow(s.glow);
     p.set_corners(s.corners);
     p.set_text_scale(s.text_scale);
+    p.set_panel_glass(s.panel_glass);
+    p.set_nav_text(s.nav_text);
     p.set_title_font(s.title_font);
     p.set_compact_ui(s.compact_ui);
     p.set_track_grid(s.track_grid);
@@ -165,6 +178,8 @@ pub fn publish_theme(app: &App) {
     t.set_scope(app.s.accent_scope.clamp(0, 2));
     t.set_corners(app.s.corners.clamp(0, 2));
     t.set_text_scale(app.s.text_scale.clamp(0.8, 1.4));
+    t.set_glass(app.s.panel_glass.clamp(0.0, 0.8));
+    t.set_nav_scale(app.s.nav_text.clamp(0.8, 1.5));
     t.set_title_font(app.s.title_font.clamp(0, 2));
     t.set_glow_k(app.s.glow.clamp(0.0, 2.0));
     t.set_dense(app.s.compact_ui);
@@ -244,6 +259,11 @@ pub fn changed(app: &mut App, key: &str) {
                 auto_eq(app, true);
             }
         }
+        "live-style" | "live-span" | "live-glow" => {
+            app.s.live_style = p.get_live_style();
+            app.s.live_span = p.get_live_span();
+            app.s.live_glow = p.get_live_glow();
+        }
         "wave-style" => {
             app.s.wave_style = p.get_wave_style();
             crate::display::restyle_wave(app);
@@ -264,6 +284,19 @@ pub fn changed(app: &mut App, key: &str) {
             crate::win::set_ontop(app, app.s.always_on_top);
         }
         "show-sidebar" => app.s.show_sidebar = p.get_show_sidebar(),
+        "sidebar-width" => app.s.sidebar_width = p.get_sidebar_width(),
+        "nav-sections" => {
+            let all = [
+                ("playlist", p.get_nav_playlist()),
+                ("sec-music", p.get_nav_music()),
+                ("sec-video", p.get_nav_video()),
+                ("sec-sets", p.get_nav_sets()),
+                ("sec-smart", p.get_nav_smart()),
+                ("sec-folders", p.get_nav_folders()),
+            ];
+            app.s.nav_hidden = all.iter().filter(|(_, on)| !on).map(|(id, _)| id.to_string()).collect();
+            crate::libview::rebuild_nav(app);
+        }
         "side-panel" => {}
         "scroll-title" => app.s.scroll_title = p.get_scroll_title(),
         "crossfade" => {
@@ -322,6 +355,11 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.hwdec_mode = p.get_hwdec_mode().clamp(0, 5);
             app.s.hwdec = app.s.hwdec_mode != 0;
             apply_mpv(app, key);
+        }
+        "panel-glass" | "nav-text" => {
+            app.s.panel_glass = p.get_panel_glass();
+            app.s.nav_text = p.get_nav_text();
+            publish_theme(app);
         }
         "accent-scope" | "corners" | "text-scale" | "title-font" | "glow" => {
             app.s.accent_scope = p.get_accent_scope();

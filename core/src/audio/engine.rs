@@ -107,6 +107,8 @@ pub(super) struct Shared {
     /// Bity wyjścia (0 – zmiennoprzecinkowe przez mikser Windows) i tryb wyłączny.
     out_bits: AtomicU32,
     exclusive: AtomicBool,
+    /// Głośność ustawia sesja w mikserze Windows – próbki idą bez ściszania.
+    session: AtomicBool,
 }
 
 #[derive(Clone, Debug)]
@@ -134,6 +136,8 @@ enum Cmd {
 pub enum Event {
     Error { id: u64, path: PathBuf, msg: String },
     Device(String),
+    /// Głośność zmieniona w mikserze Windows (0..1, ta sama skala co `set_volume`).
+    Volume(f32),
 }
 
 /// Stan do wyświetlacza.
@@ -174,6 +178,7 @@ impl Engine {
             failed: AtomicBool::new(false),
             out_bits: AtomicU32::new(0),
             exclusive: AtomicBool::new(false),
+            session: AtomicBool::new(false),
         });
         let sh = shared.clone();
         std::thread::Builder::new()
@@ -209,6 +214,10 @@ impl Engine {
         let v = v.clamp(0.0, 1.0);
         let g = if v <= 0.0 { 0.0 } else { v * v.sqrt() };
         self.shared.vol.store(g.to_bits(), Ordering::Relaxed);
+    }
+    /// Czy głośność aplikacji idzie przez sesję w mikserze Windows.
+    pub fn session_volume(&self) -> bool {
+        self.shared.session.load(Ordering::Relaxed)
     }
     pub fn set_soft_pause(&self, on: bool) {
         self.shared.soft.store(on, Ordering::Relaxed);
@@ -352,6 +361,9 @@ struct Worker {
     device: Option<String>,
     stream: Option<cpal::Stream>,
     excl: Option<super::exclusive::Exclusive>,
+    /// Sesja w mikserze Windows i ostatnio ustawiona na niej głośność.
+    session: Option<windows::Win32::Media::Audio::ISimpleAudioVolume>,
+    session_set: f32,
     want_excl: bool,
     loopback: Option<cpal::Stream>,
     want_loopback: bool,
@@ -376,6 +388,8 @@ impl Worker {
             device,
             stream: None,
             excl: None,
+            session: None,
+            session_set: -1.0,
             want_excl: false,
             loopback: None,
             want_loopback: false,
@@ -473,6 +487,9 @@ impl Worker {
             Ok(s) => {
                 let _ = s.play();
                 self.stream = Some(s);
+                self.session = super::exclusive::session_volume(self.device.as_deref());
+                self.session_set = -1.0;
+                self.sh.session.store(self.session.is_some(), Ordering::Relaxed);
                 self.sh.failed.store(false, Ordering::Relaxed);
                 self.set_rate(rate, true);
             }
@@ -546,7 +563,31 @@ impl Worker {
                 std::thread::sleep(Duration::from_millis(300));
                 self.open_stream();
             }
+            self.sync_session();
             self.pump();
+        }
+    }
+
+    /// Głośność aplikacji ↔ suwak OpenMP w mikserze Windows (w obie strony).
+    fn sync_session(&mut self) {
+        if self.stream.is_none() || self.excl.is_some() {
+            if self.session.take().is_some() {
+                self.sh.session.store(false, Ordering::Relaxed);
+            }
+            return;
+        }
+        let Some(v) = &self.session else { return };
+        let want = f32::from_bits(self.sh.vol.load(Ordering::Relaxed));
+        let now = unsafe { v.GetMasterVolume() }.unwrap_or(self.session_set);
+        if self.session_set >= 0.0 && (now - self.session_set).abs() > 0.002 {
+            // Ktoś przesunął suwak OpenMP w mikserze Windows.
+            self.session_set = now;
+            self.sh.vol.store(now.to_bits(), Ordering::Relaxed);
+            let _ = self.etx.send(Event::Volume(now.max(0.0).powf(2.0 / 3.0)));
+        } else if (want - self.session_set).abs() > 0.0001 {
+            if unsafe { v.SetMasterVolume(want, std::ptr::null()) }.is_ok() {
+                self.session_set = want;
+            }
         }
     }
 
@@ -889,7 +930,8 @@ pub(super) fn render(sh: &Shared, tmp: &mut Vec<f32>, frames: usize, rate: u32, 
     if let Some(mut s) = sh.scope.try_lock() {
         s.push(tmp);
     }
-    let vol = f32::from_bits(sh.vol.load(Ordering::Relaxed));
+    // Przez mikser Windows głośność nakłada sesja (z głośnością główną) – tu tylko płynna pauza.
+    let vol = if sh.session.load(Ordering::Relaxed) { 1.0 } else { f32::from_bits(sh.vol.load(Ordering::Relaxed)) };
     let step = 1.0 / (0.12 * rate as f32);
     for f in tmp.chunks_exact_mut(2) {
         if *fade < target {

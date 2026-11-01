@@ -24,6 +24,8 @@ export component TrackList inherits Rectangle {
     callback fav(int);
     callback empty-clicked();
     callback zoom(float);
+    // Zaznaczenie prostokątem w siatce: wiersze r0..r1, kolumny c0..c1, liczba kolumn, Ctrl.
+    callback band(int, int, int, int, int, bool);
     changed scroll-gen => {
         lv.content-y = -root.scroll-y;
     }
@@ -58,6 +60,49 @@ export component TrackList inherits Rectangle {
         property <length> cell: (self.visible-width - 16px) / cols;
         property <length> cell-h: cell + 44px;
         content-height: ceil(root.rows.length / cols) * cell-h + 16px;
+        // Prostokąt zaznaczenia (współrzędne treści): kotwica, bieżący punkt i ostatni zakres.
+        property <bool> band-on;
+        property <length> ax;
+        property <length> ay;
+        property <length> mx;
+        property <length> my;
+        property <string> band-key;
+        function band-move(x: length, y: length, ctrl: bool) {
+            self.mx = x;
+            self.my = y;
+            if !self.band-on && abs(x - self.ax) + abs(y - self.ay) < 8px {
+                return;
+            }
+            self.band-on = true;
+            let c0 = clamp(floor((min(self.ax, x) - 8px) / self.cell), 0, self.cols - 1);
+            let c1 = clamp(floor((max(self.ax, x) - 8px) / self.cell), 0, self.cols - 1);
+            let r0 = max(0, floor((min(self.ay, y) - 8px) / self.cell-h));
+            let r1 = max(0, floor((max(self.ay, y) - 8px) / self.cell-h));
+            let key = r0 + ":" + r1 + ":" + c0 + ":" + c1;
+            if key != self.band-key {
+                self.band-key = key;
+                root.band(r0, r1, c0, c1, self.cols, ctrl);
+            }
+        }
+        // Puste miejsce siatki: przeciąganie zaczyna zaznaczanie.
+        TouchArea {
+            width: sv.visible-width;
+            height: max(sv.content-height, sv.visible-height);
+            pointer-event(e) => {
+                if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                    sv.ax = self.mouse-x;
+                    sv.ay = self.mouse-y;
+                    sv.band-key = "";
+                } else if e.kind == PointerEventKind.up {
+                    sv.band-on = false;
+                }
+            }
+            moved => {
+                if self.pressed {
+                    sv.band-move(self.mouse-x, self.mouse-y, false);
+                }
+            }
+        }
         for r[i] in root.rows: cellr := Rectangle {
             x: 8px + mod(i, sv.cols) * sv.cell;
             y: 8px + floor(i / sv.cols) * sv.cell-h;
@@ -172,12 +217,23 @@ export component TrackList inherits Rectangle {
                 pointer-event(e) => {
                     if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
                         root.clicked(r.idx, e.modifiers.control, e.modifiers.shift);
+                        sv.ax = cellr.x + self.mouse-x;
+                        sv.ay = cellr.y + self.mouse-y;
+                        sv.band-key = "";
+                    }
+                    if e.kind == PointerEventKind.up {
+                        sv.band-on = false;
                     }
                     if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
                         if !r.selected {
                             root.clicked(r.idx, false, false);
                         }
                         root.menu(r.idx, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                    }
+                }
+                moved => {
+                    if self.pressed {
+                        sv.band-move(cellr.x + self.mouse-x, cellr.y + self.mouse-y, true);
                     }
                 }
                 double-clicked => { root.double(r.idx); }
@@ -190,6 +246,16 @@ export component TrackList inherits Rectangle {
                     reject
                 }
             }
+        }
+        if sv.band-on: Rectangle {
+            x: min(sv.ax, sv.mx);
+            y: min(sv.ay, sv.my);
+            width: abs(sv.mx - sv.ax);
+            height: abs(sv.my - sv.ay);
+            border-radius: 4px;
+            background: Theme.tint.with-alpha(0.14);
+            border-width: 1px;
+            border-color: Theme.tint.with-alpha(0.7);
         }
     }
     lv := ListView {

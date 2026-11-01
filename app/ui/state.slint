@@ -95,6 +95,7 @@ export global Lists {
     callback tab-close(int);
     callback tab-rename(int, string);
     callback row-clicked(int, bool, bool);
+    callback row-band(int, int, int, int, int, bool);
     callback row-double(int);
     callback row-menu(int, length, length);
     callback header-clicked(int);
@@ -138,6 +139,7 @@ export global Lib {
     callback shuffle-all();
     callback add-all();
     callback row-clicked(int, bool, bool);
+    callback row-band(int, int, int, int, int, bool);
     callback row-double(int);
     callback row-menu(int, length, length);
     callback search-changed(string);
@@ -247,6 +249,9 @@ export global Prefs {
     in-out property <float> viz-sensitivity;
     in-out property <bool> show-waveform: true;
     in-out property <int> wave-style;
+    in-out property <int> live-style: 1;
+    in-out property <int> live-span: 1;
+    in-out property <bool> live-glow: true;
     in-out property <bool> auto-eq;
     in-out property <bool> online-lyrics: true;
     in-out property <bool> group-albums: true;
@@ -254,6 +259,16 @@ export global Prefs {
     in-out property <bool> compact;
     in-out property <bool> ontop;
     in-out property <bool> show-sidebar: true;
+    in-out property <float> sidebar-width: 236;
+    in-out property <float> panel-glass;
+    in-out property <float> nav-text: 1;
+    // Sekcje panelu nawigacji.
+    in-out property <bool> nav-playlist: true;
+    in-out property <bool> nav-music: true;
+    in-out property <bool> nav-video: true;
+    in-out property <bool> nav-sets: true;
+    in-out property <bool> nav-smart: true;
+    in-out property <bool> nav-folders: true;
     in-out property <int> side-panel;
     in-out property <bool> scroll-title: true;
     in-out property <int> accent-scope: 1;

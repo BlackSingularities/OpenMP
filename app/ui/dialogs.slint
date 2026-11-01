@@ -412,6 +412,8 @@ export component SettingsDialog inherits Dialog {
             spacing: 2px;
             for p[i] in [
                 { icon: Icons.palette, l: "Wygląd" },
+                { icon: Icons.queue, l: "Układ" },
+                { icon: Icons.equalizer, l: "Wizualizacja" },
                 { icon: Icons.play, l: "Odtwarzanie" },
                 { icon: Icons.volume, l: "Dźwięk" },
                 { icon: Icons.movie, l: "Wideo" },
@@ -584,6 +586,28 @@ export component SettingsDialog inherits Dialog {
                 Rectangle {
                     height: 10px;
                 }
+                SettingRow {
+                    title: "Przezroczystość paneli";
+                    hint: round(Prefs.panel-glass * 100) + "% – listy i panel nawigacji prześwitują rozmytym tłem z okładki";
+                    HSlider {
+                        width: 180px;
+                        minimum: 0;
+                        maximum: 0.8;
+                        step: 0.05;
+                        value: Prefs.panel-glass;
+                        moved(v) => {
+                            Prefs.panel-glass = v;
+                            Prefs.changed("panel-glass");
+                        }
+                        reset => {
+                            Prefs.panel-glass = 0;
+                            Prefs.changed("panel-glass");
+                        }
+                    }
+                }
+                Rectangle {
+                    height: 10px;
+                }
                 SectionTitle {
                     text: "KSZTAŁT I TEKST";
                 }
@@ -615,6 +639,75 @@ export component SettingsDialog inherits Dialog {
                     checked <=> Prefs.compact-ui;
                     toggled => { Prefs.changed("compact-ui"); }
                 }
+                SettingRow {
+                    title: "Czcionka tytułów";
+                    Segmented {
+                        options: ["Szeryfowa", "Bezszeryfowa", "Techniczna"];
+                        selected: Prefs.title-font;
+                        changed(i) => {
+                            Prefs.title-font = i;
+                            Prefs.changed("title-font");
+                        }
+                    }
+                }
+            }
+            if Ui.settings-page == 1: Page {
+                heading: "Układ";
+                SectionTitle {
+                    text: "PANEL NAWIGACJI";
+                }
+                SettingRow {
+                    title: "Wielkość tekstu panelu";
+                    Segmented {
+                        options: ["90%", "100%", "115%", "130%"];
+                        selected: Prefs.nav-text < 0.95 ? 0 : Prefs.nav-text < 1.07 ? 1 : Prefs.nav-text < 1.22 ? 2 : 3;
+                        changed(i) => {
+                            Prefs.nav-text = [0.9, 1, 1.15, 1.3][i];
+                            Prefs.changed("nav-text");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: "Panel nawigacji";
+                    checked <=> Prefs.show-sidebar;
+                    toggled => { Prefs.changed("show-sidebar"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: listy odtwarzania";
+                    checked <=> Prefs.nav-playlist;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: muzyka";
+                    checked <=> Prefs.nav-music;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: wideo";
+                    checked <=> Prefs.nav-video;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: zbiory";
+                    checked <=> Prefs.nav-sets;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: inteligentne listy";
+                    checked <=> Prefs.nav-smart;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                if Prefs.show-sidebar: SettingSwitch {
+                    title: "Panel: foldery";
+                    checked <=> Prefs.nav-folders;
+                    toggled => { Prefs.changed("nav-sections"); }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: "LISTY UTWORÓW";
+                }
                 SettingSwitch {
                     title: "Utwory jako okładki";
                     hint: "Listy i biblioteka jako siatka kafelków z okładkami zamiast wierszy (przełącznik też nad listą)";
@@ -640,22 +733,27 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
-                SettingRow {
-                    title: "Czcionka tytułów";
-                    Segmented {
-                        options: ["Szeryfowa", "Bezszeryfowa", "Techniczna"];
-                        selected: Prefs.title-font;
-                        changed(i) => {
-                            Prefs.title-font = i;
-                            Prefs.changed("title-font");
-                        }
-                    }
+                SettingSwitch {
+                    title: "Grupuj listę według albumów";
+                    hint: "Nagłówki z okładką nad każdym albumem";
+                    checked <=> Prefs.group-albums;
+                    toggled => { Prefs.changed("group-albums"); }
                 }
-                Rectangle {
-                    height: 10px;
+                SettingSwitch {
+                    title: "Przewijaj długie tytuły";
+                    checked <=> Prefs.scroll-title;
+                    toggled => { Prefs.changed("scroll-title"); }
                 }
+                SettingSwitch {
+                    title: "Pokazuj czas pozostały";
+                    checked <=> Prefs.remaining;
+                    toggled => { Prefs.changed("remaining"); }
+                }
+            }
+            if Ui.settings-page == 2: Page {
+                heading: "Wizualizacja";
                 SectionTitle {
-                    text: "WIZUALIZACJA I TAŚMA";
+                    text: "ANALIZATOR";
                 }
                 SettingRow {
                     title: "Liczba słupków analizatora";
@@ -687,6 +785,12 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: "TAŚMA UTWORU";
+                }
                 SettingSwitch {
                     title: "Fala utworu na pasku przewijania";
                     checked <=> Prefs.show-waveform;
@@ -702,59 +806,39 @@ export component SettingsDialog inherits Dialog {
                             Prefs.wave-style = self.current-index;
                             Prefs.changed("wave-style");
                         }
+                if Prefs.show-waveform: SettingRow {
+                    title: "Efekt przy znaczniku";
+                    hint: "Część taśmy wokół miejsca odtwarzania porusza się z muzyką";
+                    ComboBox {
+                        width: 200px;
+                        model: ["Wyłączony", "Puls taśmy", "Słupki widma", "Fala widma", "Kropki szczytów", "Obwiednia", "Fala uderzeniowa"];
+                        current-index: Prefs.live-style;
+                        selected => {
+                            Prefs.live-style = self.current-index;
+                            Prefs.changed("live-style");
+                        }
                     }
                 }
-                Rectangle {
-                    height: 10px;
-                }
-                SectionTitle {
-                    text: "SIEĆ I LISTA";
-                }
-                SettingSwitch {
-                    title: "Pobieraj brakujące teksty z LRCLIB";
-                    hint: "Wysyła tylko wykonawcę, tytuł, album i czas trwania";
-                    checked <=> Prefs.online-lyrics;
-                    toggled => { Prefs.changed("online-lyrics"); }
-                }
-                SettingSwitch {
-                    title: "Pobieraj brakujące okładki";
-                    hint: "Z MusicBrainz i Cover Art Archive – wysyła tylko wykonawcę i album";
-                    checked <=> Prefs.online-covers;
-                    toggled => { Prefs.changed("online-covers"); }
-                }
-                SettingRow {
-                    title: "Token ListenBrainz";
-                    hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";
-                    LineEdit {
-                        width: 220px;
-                        input-type: password;
-                        text <=> Prefs.lb-token;
-                        edited => { Prefs.changed("lb-token"); }
+                if Prefs.show-waveform && Prefs.live-style > 0: SettingRow {
+                    title: "Zasięg efektu";
+                    Segmented {
+                        options: ["Wąski", "Średni", "Szeroki"];
+                        selected: Prefs.live-span;
+                        changed(i) => {
+                            Prefs.live-span = i;
+                            Prefs.changed("live-span");
+                        }
                     }
                 }
-                SettingSwitch {
-                    title: "Grupuj listę według albumów";
-                    hint: "Nagłówki z okładką nad każdym albumem";
-                    checked <=> Prefs.group-albums;
-                    toggled => { Prefs.changed("group-albums"); }
+                if Prefs.show-waveform: SettingSwitch {
+                    title: "Poświata przy znaczniku";
+                    checked <=> Prefs.live-glow;
+                    toggled => { Prefs.changed("live-glow"); }
                 }
-                SettingSwitch {
-                    title: "Przewijaj długie tytuły";
-                    checked <=> Prefs.scroll-title;
-                    toggled => { Prefs.changed("scroll-title"); }
-                }
-                SettingSwitch {
-                    title: "Pokazuj czas pozostały";
-                    checked <=> Prefs.remaining;
-                    toggled => { Prefs.changed("remaining"); }
-                }
-                SettingSwitch {
-                    title: "Panel nawigacji";
-                    checked <=> Prefs.show-sidebar;
-                    toggled => { Prefs.changed("show-sidebar"); }
+                    }
                 }
             }
-            if Ui.settings-page == 1: Page {
+            if Ui.settings-page == 3: Page {
                 heading: "Odtwarzanie";
                 SettingSwitch {
                     title: "Wznów po uruchomieniu";
@@ -805,7 +889,7 @@ export component SettingsDialog inherits Dialog {
                     toggled => { Prefs.changed("soft-pause"); }
                 }
             }
-            if Ui.settings-page == 2: Page {
+            if Ui.settings-page == 4: Page {
                 heading: "Dźwięk";
                 SettingRow {
                     title: "Urządzenie wyjściowe";
@@ -878,7 +962,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
             }
-            if Ui.settings-page == 3: Page {
+            if Ui.settings-page == 5: Page {
                 heading: "Wideo";
                 SectionTitle {
                     text: "WIDOK FILMU";
@@ -1167,7 +1251,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
             }
-            if Ui.settings-page == 4: Page {
+            if Ui.settings-page == 6: Page {
                 heading: "Napisy";
                 SettingRow {
                     title: "Wielkość napisów";
@@ -1279,7 +1363,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
             }
-            if Ui.settings-page == 5: Page {
+            if Ui.settings-page == 7: Page {
                 heading: "Biblioteka";
                 FolderList {
                     kind: 0;
@@ -1316,8 +1400,36 @@ export component SettingsDialog inherits Dialog {
                         clicked => { Prefs.changed("rescan"); }
                     }
                 }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: "INTERNET";
+                }
+                SettingSwitch {
+                    title: "Pobieraj brakujące teksty z LRCLIB";
+                    hint: "Wysyła tylko wykonawcę, tytuł, album i czas trwania";
+                    checked <=> Prefs.online-lyrics;
+                    toggled => { Prefs.changed("online-lyrics"); }
+                }
+                SettingSwitch {
+                    title: "Pobieraj brakujące okładki";
+                    hint: "Z MusicBrainz i Cover Art Archive – wysyła tylko wykonawcę i album";
+                    checked <=> Prefs.online-covers;
+                    toggled => { Prefs.changed("online-covers"); }
+                }
+                SettingRow {
+                    title: "Token ListenBrainz";
+                    hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";
+                    LineEdit {
+                        width: 220px;
+                        input-type: password;
+                        text <=> Prefs.lb-token;
+                        edited => { Prefs.changed("lb-token"); }
+                    }
+                }
             }
-            if Ui.settings-page == 6: Page {
+            if Ui.settings-page == 8: Page {
                 heading: "Skróty klawiszowe";
                 for k in Prefs.keys: HorizontalLayout {
                     height: 30px;
@@ -1351,7 +1463,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
             }
-            if Ui.settings-page == 7: Page {
+            if Ui.settings-page == 9: Page {
                 heading: "System";
                 SettingSwitch {
                     title: "Jedno okno programu";
@@ -1399,7 +1511,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
             }
-            if Ui.settings-page == 8: Page {
+            if Ui.settings-page == 10: Page {
                 heading: "O programie";
                 HorizontalLayout {
                     spacing: 16px;

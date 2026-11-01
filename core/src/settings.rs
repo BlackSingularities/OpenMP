@@ -17,6 +17,10 @@ pub struct Settings {
     pub show_waveform: bool,
     /// Styl taśmy na pasku przewijania: 0 – fala, 1 – słupki, 2 – fala jednostronna, 3 – kontur.
     pub wave_style: i32,
+    /// Żywa część taśmy przy znaczniku (0 – wyłączona), jej zasięg (0..2) i poświata.
+    pub live_style: i32,
+    pub live_span: i32,
+    pub live_glow: bool,
     pub group_albums: bool,
     pub show_remaining: bool,
     pub compact: bool,
@@ -42,6 +46,10 @@ pub struct Settings {
     /// Zaokrąglenia: 0 – ostre, 1 – zwykłe, 2 – mocne.
     pub corners: i32,
     pub text_scale: f32,
+    /// Przezroczystość paneli (0 – pełne, do 0.8) – prześwituje rozmyte tło z okładki.
+    pub panel_glass: f32,
+    /// Wielkość tekstu panelu nawigacji względem reszty.
+    pub nav_text: f32,
     /// Czcionka tytułu: 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
     pub title_font: i32,
     /// Kompaktowy interfejs: niższe wiersze i mniejsze odstępy.
@@ -150,6 +158,10 @@ pub struct Settings {
     pub smart_lists: Vec<(String, String)>,
     /// Zwinięte sekcje panelu nawigacji (identyfikatory „sec-…”).
     pub nav_collapsed: Vec<String>,
+    /// Sekcje panelu nawigacji wyłączone w ustawieniach („playlist” albo „sec-…”).
+    pub nav_hidden: Vec<String>,
+    /// Szerokość panelu nawigacji (px), zmieniana przeciąganiem krawędzi.
+    pub sidebar_width: f32,
     pub skip_version: String,
     /// Wersja ustawień dźwięku – stare domyślne (ReplayGain ściszający utwory) są poprawiane raz.
     #[serde(default)]
@@ -168,6 +180,9 @@ impl Default for Settings {
             viz_sensitivity: 0.0,
             show_waveform: true,
             wave_style: 1,
+            live_style: 1,
+            live_span: 1,
+            live_glow: true,
             group_albums: true,
             show_remaining: false,
             compact: false,
@@ -185,6 +200,8 @@ impl Default for Settings {
             glow: 1.0,
             corners: 1,
             text_scale: 1.0,
+            panel_glass: 0.0,
+            nav_text: 1.0,
             title_font: 0,
             compact_ui: false,
             track_grid: false,
@@ -253,6 +270,8 @@ impl Default for Settings {
             video_folders: dirs::video_dir().map(|p| vec![p.to_string_lossy().into_owned()]).unwrap_or_default(),
             custom_eq: Vec::new(),
             nav_collapsed: Vec::new(),
+            nav_hidden: Vec::new(),
+            sidebar_width: 236.0,
             smart_lists: vec![
                 ("Najlepiej oceniane".into(), "ocena>=4".into()),
                 ("Często słuchane".into(), "odtworzenia>=5".into()),

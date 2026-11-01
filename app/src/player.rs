@@ -501,7 +501,9 @@ pub fn apply_volume(app: &mut App) {
         // mpv liczy amplitudę jako (głośność/100)³, silnik muzyki jako v^1,5 – ta sama słyszalna głośność.
         // Filmy: pełna głośność może sięgać wzmocnienia z ustawień (do 200%).
         let top = if app.cur.as_ref().is_some_and(|c| c.video) { app.s.volume_boost.clamp(100.0, 200.0) as f64 } else { 100.0 };
-        m.set_f64("volume", ((v as f64).sqrt() * top).clamp(0.0, top));
+        // Sesja w mikserze Windows ścisza też mpv (ten sam proces) – wtedy mpv daje tylko wzmocnienie.
+        let mv = if app.engine.session_volume() { 1.0 } else { v as f64 };
+        m.set_f64("volume", (mv.sqrt() * top).clamp(0.0, top));
     }
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_volume(app.s.volume);
@@ -567,6 +569,16 @@ pub fn tick(app: &mut App) {
                 }
             }
             engine::Event::Device(msg) => app.toast(msg),
+            // Suwak OpenMP przesunięty w mikserze Windows – aplikacja przyjmuje tę głośność.
+            engine::Event::Volume(v) => {
+                if app.sleep_fade.is_none() {
+                    app.s.volume = v.clamp(0.0, 1.0);
+                    if v > 0.0 {
+                        app.s.muted = false;
+                    }
+                    apply_volume(app);
+                }
+            }
         }
     }
     if let Some(c) = app.cur.clone() {

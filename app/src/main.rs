@@ -512,6 +512,7 @@ fn wire(ui: &AppWindow) {
     l.on_tab_add(|| later(|app| keys::action(app, "new-list")));
     l.on_tab_close(|i| later(move |app| lists::close_tab(app, i as usize)));
     l.on_row_clicked(|i, c, s| later(move |app| lists::select_click(app, i as usize, c, s)));
+    l.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| lists::select_band(app, (r0, r1, c0, c1, n), k)));
     l.on_row_double(|i| later(move |app| {
         let id = app.active_id();
         player::play(app, id, i as usize, None);
@@ -574,6 +575,7 @@ fn wire(ui: &AppWindow) {
         libview::command(app, "l-add");
     }));
     b.on_row_clicked(|i, c, s| later(move |app| libview::row_clicked(app, i as usize, c, s)));
+    b.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| libview::row_band(app, (r0, r1, c0, c1, n), k)));
     b.on_row_double(|i| later(move |app| libview::row_double(app, i as usize)));
     b.on_row_menu(|_, x, y| later(move |app| libview::row_menu(app, x, y)));
     b.on_search_changed(|t| later(move |app| {

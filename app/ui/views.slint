@@ -256,8 +256,8 @@ export component ControlsBar inherits Rectangle {
 
 // Panel nawigacji: listy, biblioteka, zbiory, radio.
 export component Sidebar inherits Rectangle {
-    width: 236px;
-    background: Theme.side;
+    width: Prefs.sidebar-width * 1px;
+    background: Theme.side-pane;
     VerticalLayout {
         padding: 10px;
         padding-top: 4px;
@@ -368,12 +368,6 @@ export component Sidebar inherits Rectangle {
                         }
                         Rectangle {
                             width: 26px;
-                            if n.icon == "folder-open": Rectangle {
-                                y: (parent.height - 26px) / 2;
-                                height: 26px;
-                                border-radius: 6px;
-                                background: Theme.tint.with-alpha(0.14);
-                            }
                             Icon {
                                 icon: Icons.get(n.icon);
                                 size: 17px;
@@ -384,7 +378,7 @@ export component Sidebar inherits Rectangle {
                             text: n.label;
                             color: Lib.nav-selected == n.id ? Theme.text : Theme.text2;
                             font-weight: Lib.nav-selected == n.id ? 600 : 400;
-                            font-size: Theme.fs-md;
+                            font-size: Theme.nav-fs;
                             vertical-alignment: center;
                             overflow: elide;
                             horizontal-stretch: 1;
@@ -392,7 +386,7 @@ export component Sidebar inherits Rectangle {
                         Text {
                             text: n.count;
                             color: Theme.text3;
-                            font-size: Theme.fs-xs;
+                            font-size: Theme.nav-fs-xs;
                             vertical-alignment: center;
                         }
                     }
@@ -441,10 +435,26 @@ export component Sidebar inherits Rectangle {
             }
         }
     }
+    // Prawa krawędź: przeciąganie zmienia szerokość panelu.
+    TouchArea {
+        x: parent.width - 4px;
+        width: 6px;
+        mouse-cursor: MouseCursor.ew-resize;
+        moved => {
+            if self.pressed {
+                Prefs.sidebar-width = clamp(Prefs.sidebar-width + (self.mouse-x - self.pressed-x) / 1px, 180, 420);
+            }
+        }
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.up {
+                Prefs.changed("sidebar-width");
+            }
+        }
+    }
 }
 
 export component PlaylistView inherits Rectangle {
-    background: Theme.panel;
+    background: Theme.pane;
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -562,6 +572,7 @@ export component PlaylistView inherits Rectangle {
             scroll-gen: Lists.scroll-gen;
             empty-text: Lists.filter != "" ? "Nic nie pasuje do „" + Lists.filter + "”" : "Lista jest pusta.\nPrzeciągnij tu pliki lub foldery albo kliknij dwukrotnie, by je wybrać.";
             clicked(i, c, s) => { Lists.row-clicked(i, c, s); }
+            band(r0, r1, c0, c1, n, k) => { Lists.row-band(r0, r1, c0, c1, n, k); }
             double(i) => { Lists.row-double(i); }
             menu(i, x, y) => { Lists.row-menu(i, x, y); }
             header-clicked(i) => { Lists.header-clicked(i); }
@@ -586,7 +597,7 @@ export component PlaylistView inherits Rectangle {
 }
 
 export component LibraryView inherits Rectangle {
-    background: Theme.panel;
+    background: Theme.pane;
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -831,6 +842,7 @@ export component LibraryView inherits Rectangle {
             empty-text: Lib.empty-text;
             empty-icon: Icons.library;
             clicked(i, c, s) => { Lib.row-clicked(i, c, s); }
+            band(r0, r1, c0, c1, n, k) => { Lib.row-band(r0, r1, c0, c1, n, k); }
             double(i) => { Lib.row-double(i); }
             menu(i, x, y) => { Lib.row-menu(i, x, y); }
             fav(i) => { Lists.fav-toggle(-1 - i); }
@@ -847,7 +859,7 @@ export component LibraryView inherits Rectangle {
 }
 
 export component RadioView inherits Rectangle {
-    background: Theme.panel;
+    background: Theme.pane;
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -979,7 +991,7 @@ export component SidePanel inherits Rectangle {
     width: 300px;
     // Tekst jest obok opisu utworu – karta „Tekst” znika, zostają informacje i kolejka.
     property <int> page: Player.hero-lyrics && Prefs.side-panel == 1 ? 2 : Prefs.side-panel;
-    background: Theme.panel;
+    background: Theme.pane;
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {

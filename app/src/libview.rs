@@ -79,6 +79,17 @@ pub fn rebuild_nav(app: &mut App) {
         let root = root.trim_end_matches(['\\', '/']).to_string();
         nav_tree(app, &mut v, &root, &folder_name(&root), count, 0);
     }
+    // Sekcje wyłączone w ustawieniach znikają razem z pozycjami.
+    let off = |id: &str| app.s.nav_hidden.iter().any(|h| h == id);
+    let mut gone = false;
+    v.retain(|it| {
+        if it.section {
+            gone = off(it.id.as_str());
+        } else if it.id.as_str() == "playlist" {
+            return !off("playlist");
+        }
+        !gone
+    });
     // Zwinięte sekcje: sam nagłówek, bez pozycji pod nim.
     let mut hidden = false;
     v.retain_mut(|it| {
@@ -215,7 +226,7 @@ pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
             }
         }
         "rescan" => start_scan(app),
-        "folders" => crate::keys::open_settings(app, 5),
+        "folders" => crate::keys::open_settings(app, 7),
         _ => {}
     }
 }
@@ -801,6 +812,26 @@ fn add_to_active(app: &mut App, tracks: Vec<TrackInfo>) {
     crate::player::refresh_next(app);
     let name = app.store.lists[li].name.clone();
     app.toast(format!("Dodano {n} do listy „{name}”"));
+}
+
+/// Zaznaczenie prostokątem w siatce okładek.
+pub fn row_band(app: &mut App, band: (i32, i32, i32, i32, i32), ctrl: bool) {
+    let items = crate::lists::band_items(&app.m.lib_rows, band);
+    app.libv.sel.clear();
+    if ctrl {
+        if let Some(a) = app.libv.anchor {
+            app.libv.sel.insert(a);
+        }
+    }
+    app.libv.sel.extend(items);
+    for r in 0..app.m.lib_rows.row_count() {
+        let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
+        let s = app.libv.sel.contains(&(row.idx as usize));
+        if row.selected != s {
+            row.selected = s;
+            app.m.lib_rows.set_row_data(r, row);
+        }
+    }
 }
 
 pub fn row_clicked(app: &mut App, i: usize, ctrl: bool, shift: bool) {

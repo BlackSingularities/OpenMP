@@ -173,7 +173,7 @@ pub fn show_track(app: &mut App) {
         let path = t.path.clone();
         std::thread::spawn(move || {
             let cancel = || GEN.load(Ordering::SeqCst) != gen;
-            let Some(w) = openmp_core::audio::viz::waveform(Path::new(&path), 500, &cancel) else { return };
+            let Some(w) = openmp_core::audio::viz::waveform(Path::new(&path), 1500, &cancel) else { return };
             let _ = slint::invoke_from_event_loop(move || {
                 if GEN.load(Ordering::SeqCst) == gen {
                     later(move |app| {
@@ -191,8 +191,9 @@ pub fn show_track(app: &mut App) {
 }
 
 /// Barwa przewodnia okładki: najczęstszy nasycony odcień, rozjaśniony do czytelności.
+/// Okładka czarno-biała (bez wyraźnych barw) – biel zamiast niebieskiego.
 fn dominant(img: &image::RgbaImage) -> (u8, u8, u8) {
-    palette(img, 1).first().copied().unwrap_or((0x4f, 0x8c, 0xff))
+    palette(img, 1).first().copied().unwrap_or((0xe8, 0xe8, 0xe8))
 }
 
 /// Do `n` najmocniejszych odcieni obrazu (od najczęstszego), rozjaśnionych do czytelności.
@@ -419,9 +420,10 @@ pub fn frame(app: &mut App) {
     let bands = app.s.viz_bands.clamp(8, 128) as usize;
     app.analyzer.update(bands, app.engine.rate(), total, dt, app.s.viz_sensitivity);
     // Żywa część taśmy przy znaczniku odtwarzania.
-    if app.s.show_waveform && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {
+    if app.s.show_waveform && app.s.live_style > 0 && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {
         let pos = p.get_pos() / p.get_duration();
-        p.set_wave_live(ss(crate::wave::live(&app.wave_raw, pos, &app.analyzer.bars)));
+        let t = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0) % 1000.0) as f32;
+        p.set_wave_live(ss(crate::wave::live(&app.wave_raw, pos, &app.analyzer.bars, app.s.live_style, app.s.wave_style, app.s.live_span, t)));
     } else if !p.get_wave_live().is_empty() {
         p.set_wave_live(ss(""));
     }

@@ -12,6 +12,9 @@ export global Theme {
     // 0 – ostre, 1 – zwykłe, 2 – mocne zaokrąglenia.
     in-out property <int> corners: 1;
     in-out property <float> text-scale: 1;
+    // Przezroczystość paneli i wielkość tekstu panelu nawigacji.
+    in-out property <float> glass: 0;
+    in-out property <float> nav-scale: 1;
     // 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
     in-out property <int> title-font;
     in-out property <float> glow-k: 1;
@@ -43,6 +46,9 @@ export global Theme {
     out property <color> side: side0.mix(tint, wash);
     out property <color> panel: panel0.mix(tint, wash);
     out property <color> panel2: panel20.mix(tint, wash);
+    // Tła paneli (lista, biblioteka, panel nawigacji) z ustawianą przezroczystością.
+    out property <color> pane: panel.with-alpha(1 - glass);
+    out property <color> side-pane: side.with-alpha(1 - glass);
     out property <color> raised: raised0.mix(tint, wash);
     out property <color> line: line0.mix(tint, scope >= 2 ? 0.88 : 1);
     out property <color> line2: line20.mix(tint, scope >= 2 ? 0.86 : 1);
@@ -82,6 +88,8 @@ export global Theme {
     out property <length> fs-sm: 11.5px * text-scale;
     out property <length> fs: 12.5px * text-scale;
     out property <length> fs-md: 14px * text-scale;
+    out property <length> nav-fs: 14px * text-scale * nav-scale;
+    out property <length> nav-fs-xs: 10.5px * text-scale * nav-scale;
     out property <length> fs-lg: 17px * text-scale;
     out property <length> fs-xl: 22px * text-scale;
     out property <string> font: "Segoe UI Variable Text";

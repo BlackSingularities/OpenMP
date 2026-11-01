@@ -26,6 +26,7 @@ export component SeekBar inherits Rectangle {
     in property <string> wave2;
     in property <int> wave2-kind;
     in property <string> wave-live;
+    in property <bool> live-glow: true;
     in property <bool> show-wave;
     in property <[float]> chapters;
     in property <bool> enabled: true;
@@ -110,10 +111,10 @@ export component SeekBar inherits Rectangle {
             }
         }
         // Poświata za znacznikiem.
-        Rectangle {
+        if root.live-glow: Rectangle {
             x: root.width * clamp(root.shown, 0, 1) - self.width / 2;
-            width: 90px;
-            background: @radial-gradient(circle, Theme.tint.with-alpha(0.38) 0%, Theme.tint.with-alpha(0.12) 40%, transparent 70%);
+            width: 48px;
+            background: @radial-gradient(circle, Theme.tint.with-alpha(0.28) 0%, Theme.tint.with-alpha(0.08) 40%, transparent 70%);
         }
         // Żywa część: słupki z bieżącego widma wokół znacznika.
         if root.wave-live != "": Path {
@@ -124,7 +125,7 @@ export component SeekBar inherits Rectangle {
             fit: fill;
             viewbox-height: 100;
             fill: @linear-gradient(0deg, Theme.tint.brighter(0.3) 0%, Theme.knob 100%);
-            opacity: 0.9;
+            opacity: 0.75;
             stroke-width: 0;
         }
         // Podgląd miejsca pod kursorem.
@@ -179,16 +180,16 @@ export component SeekBar inherits Rectangle {
         width: 2px;
         height: 100%;
         background: Theme.knob;
-        drop-shadow-blur: 8px;
+        drop-shadow-blur: 5px;
         drop-shadow-color: Theme.tint.brighter(0.4);
         for k in 2: Rectangle {
-            x: -3px;
-            y: k == 0 ? -4px : parent.height - 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 4px;
+            x: -2px;
+            y: k == 0 ? -3px : parent.height - 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
             background: Theme.knob;
-            drop-shadow-blur: 6px;
+            drop-shadow-blur: 4px;
             drop-shadow-color: Theme.tint;
         }
     }
