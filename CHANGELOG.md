@@ -2,6 +2,7 @@
 
 ## 1.6.1
 
+- 1.6.0 nie zbudowało się (brak importu w siatce okładek) – ta wersja zawiera wszystkie jej zmiany.
 - **Ikona w zasobniku systemowym** (Ustawienia → System): zamknięcie okna chowa je do zasobnika, a muzyka gra dalej; kliknięcie przywraca okno, prawy przycisk – menu (odtwórz/pauza, następny, poprzedni, zakończ); podpowiedź pokazuje bieżący utwór.
 - **Kopia zapasowa** (Ustawienia → System): eksport i import ustawień, list, ulubionych, ocen i statystyk w jednym pliku – także na inny komputer; po imporcie program uruchamia się ponownie.
 - **Duplikaty** w panelu biblioteki (Zbiory): utwory z tym samym wykonawcą i tytułem (bez dopisków w nawiasach) i podobną długością, obok siebie – do przejrzenia i usunięcia.
