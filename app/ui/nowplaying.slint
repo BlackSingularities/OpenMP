@@ -462,30 +462,67 @@ component SelInfo inherits VerticalLayout {
     in property <bool> small;
     alignment: center;
     spacing: root.small ? 2px : 4px;
-    if !root.small: Text {
-        text: "ZAZNACZENIE";
-        color: Theme.text3;
-        font-size: Theme.fs-xs;
-        letter-spacing: 3px;
+    // Ten sam układ co „Teraz odtwarzane”: nagłówek, tytuł, wykonawca, album/rok z ikoną,
+    // twórcy, opis i parametry z ikonami; niżej – dodatkowe tagi.
+    if !root.small: HorizontalLayout {
+        spacing: 8px;
+        alignment: start;
+        height: 14px;
+        Text {
+            text: "ZAZNACZENIE" + (Player.sel-movie ? "  ·  FILM" : "");
+            color: Theme.text3;
+            font-size: Theme.fs-xs;
+            letter-spacing: 3px;
+            vertical-alignment: center;
+        }
     }
     Marquee {
         text: Player.sel-title;
-        font-size: root.small ? 22px : 36px;
+        font-size: root.small ? 22px : 40px;
         font-family: Theme.font-serif;
         text-color: Theme.heading;
         enabled: Prefs.scroll-title;
     }
-    if Player.sel-sub != "": Text {
+    if Player.sel-sub != "": Marquee {
         text: Player.sel-sub;
-        color: Theme.tint.mix(Theme.text2, 0.45);
-        font-size: root.small ? Theme.fs-md : 18px;
-        overflow: elide;
+        font-size: root.small ? 15px : 24px;
+        font-family: Theme.font-serif;
+        text-color: Theme.tint.mix(Theme.text2, 0.45);
+        enabled: Prefs.scroll-title;
     }
-    if Player.sel-credits != "": Text {
-        text: Player.sel-credits;
-        color: Theme.text3;
-        font-size: Theme.fs-sm;
-        overflow: elide;
+    if Player.sel-album != "": HorizontalLayout {
+        spacing: 6px;
+        Icon {
+            y: (parent.height - self.height) / 2;
+            icon: Player.sel-movie ? Icons.calendar : Icons.album;
+            size: 14px;
+            fill: Theme.text3;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: Player.sel-album;
+            color: Theme.text2;
+            font-size: root.small ? Theme.fs-sm : Theme.fs-md;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    if !root.small && Player.sel-credits != "": HorizontalLayout {
+        spacing: 6px;
+        Icon {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.artist;
+            size: 14px;
+            fill: Theme.text3;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: Player.sel-credits;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            overflow: elide;
+        }
     }
     // Opis w prostokącie o stałych wymiarach (jak przy odtwarzaniu); przy braku miejsca
     // zostaje mniej wierszy, zakończonych wielokropkiem.
@@ -509,6 +546,16 @@ component SelInfo inherits VerticalLayout {
     }
     Rectangle {
         height: root.small ? 0px : 2px;
+    }
+    if Player.sel-badges.length > 0: HorizontalLayout {
+        spacing: 16px;
+        alignment: start;
+        height: 18px;
+        for b[i] in Player.sel-badges: Param {
+            text: b;
+            icon: Player.sel-badge-icons[i];
+            lit: i == 0;
+        }
     }
     // Szczegóły w dwóch kolumnach (w wąskim miejscu – w jednej). Gdy brak miejsca w pionie,
     // znikają całe wiersze od dołu – bez przyciętych w pół.
@@ -540,7 +587,7 @@ component SelInfo inherits VerticalLayout {
                     color: Theme.text3;
                     font-size: Theme.fs-sm;
                     vertical-alignment: center;
-                    min-width: 90px;
+                    width: 110px;
                 }
                 Text {
                     horizontal-stretch: 1;

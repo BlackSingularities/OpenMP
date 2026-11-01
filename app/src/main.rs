@@ -150,6 +150,7 @@ fn main() {
         dialogs: None,
         dirty: false,
         scrobbled: 0,
+        counted: 0,
         last_save: Instant::now(),
         last_smtc: Instant::now(),
         stations: Vec::new(),
@@ -282,6 +283,7 @@ fn main() {
                 radio::icy_tick(app);
                 libview::scan_tick(app);
                 player::scrobble_tick(app);
+                player::played_tick(app);
                 win::thumb_state(app);
                 if app.last_smtc.elapsed() > Duration::from_secs(2) {
                     app.last_smtc = Instant::now();

@@ -855,27 +855,35 @@ pub fn sel_info(app: &mut App) {
     let single = (sel.len() == 1).then(|| sel[0].clone());
     let mut rows: Vec<(&str, &str, String)> = Vec::new();
     let (title, sub, cover_path);
+    let (mut sel_album, mut sel_badges, mut sel_movie) = (String::new(), Vec::new(), false);
     let fmt_size = |b: u64| if b >= 1 << 30 { format!("{:.2} GB", b as f64 / (1u64 << 30) as f64).replace('.', ",") } else { format!("{:.1} MB", b as f64 / 1_048_576.0).replace('.', ",") };
     if sel.len() == 1 {
         let t = &sel[0];
         let video = meta::is_video(Path::new(&t.path));
         title = t.display_title();
-        sub = if video { Path::new(&t.path).parent().map(|d| d.to_string_lossy().into_owned()).unwrap_or_default() } else { t.display_artist() };
-        if !t.album.is_empty() {
-            rows.push(("album", "Album", t.album.clone()));
-        }
+        // Te same linie co przy odtwarzaniu (show_track); w wierszach – tylko dodatkowe tagi.
+        sub = t.display_artist();
+        let mut album = t.album.clone();
         if t.year > 0 {
-            rows.push(("calendar", "Rok", t.year.to_string()));
+            album = if album.is_empty() { t.year.to_string() } else { format!("{album}  ·  {}", t.year) };
+        }
+        if video && album.is_empty() {
+            album = Path::new(&t.path).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+        }
+        sel_album = album;
+        sel_badges = badges(t, None);
+        sel_movie = video;
+        if !t.album_artist.is_empty() && t.album_artist != t.display_artist() {
+            rows.push(("artist", "Wykonawca albumu", t.album_artist.clone()));
+        }
+        if t.track > 0 {
+            rows.push(("playlist", "Numer", t.track.to_string()));
         }
         if !t.genre.is_empty() {
             rows.push(("tag", "Gatunek", t.genre.clone()));
         }
         if t.duration > 0.0 {
             rows.push(("clock", "Długość", meta::fmt_time(t.duration)));
-        }
-        let b = badges(t, None);
-        if !b.is_empty() {
-            rows.push(("file", "Format", b.join(" · ")));
         }
         if t.size > 0 {
             rows.push(("download", "Rozmiar", fmt_size(t.size)));
@@ -927,7 +935,13 @@ pub fn sel_info(app: &mut App) {
             rows.push(("folder-open", "Folder", d.to_string_lossy().into_owned()));
         }
         cover_path = group[0].path.clone();
+        sel_movie = group.iter().all(|t| t.video || meta::is_video(Path::new(&t.path)));
     }
+    p.set_sel_album(ss(sel_album));
+    p.set_sel_movie(sel_movie);
+    p.set_sel_badges(crate::app::strings(&sel_badges));
+    let icons: Vec<String> = sel_badges.iter().map(|s| badge_icon(s).to_string()).collect();
+    p.set_sel_badge_icons(crate::app::strings(&icons));
     let opts: Vec<Opt> = rows.into_iter().map(|(i, l, v)| Opt { id: ss(i), label: ss(l), sub: ss(v), selected: false }).collect();
     p.set_sel_title(ss(title));
     p.set_sel_sub(ss(sub));
@@ -1020,7 +1034,7 @@ fn apply_sel_desc(p: &Player, info: &openmp_core::tmdb::Info) {
     }
     let line = info.line();
     if !line.is_empty() {
-        p.set_sel_sub(ss(line));
+        p.set_sel_album(ss(line));
     }
     p.set_sel_overview(ss(&info.overview));
     p.set_sel_credits(ss(info.credits()));

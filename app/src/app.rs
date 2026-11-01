@@ -179,6 +179,8 @@ pub struct App {
     pub dirty: bool,
     /// Element (`Playing::item`) już wysłany do ListenBrainz.
     pub scrobbled: u64,
+    /// Odtworzenie (id), które już zostało policzone jako odsłuchane / obejrzane.
+    pub counted: u64,
     pub last_save: Instant,
     pub last_smtc: Instant,
     pub stations: Vec<Station>,

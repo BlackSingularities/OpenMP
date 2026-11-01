@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.5.4
+
+- **Obejrzany i odsłuchany od progu** (Ustawienia → Film, domyślnie 80%): odtworzenie liczy się w statystykach dopiero po przejściu tej części długości, a film dostaje znacznik „obejrzany” od tego samego progu. Pominięte po chwili utwory nie nabijają odtworzeń.
+- **Zaznaczenie wygląda jak „Teraz odtwarzane”:** ten sam nagłówek, szeryfowy tytuł i wykonawca, album i rok (film – rok, gatunki, ocena) z ikoną, twórcy, opis i parametry techniczne z ikonami. Niżej tylko dodatkowe tagi – dla muzyki m.in. wykonawca albumu, numer, gatunek.
+
 ## 1.5.3
 
 - **Naprawione okładki:** każdy plik ma własną okładkę – utwory z różnych albumów w jednym folderze nie dostają już okładki pierwszego z nich.

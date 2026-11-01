@@ -68,6 +68,11 @@ export global Player {
     in-out property <bool> sel-mode;
     in-out property <string> sel-title;
     in-out property <string> sel-sub;
+    // Jak przy odtwarzaniu: album i rok (film – rok, gatunki, ocena) oraz parametry z ikonami.
+    in-out property <string> sel-album;
+    in-out property <bool> sel-movie;
+    in-out property <[string]> sel-badges;
+    in-out property <[string]> sel-badge-icons;
     // Opis zaznaczonego filmu (TMDB) albo utworu (komentarz) i reżyseria/obsada.
     in-out property <string> sel-overview;
     in-out property <string> sel-credits;
@@ -367,6 +372,7 @@ export global Prefs {
     in-out property <bool> dblclick-seek: true;
     in-out property <bool> video-autonext: true;
     in-out property <float> volume-boost: 100;
+    in-out property <float> played-pct: 80;
     in-out property <bool> night-mode;
     in-out property <bool> downmix;
     in-out property <int> ytdl-format: 1;

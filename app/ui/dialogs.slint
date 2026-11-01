@@ -1207,6 +1207,25 @@ export component SettingsDialog inherits Dialog {
                     checked <=> Prefs.video-resume;
                     toggled => { Prefs.changed("video-resume"); }
                 }
+                SettingRow {
+                    title: "Obejrzany i odsłuchany od";
+                    hint: round(Prefs.played-pct) + "% długości – dopiero wtedy liczy się odtworzenie, a film jest obejrzany";
+                    HSlider {
+                        width: 180px;
+                        minimum: 10;
+                        maximum: 100;
+                        step: 5;
+                        value: Prefs.played-pct;
+                        moved(v) => {
+                            Prefs.played-pct = v;
+                            Prefs.changed("played-pct");
+                        }
+                        reset => {
+                            Prefs.played-pct = 80;
+                            Prefs.changed("played-pct");
+                        }
+                    }
+                }
                 SettingSwitch {
                     title: "Po filmie następny plik z listy";
                     checked <=> Prefs.video-autonext;

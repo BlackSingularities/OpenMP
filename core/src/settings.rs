@@ -126,6 +126,8 @@ pub struct Settings {
     pub dblclick_seek: bool,
     /// Po końcu filmu następny plik z listy.
     pub video_autonext: bool,
+    /// Od jakiej części długości utwór liczy się jako odsłuchany, a film jako obejrzany (%).
+    pub played_pct: f32,
     /// Wzmocnienie dźwięku filmów (100–200%).
     pub volume_boost: f32,
     /// Tryb nocny: wyrównanie dynamiki (ciche dialogi, głośne wybuchy).
@@ -256,6 +258,7 @@ impl Default for Settings {
             wheel_action: 0,
             dblclick_seek: true,
             video_autonext: true,
+            played_pct: 80.0,
             volume_boost: 100.0,
             night_mode: false,
             downmix: false,

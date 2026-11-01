@@ -157,7 +157,6 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
         crate::video::refresh_active(app);
     }
     app.pause_after_load = false;
-    app.stats.played(&t.path);
     if !meta::is_url(&t.path) {
         app.stats.touch_recent(&t.path);
     }
@@ -534,8 +533,8 @@ pub fn save_resume(app: &mut App) {
     }
     let st = app.stats.entry(&c.info.path);
     st.resume = if pos > 10.0 && (dur <= 0.0 || pos < dur - 15.0) { pos } else { 0.0 };
-    // Film obejrzany prawie do końca.
-    if c.video && dur > 0.0 && pos >= dur * 0.9 {
+    // Film obejrzany do progu z ustawień.
+    if c.video && dur > 0.0 && pos >= dur * (app.s.played_pct.min(98.0) as f64 / 100.0) {
         st.watched = true;
     }
     // Ustawienia tego filmu na następny raz.
@@ -625,7 +624,6 @@ pub fn tick(app: &mut App) {
                             }
                             app.cur = Some(Playing { list: Some(p.list), idx: p.idx, item: id, info: t.clone(), backend: Backend::Engine, video: false, station: None });
                             app.pending = None;
-                            app.stats.played(&t.path);
                             app.stats.touch_recent(&t.path);
                             app.dirty = true;
                             crate::display::show_track(app);
@@ -795,6 +793,26 @@ pub fn open_url(app: &mut App, url: &str) {
         return;
     }
     open_paths(app, vec![url], true, None);
+}
+
+/// Odtworzenie liczy się (statystyki, „obejrzany”) dopiero po przejściu progu z ustawień;
+/// strumień bez długości – od razu.
+pub fn played_tick(app: &mut App) {
+    let Some(c) = app.cur.clone() else { return };
+    if c.item == 0 || c.item == app.counted {
+        return;
+    }
+    let (pos, dur) = position(app);
+    let dur = if dur > 0.0 { dur } else { c.info.duration };
+    if dur > 0.0 && pos < dur * (app.s.played_pct.min(98.0) as f64 / 100.0) {
+        return;
+    }
+    app.counted = c.item;
+    app.stats.played(&c.info.path);
+    if c.video && dur > 0.0 {
+        app.stats.entry(&c.info.path).watched = true;
+    }
+    app.dirty = true;
 }
 
 /// ListenBrainz: wysłuchany utwór (połowa albo 4 minuty) – raz na każde odtworzenie.

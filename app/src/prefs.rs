@@ -124,6 +124,7 @@ pub fn publish(app: &mut App) {
     p.set_dblclick_seek(s.dblclick_seek);
     p.set_video_autonext(s.video_autonext);
     p.set_volume_boost(s.volume_boost);
+    p.set_played_pct(s.played_pct);
     p.set_night_mode(s.night_mode);
     p.set_downmix(s.downmix);
     p.set_ytdl_format(s.ytdl_format);
@@ -403,6 +404,7 @@ pub fn changed(app: &mut App, key: &str) {
         "seek-preview" => app.s.seek_preview = p.get_seek_preview(),
         "wheel-action" => app.s.wheel_action = p.get_wheel_action(),
         "dblclick-seek" => app.s.dblclick_seek = p.get_dblclick_seek(),
+        "played-pct" => app.s.played_pct = p.get_played_pct().round().clamp(10.0, 100.0),
         "video-autonext" => app.s.video_autonext = p.get_video_autonext(),
         "video-quality" | "interpolation" | "deband" | "tone-mapping" | "volume-boost" | "downmix" | "ytdl-format" | "ytdl" | "cache-mb" => {
             app.s.video_quality = p.get_video_quality();
