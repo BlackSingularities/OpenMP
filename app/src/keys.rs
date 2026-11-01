@@ -254,6 +254,13 @@ pub fn action(app: &mut App, id: &str) {
             let _ = open::that(openmp_core::SUPPORT_URL);
         }
         "quit" => quit(app),
+        "cast" => crate::cast::search(app),
+        "cast-stop" => crate::cast::stop(app),
+        c if c.starts_with("cast-") => {
+            if let Some(i) = c[5..].parse::<usize>().ok() {
+                crate::cast::play_on(app, i);
+            }
+        }
         "open-cd" => {
             // Płyta audio przez mpv (cdda://) – utwory płyty są rozdziałami.
             let drives = crate::win::cd_drives();

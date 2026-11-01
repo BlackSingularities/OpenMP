@@ -188,6 +188,9 @@ pub struct App {
     pub last_save: Instant,
     pub last_smtc: Instant,
     pub stations: Vec<Station>,
+    /// Odbiorniki DLNA z ostatniego szukania i ten, na którym teraz gra.
+    pub dlna_found: Vec<openmp_core::dlna::Renderer>,
+    pub dlna: Option<openmp_core::dlna::Renderer>,
     /// Odcinki pobranych kanałów podcastów (adres kanału → odcinki), na czas działania programu.
     pub podcasts: std::collections::HashMap<String, Vec<TrackInfo>>,
     pub saved_stations: Vec<Station>,

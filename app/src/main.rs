@@ -9,6 +9,7 @@ extern crate openmp_core;
 slint::include_modules!();
 
 mod app;
+mod cast;
 mod covers;
 mod dialogs;
 mod dialogwin;
@@ -198,6 +199,8 @@ fn main() {
         last_smtc: Instant::now(),
         stations: Vec::new(),
         podcasts: Default::default(),
+        dlna_found: Vec::new(),
+        dlna: None,
         saved_stations: openmp_core::radio::load_saved(),
         update: None,
         cover_bytes: None,

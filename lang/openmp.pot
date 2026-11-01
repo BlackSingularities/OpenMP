@@ -173,7 +173,7 @@ msgstr ""
 msgid "Add network path…"
 msgstr ""
 
-#: app/ui/dialogs.slint:452 app/src/keys.rs:73 app/src/keys.rs:605 app/src/menu.rs:142
+#: app/ui/dialogs.slint:452 app/src/keys.rs:73 app/src/keys.rs:612 app/src/menu.rs:143
 msgid "Settings"
 msgstr ""
 
@@ -225,7 +225,7 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: app/ui/dialogs.slint:523 app/ui/dialogs.slint:1716 app/ui/dialogs.slint:1769 app/src/menu.rs:144
+#: app/ui/dialogs.slint:523 app/ui/dialogs.slint:1716 app/ui/dialogs.slint:1769 app/src/menu.rs:145
 msgid "About"
 msgstr ""
 
@@ -702,7 +702,7 @@ msgstr ""
 msgid "Prevents clipping with a boosted equalizer"
 msgstr ""
 
-#: app/ui/dialogs.slint:1073 app/src/keys.rs:37 app/src/keys.rs:599 app/src/menu.rs:136
+#: app/ui/dialogs.slint:1073 app/src/keys.rs:37 app/src/keys.rs:606 app/src/menu.rs:137
 msgid "Equalizer and effects"
 msgstr ""
 
@@ -742,7 +742,7 @@ msgstr ""
 msgid "Audio only"
 msgstr ""
 
-#: app/ui/dialogs.slint:1101 app/src/menu.rs:158 app/src/win.rs:330 app/src/win.rs:414
+#: app/ui/dialogs.slint:1101 app/src/menu.rs:159 app/src/win.rs:330 app/src/win.rs:414
 msgid "Pause"
 msgstr ""
 
@@ -762,7 +762,7 @@ msgstr ""
 msgid "After {} s without mouse movement"
 msgstr ""
 
-#: app/ui/dialogs.slint:1131 app/src/menu.rs:176
+#: app/ui/dialogs.slint:1131 app/src/menu.rs:177
 msgid "Ambient glow"
 msgstr ""
 
@@ -888,7 +888,7 @@ msgstr ""
 msgid "Matches the movie to the display refresh rate – no judder with 24 fps on 60 Hz"
 msgstr ""
 
-#: app/ui/dialogs.slint:1204 app/src/menu.rs:175
+#: app/ui/dialogs.slint:1204 app/src/menu.rs:176
 msgid "Debanding"
 msgstr ""
 
@@ -1340,7 +1340,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/ui/views.slint:654 app/src/libview.rs:945 app/src/libview.rs:1090 app/src/lists.rs:740 app/src/menu.rs:158
+#: app/ui/dialogs.slint:1840 app/ui/views.slint:654 app/src/libview.rs:945 app/src/libview.rs:1090 app/src/lists.rs:740 app/src/menu.rs:159
 msgid "Play"
 msgstr ""
 
@@ -1512,7 +1512,7 @@ msgstr ""
 msgid "Queue"
 msgstr ""
 
-#: app/ui/nowplaying.slint:336 app/src/keys.rs:595
+#: app/ui/nowplaying.slint:336 app/src/keys.rs:602
 msgid "Shuffle"
 msgstr ""
 
@@ -1657,7 +1657,7 @@ msgstr ""
 msgid "Chapters"
 msgstr ""
 
-#: app/ui/video.slint:169 app/src/menu.rs:167
+#: app/ui/video.slint:169 app/src/menu.rs:168
 msgid "Playback details"
 msgstr ""
 
@@ -1786,11 +1786,11 @@ msgstr ""
 msgid "As in file"
 msgstr ""
 
-#: app/ui/video.slint:611 app/src/menu.rs:178
+#: app/ui/video.slint:611 app/src/menu.rs:179
 msgid "Screenshot"
 msgstr ""
 
-#: app/ui/video.slint:617 app/src/menu.rs:180
+#: app/ui/video.slint:617 app/src/menu.rs:181
 msgid "A-B loop"
 msgstr ""
 
@@ -2040,6 +2040,46 @@ msgstr ""
 
 #: app/ui/widgets.slint:543
 msgid "Clear"
+msgstr ""
+
+#: app/src/cast.rs:14
+msgid "Searching for devices in the network…"
+msgstr ""
+
+#: app/src/cast.rs:28
+msgid "No DLNA devices found – the device must be on and in the same network"
+msgstr ""
+
+#: app/src/cast.rs:39
+msgid "Stop playing on the device"
+msgstr ""
+
+#: app/src/cast.rs:49
+msgid "Start playing something first"
+msgstr ""
+
+#: app/src/cast.rs:56
+msgid "Audio CDs cannot be sent to a device"
+msgstr ""
+
+#: app/src/cast.rs:62
+msgid "Sending to {}…"
+msgstr ""
+
+#: app/src/cast.rs:67
+msgid "no network connection to the device"
+msgstr ""
+
+#: app/src/cast.rs:72
+msgid "Playing on {}"
+msgstr ""
+
+#: app/src/cast.rs:75
+msgid "The device did not start playback: {}"
+msgstr ""
+
+#: app/src/cast.rs:86
+msgid "Stopped playing on the device"
 msgstr ""
 
 #: app/src/dialogs.rs:59
@@ -2316,12 +2356,12 @@ msgstr ""
 msgid "Folder"
 msgstr ""
 
-#: app/src/keys.rs:28 app/src/keys.rs:586
+#: app/src/keys.rs:28 app/src/keys.rs:593
 msgctxt "shortcut"
 msgid "Play / pause"
 msgstr ""
 
-#: app/src/keys.rs:28 app/src/menu.rs:158
+#: app/src/keys.rs:28 app/src/menu.rs:159
 msgid "Space"
 msgstr ""
 
@@ -2341,7 +2381,7 @@ msgstr ""
 msgid "Play selected"
 msgstr ""
 
-#: app/src/keys.rs:34 app/src/keys.rs:594
+#: app/src/keys.rs:34 app/src/keys.rs:601
 msgid "Mute"
 msgstr ""
 
@@ -2357,7 +2397,7 @@ msgstr ""
 msgid "Song lyrics; in video – A-B loop"
 msgstr ""
 
-#: app/src/keys.rs:39 app/src/keys.rs:598
+#: app/src/keys.rs:39 app/src/keys.rs:605
 msgid "Add selected to the queue"
 msgstr ""
 
@@ -2381,7 +2421,7 @@ msgstr ""
 msgid "Global: play/pause, track, volume"
 msgstr ""
 
-#: app/src/keys.rs:44 app/src/keys.rs:597 app/src/libview.rs:61 app/src/libview.rs:300
+#: app/src/keys.rs:44 app/src/keys.rs:604 app/src/libview.rs:61 app/src/libview.rs:300
 msgid "Favorites"
 msgstr ""
 
@@ -2421,7 +2461,7 @@ msgstr ""
 msgid "Full screen / mini player"
 msgstr ""
 
-#: app/src/keys.rs:55 app/src/keys.rs:602 app/src/menu.rs:140 app/src/menu.rs:160 app/src/video.rs:977
+#: app/src/keys.rs:55 app/src/keys.rs:609 app/src/menu.rs:141 app/src/menu.rs:161 app/src/video.rs:977
 msgid "Always on top"
 msgstr ""
 
@@ -2501,7 +2541,7 @@ msgstr ""
 msgid "Video: always on top"
 msgstr ""
 
-#: app/src/keys.rs:74 app/src/menu.rs:147 app/src/win.rs:638
+#: app/src/keys.rs:74 app/src/menu.rs:148 app/src/win.rs:638
 msgid "Quit"
 msgstr ""
 
@@ -2509,95 +2549,95 @@ msgstr ""
 msgid "List {}"
 msgstr ""
 
-#: app/src/keys.rs:261
+#: app/src/keys.rs:268
 msgid "No CD/DVD drive found"
 msgstr ""
 
-#: app/src/keys.rs:265
+#: app/src/keys.rs:272
 msgid "Audio CDs need the video engine (libmpv)"
 msgstr ""
 
-#: app/src/keys.rs:282
+#: app/src/keys.rs:289
 msgid "Stop after the current track"
 msgstr ""
 
-#: app/src/keys.rs:282
+#: app/src/keys.rs:289
 msgid "Continuous playback"
 msgstr ""
 
-#: app/src/keys.rs:504
+#: app/src/keys.rs:511
 msgid "Shuffle: on"
 msgstr ""
 
-#: app/src/keys.rs:504
+#: app/src/keys.rs:511
 msgid "Shuffle: off"
 msgstr ""
 
-#: app/src/keys.rs:515
+#: app/src/keys.rs:522
 msgid "Repeat off"
 msgstr ""
 
-#: app/src/keys.rs:515
+#: app/src/keys.rs:522
 msgid "Repeat list"
 msgstr ""
 
-#: app/src/keys.rs:515
+#: app/src/keys.rs:522
 msgid "Repeat track"
 msgstr ""
 
-#: app/src/keys.rs:533
+#: app/src/keys.rs:540
 msgid "The clipboard has no link or file path"
 msgstr ""
 
-#: app/src/keys.rs:587
+#: app/src/keys.rs:594
 msgid "Stop"
 msgstr ""
 
-#: app/src/keys.rs:588
+#: app/src/keys.rs:595
 msgid "Next track"
 msgstr ""
 
-#: app/src/keys.rs:589
+#: app/src/keys.rs:596
 msgid "Previous track"
 msgstr ""
 
-#: app/src/keys.rs:590
+#: app/src/keys.rs:597
 msgid "Seek forward"
 msgstr ""
 
-#: app/src/keys.rs:591
+#: app/src/keys.rs:598
 msgid "Seek back"
 msgstr ""
 
-#: app/src/keys.rs:592
+#: app/src/keys.rs:599
 msgid "Volume up"
 msgstr ""
 
-#: app/src/keys.rs:593
+#: app/src/keys.rs:600
 msgid "Volume down"
 msgstr ""
 
-#: app/src/keys.rs:596
+#: app/src/keys.rs:603
 msgid "Repeat"
 msgstr ""
 
-#: app/src/keys.rs:600 app/src/menu.rs:138 app/src/menu.rs:159
+#: app/src/keys.rs:607 app/src/menu.rs:139 app/src/menu.rs:160
 msgid "Full screen"
 msgstr ""
 
-#: app/src/keys.rs:601 app/src/menu.rs:139
+#: app/src/keys.rs:608 app/src/menu.rs:140
 msgid "Mini player"
 msgstr ""
 
-#: app/src/keys.rs:603 app/src/menu.rs:127
+#: app/src/keys.rs:610 app/src/menu.rs:127
 msgid "Open files…"
 msgstr ""
 
-#: app/src/keys.rs:604 app/src/menu.rs:129
+#: app/src/keys.rs:611 app/src/menu.rs:129
 msgid "Open URL (stream, radio)…"
 msgstr ""
 
-#: app/src/keys.rs:697
+#: app/src/keys.rs:704
 msgid "{} was moved from “{}”"
 msgstr ""
 
@@ -3063,23 +3103,23 @@ msgstr ""
 msgid "Close tab"
 msgstr ""
 
-#: app/src/main.rs:68
+#: app/src/main.rs:69
 msgid "OpenMP closed unexpectedly last time. The report is in {} – you can send it to the author."
 msgstr ""
 
-#: app/src/main.rs:114
+#: app/src/main.rs:115
 msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
 msgstr ""
 
-#: app/src/main.rs:686
+#: app/src/main.rs:689
 msgid "Radio stream URL"
 msgstr ""
 
-#: app/src/main.rs:742
+#: app/src/main.rs:745
 msgid "Equalizer preset name"
 msgstr ""
 
-#: app/src/main.rs:742
+#: app/src/main.rs:745
 msgid "Mine"
 msgstr ""
 
@@ -3091,91 +3131,99 @@ msgstr ""
 msgid "Play audio CD"
 msgstr ""
 
-#: app/src/menu.rs:132
-msgid "New list"
+#: app/src/menu.rs:131
+msgid "Playing on a device (DLNA)…"
+msgstr ""
+
+#: app/src/menu.rs:131
+msgid "Play on a device (DLNA)…"
 msgstr ""
 
 #: app/src/menu.rs:133
-msgid "Import playlist (M3U, PLS, XSPF, CUE)…"
+msgid "New list"
 msgstr ""
 
 #: app/src/menu.rs:134
+msgid "Import playlist (M3U, PLS, XSPF, CUE)…"
+msgstr ""
+
+#: app/src/menu.rs:135
 msgid "Save list as M3U8…"
 msgstr ""
 
-#: app/src/menu.rs:137
+#: app/src/menu.rs:138
 msgid "Sleep timer…"
 msgstr ""
 
-#: app/src/menu.rs:143
+#: app/src/menu.rs:144
 msgid "Check for updates"
 msgstr ""
 
-#: app/src/menu.rs:145
+#: app/src/menu.rs:146
 msgid "Buy the author a coffee"
 msgstr ""
 
-#: app/src/menu.rs:161
+#: app/src/menu.rs:162
 msgid "Picture in picture"
 msgstr ""
 
-#: app/src/menu.rs:163
+#: app/src/menu.rs:164
 msgid "Audio tracks and speed…"
 msgstr ""
 
-#: app/src/menu.rs:164
+#: app/src/menu.rs:165
 msgid "Subtitles…"
 msgstr ""
 
-#: app/src/menu.rs:165
+#: app/src/menu.rs:166
 msgid "Picture: colors, zoom…"
 msgstr ""
 
-#: app/src/menu.rs:166
+#: app/src/menu.rs:167
 msgid "Chapters…"
 msgstr ""
 
-#: app/src/menu.rs:171 app/src/video.rs:1137
+#: app/src/menu.rs:172 app/src/video.rs:1137
 msgid "Aspect ratio: {}"
 msgstr ""
 
-#: app/src/menu.rs:173
+#: app/src/menu.rs:174
 msgid "Rotate by 90°"
 msgstr ""
 
-#: app/src/menu.rs:174 app/src/video.rs:1103
+#: app/src/menu.rs:175 app/src/video.rs:1103
 msgid "Picture as in file"
 msgstr ""
 
-#: app/src/menu.rs:179
+#: app/src/menu.rs:180
 msgid "Screenshot without subtitles"
 msgstr ""
 
-#: app/src/menu.rs:182
+#: app/src/menu.rs:183
 msgid "Open file…"
 msgstr ""
 
-#: app/src/menu.rs:183
+#: app/src/menu.rs:184
 msgid "Audio only (picture off in the background)"
 msgstr ""
 
-#: app/src/menu.rs:184
+#: app/src/menu.rs:185
 msgid "Library (the movie keeps playing)"
 msgstr ""
 
-#: app/src/menu.rs:193
+#: app/src/menu.rs:194
 msgid "In {} min"
 msgstr ""
 
-#: app/src/menu.rs:196
+#: app/src/menu.rs:197
 msgid "After the current track"
 msgstr ""
 
-#: app/src/menu.rs:197
+#: app/src/menu.rs:198
 msgid "When the list ends"
 msgstr ""
 
-#: app/src/menu.rs:200
+#: app/src/menu.rs:201
 msgid "Turn off the sleep timer"
 msgstr ""
 

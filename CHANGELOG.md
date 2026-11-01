@@ -2,6 +2,7 @@
 
 ## 1.6.2
 
+- **Odtwarzanie na urządzeniach DLNA** (menu → Odtwórz na urządzeniu): wyszukanie telewizorów, amplitunerów i głośników sieciowych w sieci lokalnej i wysłanie bieżącego utworu albo filmu – lokalny plik przez wbudowany serwer (z przewijaniem), strumień wprost; zatrzymanie z tego samego menu.
 - **Płyty CD audio** (menu → Odtwórz płytę CD): odtwarzanie z pierwszego napędu CD/DVD przez silnik wideo; utwory płyty są rozdziałami (PgUp/PgDn).
 - Odcinki podcastów dłuższe niż 20 minut wznawiają się od miejsca przerwania (jak filmy).
 - **Podcasty** (panel biblioteki → Podcasty → Dodaj podcast…): subskrypcja z adresu kanału RSS, lista odcinków z datą i długością, odtwarzanie jak strumień; prawy przycisk – sprawdzenie nowych odcinków albo usunięcie subskrypcji.

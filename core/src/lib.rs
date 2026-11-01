@@ -2,6 +2,7 @@
 
 pub mod audio;
 pub mod coverart;
+pub mod dlna;
 pub mod i18n;
 pub mod instance;
 pub mod library;
