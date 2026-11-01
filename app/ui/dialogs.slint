@@ -26,9 +26,11 @@ export component Dialog inherits Rectangle {
                 horizontal-stretch: 1;
                 // Przeciąganie okna dialogu za pasek tytułu.
                 TouchArea {
-                    pointer-event(e) => {
-                        if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
-                            Ui.dialog-drag();
+                    mouse-cursor: self.pressed ? MouseCursor.grabbing : MouseCursor.default;
+                    // Okno jedzie za kursorem, więc przesunięcie od miejsca chwycenia jest stałe.
+                    moved => {
+                        if self.pressed {
+                            Ui.dialog-move(self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
                         }
                     }
                 }

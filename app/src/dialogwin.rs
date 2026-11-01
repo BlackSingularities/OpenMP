@@ -124,6 +124,15 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
     fwd!(Ui:
         url_accepted(t), tag_save(v), tag_pick_cover(), update_install(), update_skip(), rename_accepted(t),
     );
+    let mw = d.as_weak();
+    d.global::<Ui>().on_dialog_move(move |dx, dy| {
+        if let Some(d) = mw.upgrade() {
+            let w = d.window();
+            let sf = w.scale_factor();
+            let p = w.position();
+            w.set_position(slint::PhysicalPosition::new(p.x + (dx * sf).round() as i32, p.y + (dy * sf).round() as i32));
+        }
+    });
     let dw = d.as_weak();
     d.global::<Ui>().on_dialog_drag(move || {
         if let Some(d) = dw.upgrade() {

@@ -616,6 +616,7 @@ pub fn on_loaded(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     let v = ui.global::<Video>();
     v.set_loading(false);
+    v.set_is_url(app.cur.as_ref().is_some_and(|c| meta::is_url(&c.info.path)));
     // Ustawienia zapamiętane dla tego filmu: ścieżki dźwięku i napisów, przesunięcia, proporcje.
     let saved = app.cur.as_ref().filter(|c| c.video).map(|c| app.stats.get(&c.info.path));
     if let Some(st) = &saved {

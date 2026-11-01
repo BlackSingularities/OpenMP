@@ -418,6 +418,15 @@ pub fn changed(app: &mut App, key: &str) {
             if key == "volume-boost" {
                 crate::player::apply_volume(app);
             }
+            // Nowa jakość filmu z sieci – ten sam film od tego samego miejsca.
+            if key == "ytdl-format" {
+                if let Some(c) = app.cur.clone().filter(|c| openmp_core::meta::is_url(&c.info.path)) {
+                    let (pos, _) = crate::player::position(app);
+                    if let Some(l) = c.list {
+                        crate::player::play(app, l, c.idx, Some(pos));
+                    }
+                }
+            }
         }
         "night-mode" => {
             app.s.night_mode = p.get_night_mode();

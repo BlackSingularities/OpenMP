@@ -244,6 +244,8 @@ export global Video {
     callback goto-chapter(string);
     // Pomijanie czołówki / napisów końcowych (cel w sekundach, -1 – następny plik).
     in-out property <string> skip-text;
+    // Bieżący film jest z sieci (wybór jakości w panelu).
+    in-out property <bool> is-url;
     in-out property <float> skip-to;
     callback skip();
     // Następny odcinek pod koniec filmu: tytuł i sekundy do przejścia.
@@ -469,4 +471,7 @@ export global Ui {
     // Okno dialogowe otwarte/zamknięte – dialogi mają własne okno (DialogWindow).
     callback dialog-shown(bool);
     callback dialog-drag();
+    // Przesunięcie okna dialogu o (dx, dy) – bez systemowej pętli przeciągania, która
+    // zatrzymywała rysowanie filmu.
+    callback dialog-move(length, length);
 }

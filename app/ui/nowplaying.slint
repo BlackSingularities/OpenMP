@@ -161,15 +161,24 @@ export component NowInfo inherits VerticalLayout {
         font-size: Theme.fs-sm;
         overflow: elide;
     }
-    if !root.small && Player.overview != "": Text {
-        text: Player.overview;
-        color: Theme.text2;
-        font-size: Theme.fs;
-        wrap: word-wrap;
-        overflow: elide;
-        // Stała wysokość – przy zawijaniu wysokość zależałaby od szerokości (pętla układu).
+    // Opis w prostokącie o stałych wymiarach: zawijany tekst nie bierze udziału w układzie
+    // (inaczej jego wysokość zależy od szerokości – pętla wiązań z szerokością okładki).
+    if !root.small && Player.overview != "": Rectangle {
         height: 3 * 1.4 * Theme.fs;
+        min-width: 0px;
         preferred-width: 0px;
+        Text {
+            x: 0;
+            y: 0;
+            width: parent.width;
+            height: parent.height;
+            text: Player.overview;
+            color: Theme.text2;
+            font-size: Theme.fs;
+            wrap: word-wrap;
+            overflow: elide;
+            vertical-alignment: top;
+        }
     }
     if !Player.idle: Rectangle {
         height: root.small ? 2px : 8px;

@@ -266,6 +266,18 @@ component VideoPages inherits VerticalLayout {
                 Rectangle {
                     height: 6px;
                 }
+                if Video.is-url: Caption {
+                    themed: root.themed;
+                    text: "JAKOŚĆ FILMU Z SIECI";
+                }
+                if Video.is-url: Segmented {
+                    options: ["Najlepsza", "1080p", "720p", "480p"];
+                    selected <=> Prefs.ytdl-format;
+                    changed => { Prefs.changed("ytdl-format"); }
+                }
+                if Video.is-url: Rectangle {
+                    height: 6px;
+                }
                 Caption {
                     themed: root.themed;
                     text: "PRĘDKOŚĆ";
@@ -813,14 +825,15 @@ component CinemaView inherits Rectangle {
         ambient-strength: Prefs.ambient == 2 ? 0.6 : 0.32;
     }
     StageInput { }
-    // Górny pasek: powrót do biblioteki, tytuł, widoki i przyciski okna.
+    // Górny pasek: powrót do biblioteki, tytuł, widoki i przyciski okna – na całą szerokość,
+    // z tłem przechodzącym w obraz, jak dolny pasek.
     Rectangle {
-        y: 0;
-        height: 70px;
+        y: root.show ? 0 : -16px;
+        height: 96px;
         opacity: root.show ? 1 : 0;
         visible: self.opacity > 0.01;
-        animate opacity { duration: 220ms; }
-        background: @linear-gradient(180deg, #000000c0 0%, transparent 100%);
+        animate opacity, y { duration: 220ms; easing: ease-out; }
+        background: @linear-gradient(180deg, #000000e0 0%, #000000a0 45%, transparent 100%);
         TouchArea {
             pointer-event(e) => {
                 if e.kind == PointerEventKind.down && e.button == PointerEventButton.left && !Video.fullscreen {
@@ -833,9 +846,9 @@ component CinemaView inherits Rectangle {
             double-clicked => { Video.toggle-fullscreen(); }
         }
         HorizontalLayout {
-            padding-left: 10px;
+            padding-left: 18px;
             padding-right: 6px;
-            padding-top: 4px;
+            padding-top: 8px;
             alignment: stretch;
             height: 44px;
             spacing: 2px;
@@ -1213,14 +1226,23 @@ component CinemaView inherits Rectangle {
         }
     }
     // Panel boczny: dźwięk, napisy, obraz, rozdziały, szczegóły.
-    if Video.panel: Pill {
-        x: root.width - self.width - 14px;
-        y: 64px;
-        width: min(340px, root.width - 28px);
-        height: max(140px, bar.y - 78px);
+    // Panel przy prawej krawędzi, od górnego paska do dolnego – bez zaokrągleń, jak dolny pasek.
+    if Video.panel: Rectangle {
+        // Pod górnym paskiem (przyciski okna zostają odkryte) i nad dolnym.
+        x: root.width - self.width;
+        y: 56px;
+        width: min(360px, root.width);
+        height: max(140px, bar.y + 24px - 56px);
+        background: @linear-gradient(90deg, #0b0c10c8 0%, #0b0c10f2 30%, #0b0c10f8 100%);
         TouchArea { }
+        // Cienka linia oddzielająca panel od obrazu (u góry, nie z boku).
+        Rectangle {
+            y: 0;
+            height: 1px;
+            background: Theme.tint.with-alpha(0.35);
+        }
         VerticalLayout {
-            padding: 12px;
+            padding: 16px;
             VideoPages {
                 vertical-stretch: 1;
                 themed: false;

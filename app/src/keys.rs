@@ -272,6 +272,10 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         app.last_mouse = std::time::Instant::now();
     }
     let step = app.s.seek_step;
+    if ctrl && lc == 'v' && !shift {
+        paste(app);
+        return;
+    }
     if ctrl {
         match lc {
             'o' if shift => crate::dialogs::open_folder(app),
@@ -475,4 +479,66 @@ pub fn cycle_repeat(app: &mut App) {
     crate::player::refresh_next(app);
     app.toast(["Powtarzanie wyłączone", "Powtarzaj listę", "Powtarzaj utwór"][app.s.repeat as usize]);
     app.s.save();
+}
+
+/// Ctrl+V: link (YouTube, strumień, plik w sieci) albo ścieżki plików ze schowka – od razu gra.
+fn paste(app: &mut App) {
+    let Some(text) = clipboard_text() else { return };
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return;
+    }
+    let lower = text.to_ascii_lowercase();
+    if ["http://", "https://", "rtsp://", "rtmp://", "mms://"].iter().any(|p| lower.starts_with(p)) {
+        crate::player::open_url(app, &text);
+        return;
+    }
+    let paths: Vec<String> = text.lines().map(|l| l.trim().trim_matches('"').to_string()).filter(|l| std::path::Path::new(l).exists()).collect();
+    if paths.is_empty() {
+        app.toast("W schowku nie ma linku ani ścieżki do pliku");
+    } else {
+        crate::player::open_paths(app, paths, true, None);
+    }
+}
+
+#[cfg(windows)]
+fn clipboard_text() -> Option<String> {
+    use std::ffi::c_void;
+    #[link(name = "user32")]
+    extern "system" {
+        fn OpenClipboard(h: *mut c_void) -> i32;
+        fn CloseClipboard() -> i32;
+        fn GetClipboardData(f: u32) -> *mut c_void;
+    }
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GlobalLock(h: *mut c_void) -> *mut c_void;
+        fn GlobalUnlock(h: *mut c_void) -> i32;
+    }
+    const CF_UNICODETEXT: u32 = 13;
+    unsafe {
+        if OpenClipboard(std::ptr::null_mut()) == 0 {
+            return None;
+        }
+        let mut out = None;
+        let h = GetClipboardData(CF_UNICODETEXT);
+        if !h.is_null() {
+            let p = GlobalLock(h) as *const u16;
+            if !p.is_null() {
+                let mut n = 0;
+                while *p.add(n) != 0 && n < 1 << 20 {
+                    n += 1;
+                }
+                out = Some(String::from_utf16_lossy(std::slice::from_raw_parts(p, n)));
+                GlobalUnlock(h);
+            }
+        }
+        CloseClipboard();
+        out
+    }
+}
+
+#[cfg(not(windows))]
+fn clipboard_text() -> Option<String> {
+    None
 }
