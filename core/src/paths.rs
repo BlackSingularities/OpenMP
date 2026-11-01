@@ -71,6 +71,48 @@ pub fn write_sealed(path: &Path, plain: &[u8]) {
     write_atomic(path, &seal(plain));
 }
 
+const BACKUP_FORMAT: &str = "openmp-backup-1";
+
+/// Kopia danych (ustawienia, listy, statystyki…) w jednym zwykłym pliku JSON. Pliki w folderze
+/// danych są zaszyfrowane kluczem konta Windows, więc kopia zapisuje je odszyfrowane – da się ją
+/// przenieść na inny komputer. Zwraca liczbę zapisanych plików.
+pub fn export_backup(dest: &Path) -> Result<usize, String> {
+    let mut files = serde_json::Map::new();
+    let dir = std::fs::read_dir(data()).map_err(|e| e.to_string())?;
+    for e in dir.flatten() {
+        let p = e.path();
+        if p.extension().is_some_and(|x| x == "json") {
+            let Some(value) = read_sealed(&p).and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok()) else { continue };
+            files.insert(e.file_name().to_string_lossy().into_owned(), value);
+        }
+    }
+    let n = files.len();
+    let doc = serde_json::json!({ "format": BACKUP_FORMAT, "version": crate::version(), "files": files });
+    std::fs::write(dest, serde_json::to_vec_pretty(&doc).unwrap_or_default()).map_err(|e| e.to_string())?;
+    Ok(n)
+}
+
+/// Przywraca kopię z `export_backup` – nadpisuje pliki danych (zaszyfrowane od nowa).
+/// Program trzeba potem uruchomić ponownie, bez zapisywania stanu z pamięci.
+pub fn import_backup(src: &Path) -> Result<usize, String> {
+    let bytes = std::fs::read(src).map_err(|e| e.to_string())?;
+    let doc: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if doc["format"] != BACKUP_FORMAT {
+        return Err(crate::tr!("This is not an OpenMP backup").to_string());
+    }
+    let Some(files) = doc["files"].as_object() else { return Err(crate::tr!("This is not an OpenMP backup").to_string()) };
+    let mut n = 0;
+    for (name, value) in files {
+        // Tylko zwykłe nazwy plików .json – bez ścieżek prowadzących poza folder danych.
+        let ok = name.ends_with(".json") && !name.contains(['/', '\\', ':']) && !name.starts_with('.');
+        if ok {
+            write_sealed(&data().join(name), &serde_json::to_vec(value).unwrap_or_default());
+            n += 1;
+        }
+    }
+    Ok(n)
+}
+
 #[cfg(windows)]
 mod dpapi {
     use std::ffi::c_void;

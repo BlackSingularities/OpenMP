@@ -343,6 +343,7 @@ export global Prefs {
     in-out property <float> grid-size: 160;
     // Tytuł i podtytuł na dole okładki zamiast pod nią.
     in-out property <bool> caption-overlay;
+    in-out property <bool> tray;
     // Jeden suwak widoku: skrajnie po lewej lista, dalej okładki coraz większe.
     out property <float> view-size: track-grid ? grid-size : 90;
     public function set-view(v: float) {
@@ -448,6 +449,8 @@ export global Prefs {
     callback add-network-folder(int);
     callback remove-folder(int, int);
     callback pick-screenshot-dir();
+    callback backup-export();
+    callback backup-import();
     callback check-update();
     callback open-url(string);
     callback associate();

@@ -163,6 +163,7 @@ pub fn fit_mini(app: &mut App) {
 
 pub fn quit(app: &mut App) {
     openmp_core::paths::log("zamknięcie programu");
+    crate::win::tray_remove();
     openmp_core::instance::release();
     crate::player::save_resume(app);
     save_all(app);

@@ -189,6 +189,7 @@ pub fn smtc_meta(app: &mut App) {
         std::fs::write(&path, b).ok()?;
         Some(format!("file:///{}", path.to_string_lossy().replace('\\', "/")))
     });
+    tray_tip(&if artist.is_empty() { title.clone() } else { format!("{title} – {artist}") });
     let Some(c) = app.smtc.as_mut() else { return };
     let _ = c.set_metadata(MediaMetadata {
         title: Some(&title),
@@ -216,6 +217,9 @@ pub fn smtc_state(app: &mut App) {
 
 /// Wywołanie okna na pierwszy plan (druga instancja, panel Windows).
 pub fn raise(app: &mut App) {
+    if TRAY.get() != 0 {
+        show_main(TRAY.get());
+    }
     if let Some(ui) = app.ui() {
         ui.window().set_minimized(false);
         ui.window().with_winit_window(|w| {
@@ -488,4 +492,209 @@ pub fn system_language() -> String {
         return String::new();
     }
     String::from_utf16_lossy(&buf[..n as usize - 1])
+}
+
+// Ikona w zasobniku systemowym: kliknięcie pokazuje okno, prawy przycisk – menu odtwarzania.
+// Zamknięcie okna chowa je wtedy do zasobnika, a muzyka gra dalej.
+
+const TRAY_MSG: u32 = 0x8000 + 0x4f; // WM_APP + …
+const TRAY_SHOW: usize = 1;
+const TRAY_PLAY: usize = 2;
+const TRAY_NEXT: usize = 3;
+const TRAY_PREV: usize = 4;
+const TRAY_QUIT: usize = 5;
+
+thread_local! {
+    /// Okno z ikoną w zasobniku (0 – brak ikony) i komunikat „TaskbarCreated” (restart Eksploratora).
+    static TRAY: std::cell::Cell<isize> = const { std::cell::Cell::new(0) };
+    static TRAY_CREATED: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+fn wide(s: &str) -> Vec<u16> {
+    s.encode_utf16().chain(std::iter::once(0)).collect()
+}
+
+fn tray_data(h: isize) -> windows::Win32::UI::Shell::NOTIFYICONDATAW {
+    windows::Win32::UI::Shell::NOTIFYICONDATAW {
+        cbSize: std::mem::size_of::<windows::Win32::UI::Shell::NOTIFYICONDATAW>() as u32,
+        hWnd: windows::Win32::Foundation::HWND(h as *mut _),
+        uID: 1,
+        ..Default::default()
+    }
+}
+
+fn set_tip(d: &mut windows::Win32::UI::Shell::NOTIFYICONDATAW, text: &str) {
+    let w: Vec<u16> = text.encode_utf16().take(d.szTip.len() - 1).collect();
+    d.szTip = [0; 128];
+    d.szTip[..w.len()].copy_from_slice(&w);
+}
+
+/// Mała ikona programu z pliku .exe.
+fn app_icon() -> windows::Win32::UI::WindowsAndMessaging::HICON {
+    use windows::core::PCWSTR;
+    let exe = std::env::current_exe().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    let w = wide(&exe);
+    let mut small = windows::Win32::UI::WindowsAndMessaging::HICON::default();
+    unsafe {
+        windows::Win32::UI::Shell::ExtractIconExW(PCWSTR(w.as_ptr()), 0, None, Some(&mut small), 1);
+    }
+    small
+}
+
+/// Pokazuje (albo chowa) ikonę w zasobniku.
+pub fn tray(app: &App, on: bool) {
+    use windows::core::w;
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::Shell::{RemoveWindowSubclass, SetWindowSubclass, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD};
+    use windows::Win32::UI::WindowsAndMessaging::RegisterWindowMessageW;
+    let Some(ui) = app.ui() else { return };
+    let h = hwnd(&ui);
+    if h == 0 {
+        return;
+    }
+    let hw = HWND(h as *mut _);
+    unsafe {
+        if on {
+            if TRAY.get() != 0 {
+                return;
+            }
+            let mut d = tray_data(h);
+            d.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+            d.uCallbackMessage = TRAY_MSG;
+            d.hIcon = app_icon();
+            set_tip(&mut d, "OpenMP");
+            let _ = Shell_NotifyIconW(NIM_ADD, &d);
+            TRAY.set(h);
+            TRAY_CREATED.set(RegisterWindowMessageW(w!("TaskbarCreated")));
+            let _ = SetWindowSubclass(hw, Some(tray_proc), 0x4f4d52, 0);
+        } else if TRAY.get() != 0 {
+            tray_remove();
+            let _ = RemoveWindowSubclass(hw, Some(tray_proc), 0x4f4d52);
+            show_main(h);
+        }
+    }
+}
+
+/// Usuwa ikonę z zasobnika (wyłączenie opcji, zamknięcie programu).
+pub fn tray_remove() {
+    let h = TRAY.get();
+    if h != 0 {
+        unsafe {
+            let _ = windows::Win32::UI::Shell::Shell_NotifyIconW(windows::Win32::UI::Shell::NIM_DELETE, &tray_data(h));
+        }
+        TRAY.set(0);
+    }
+}
+
+/// Podpowiedź ikony: bieżący utwór.
+pub fn tray_tip(text: &str) {
+    let h = TRAY.get();
+    if h == 0 {
+        return;
+    }
+    let mut d = tray_data(h);
+    d.uFlags = windows::Win32::UI::Shell::NIF_TIP;
+    set_tip(&mut d, if text.is_empty() { "OpenMP" } else { text });
+    unsafe {
+        let _ = windows::Win32::UI::Shell::Shell_NotifyIconW(windows::Win32::UI::Shell::NIM_MODIFY, &d);
+    }
+}
+
+/// Zamknięcie okna przy ikonie w zasobniku: okno się chowa, program działa dalej.
+pub fn hide_to_tray() -> bool {
+    let h = TRAY.get();
+    if h == 0 {
+        return false;
+    }
+    unsafe {
+        let _ = windows::Win32::UI::WindowsAndMessaging::ShowWindow(windows::Win32::Foundation::HWND(h as *mut _), windows::Win32::UI::WindowsAndMessaging::SW_HIDE);
+    }
+    true
+}
+
+fn show_main(h: isize) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{IsIconic, SetForegroundWindow, ShowWindow, SW_RESTORE, SW_SHOW};
+    let hw = HWND(h as *mut _);
+    unsafe {
+        let _ = ShowWindow(hw, if IsIconic(hw).as_bool() { SW_RESTORE } else { SW_SHOW });
+        let _ = SetForegroundWindow(hw);
+    }
+}
+
+fn tray_menu(hwnd: windows::Win32::Foundation::HWND) {
+    use windows::core::PCWSTR;
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        AppendMenuW, CreatePopupMenu, DestroyMenu, GetCursorPos, SetForegroundWindow, TrackPopupMenu, MF_SEPARATOR, MF_STRING, TPM_RETURNCMD, TPM_RIGHTBUTTON,
+    };
+    let items = [
+        (TRAY_SHOW, tr!("Show OpenMP")),
+        (0, ""),
+        (TRAY_PLAY, tr!("Play / pause")),
+        (TRAY_NEXT, tr!("Next")),
+        (TRAY_PREV, tr!("Previous")),
+        (0, ""),
+        (TRAY_QUIT, tr!("Quit")),
+    ];
+    let labels: Vec<Vec<u16>> = items.iter().map(|(_, l)| wide(l)).collect();
+    unsafe {
+        let Ok(m) = CreatePopupMenu() else { return };
+        for ((id, _), l) in items.iter().zip(&labels) {
+            if *id == 0 {
+                let _ = AppendMenuW(m, MF_SEPARATOR, 0, PCWSTR::null());
+            } else {
+                let _ = AppendMenuW(m, MF_STRING, *id, PCWSTR(l.as_ptr()));
+            }
+        }
+        let mut pt = POINT::default();
+        let _ = GetCursorPos(&mut pt);
+        // Bez tego menu nie znika po kliknięciu obok.
+        let _ = SetForegroundWindow(hwnd);
+        let cmd = TrackPopupMenu(m, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, None, hwnd, None).0 as usize;
+        let _ = DestroyMenu(m);
+        match cmd {
+            TRAY_SHOW => show_main(hwnd.0 as isize),
+            TRAY_PLAY => later(crate::player::play_pause),
+            TRAY_NEXT => later(crate::player::next),
+            TRAY_PREV => later(crate::player::prev),
+            TRAY_QUIT => later(crate::keys::quit),
+            _ => {}
+        }
+    }
+}
+
+unsafe extern "system" fn tray_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    msg: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _id: usize,
+    _data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::UI::Shell::DefSubclassProc;
+    use windows::Win32::UI::WindowsAndMessaging::{WM_CONTEXTMENU, WM_LBUTTONDBLCLK, WM_LBUTTONUP, WM_RBUTTONUP};
+    if msg == TRAY_MSG {
+        let ev = (lparam.0 & 0xffff) as u32;
+        if ev == WM_LBUTTONUP || ev == WM_LBUTTONDBLCLK {
+            show_main(hwnd.0 as isize);
+        } else if ev == WM_RBUTTONUP || ev == WM_CONTEXTMENU {
+            tray_menu(hwnd);
+        }
+        return windows::Win32::Foundation::LRESULT(0);
+    }
+    // Eksplorator uruchomiony od nowa – ikonę trzeba dodać jeszcze raz.
+    let created = TRAY_CREATED.get();
+    if created != 0 && msg == created && TRAY.get() != 0 {
+        TRAY.set(0);
+        later(|app| {
+            if app.s.tray {
+                tray(app, true);
+                if let Some(t) = app.ui().map(|u| u.global::<Player>().get_title().to_string()) {
+                    tray_tip(&t);
+                }
+            }
+        });
+    }
+    DefSubclassProc(hwnd, msg, wparam, lparam)
 }

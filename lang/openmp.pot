@@ -109,7 +109,7 @@ msgstr ""
 msgid "Track"
 msgstr ""
 
-#: app/ui/dialogs.slint:252 app/ui/dialogs.slint:1017 app/ui/dialogs.slint:1840 app/src/display.rs:715
+#: app/ui/dialogs.slint:252 app/ui/dialogs.slint:1017 app/ui/dialogs.slint:1861 app/src/display.rs:715
 msgid "Album"
 msgstr ""
 
@@ -221,7 +221,7 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: app/ui/dialogs.slint:495 app/ui/dialogs.slint:1640 app/ui/dialogs.slint:1693 app/src/menu.rs:143
+#: app/ui/dialogs.slint:495 app/ui/dialogs.slint:1661 app/ui/dialogs.slint:1714 app/src/menu.rs:143
 msgid "About"
 msgstr ""
 
@@ -738,7 +738,7 @@ msgstr ""
 msgid "Audio only"
 msgstr ""
 
-#: app/ui/dialogs.slint:1073 app/src/menu.rs:157 app/src/win.rs:326 app/src/win.rs:410
+#: app/ui/dialogs.slint:1073 app/src/menu.rs:157 app/src/win.rs:330 app/src/win.rs:414
 msgid "Pause"
 msgstr ""
 
@@ -1036,7 +1036,7 @@ msgstr ""
 msgid "{} MB of memory to buffer online video"
 msgstr ""
 
-#: app/ui/dialogs.slint:1342 app/src/prefs.rs:698
+#: app/ui/dialogs.slint:1342 app/src/prefs.rs:703
 msgid "Screenshot folder"
 msgstr ""
 
@@ -1229,158 +1229,182 @@ msgid "Opened files go to the running OpenMP"
 msgstr ""
 
 #: app/ui/dialogs.slint:1600
-msgid "Media keys and the Windows panel"
+msgid "Icon in the notification area"
 msgstr ""
 
 #: app/ui/dialogs.slint:1601
-msgid "Control from the keyboard, headphones and the volume overlay"
+msgid "Closing the window hides it there and playback continues; right-click the icon for the menu"
 msgstr ""
 
 #: app/ui/dialogs.slint:1606
-msgid "Global keyboard shortcuts"
+msgid "Media keys and the Windows panel"
 msgstr ""
 
 #: app/ui/dialogs.slint:1607
-msgid "Ctrl+Alt+Space – play/pause, Ctrl+Alt+←/→ – track, Ctrl+Alt+↑/↓ – volume; also when the window is in the background"
+msgid "Control from the keyboard, headphones and the volume overlay"
 msgstr ""
 
 #: app/ui/dialogs.slint:1612
-msgid "Keep the computer awake during movies"
+msgid "Global keyboard shortcuts"
 msgstr ""
 
-#: app/ui/dialogs.slint:1617
-msgid "File associations"
+#: app/ui/dialogs.slint:1613
+msgid "Ctrl+Alt+Space – play/pause, Ctrl+Alt+←/→ – track, Ctrl+Alt+↑/↓ – volume; also when the window is in the background"
 msgstr ""
 
 #: app/ui/dialogs.slint:1618
+msgid "Keep the computer awake during movies"
+msgstr ""
+
+#: app/ui/dialogs.slint:1623
+msgid "Backup"
+msgstr ""
+
+#: app/ui/dialogs.slint:1624
+msgid "Settings, playlists, favorites, ratings and statistics in one file – also for moving to another computer"
+msgstr ""
+
+#: app/ui/dialogs.slint:1628
+msgid "Export…"
+msgstr ""
+
+#: app/ui/dialogs.slint:1632
+msgid "Import…"
+msgstr ""
+
+#: app/ui/dialogs.slint:1638
+msgid "File associations"
+msgstr ""
+
+#: app/ui/dialogs.slint:1639
 msgid "Set OpenMP as the default player in Windows settings"
 msgstr ""
 
-#: app/ui/dialogs.slint:1620
+#: app/ui/dialogs.slint:1641
 msgid "Default apps…"
 msgstr ""
 
-#: app/ui/dialogs.slint:1625
+#: app/ui/dialogs.slint:1646
 msgid "Check for updates automatically"
 msgstr ""
 
-#: app/ui/dialogs.slint:1626
+#: app/ui/dialogs.slint:1647
 msgid "On startup, via redzikowski.com"
 msgstr ""
 
-#: app/ui/dialogs.slint:1631
+#: app/ui/dialogs.slint:1652
 msgid "Version {}"
 msgstr ""
 
-#: app/ui/dialogs.slint:1633
+#: app/ui/dialogs.slint:1654
 msgid "Check now"
 msgstr ""
 
-#: app/ui/dialogs.slint:1659 app/ui/dialogs.slint:1718
+#: app/ui/dialogs.slint:1680 app/ui/dialogs.slint:1739
 msgid "Open Media Player · version {}"
 msgstr ""
 
-#: app/ui/dialogs.slint:1669
+#: app/ui/dialogs.slint:1690
 msgid "A music and video player for Windows: its own audio engine with gapless playback, crossfade, an 18-band equalizer and ReplayGain, a music library, internet radio, song lyrics, and movie playback with subtitles and hardware decoding (mpv)."
 msgstr ""
 
-#: app/ui/dialogs.slint:1682
+#: app/ui/dialogs.slint:1703
 msgid "Built with: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv and FFmpeg."
 msgstr ""
 
-#: app/ui/dialogs.slint:1725
+#: app/ui/dialogs.slint:1746
 msgid "A music and video player for Windows – a rich display in music mode and a minimal, auto-hiding interface in video mode."
 msgstr ""
 
-#: app/ui/dialogs.slint:1735
+#: app/ui/dialogs.slint:1756
 msgid "Open URL"
 msgstr ""
 
-#: app/ui/dialogs.slint:1743
+#: app/ui/dialogs.slint:1764
 msgid "A radio stream, a file on the web or a playlist (http, https, rtsp, m3u8). Links to YouTube and other video sites work too."
 msgstr ""
 
-#: app/ui/dialogs.slint:1760 app/ui/dialogs.slint:1792 app/ui/dialogs.slint:1863 app/ui/video.slint:1198
+#: app/ui/dialogs.slint:1781 app/ui/dialogs.slint:1813 app/ui/dialogs.slint:1884 app/ui/video.slint:1198
 msgid "Cancel"
 msgstr ""
 
-#: app/ui/dialogs.slint:1764 app/ui/views.slint:654 app/src/libview.rs:783 app/src/libview.rs:928 app/src/lists.rs:740 app/src/menu.rs:157
+#: app/ui/dialogs.slint:1785 app/ui/views.slint:654 app/src/libview.rs:783 app/src/libview.rs:928 app/src/lists.rs:740 app/src/menu.rs:157
 msgid "Play"
 msgstr ""
 
-#: app/ui/dialogs.slint:1796 app/ui/dialogs.slint:1867
+#: app/ui/dialogs.slint:1817 app/ui/dialogs.slint:1888
 msgid "Save"
 msgstr ""
 
-#: app/ui/dialogs.slint:1806
+#: app/ui/dialogs.slint:1827
 msgid "Tag editing"
 msgstr ""
 
-#: app/ui/dialogs.slint:1832
+#: app/ui/dialogs.slint:1853
 msgid "Change cover…"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:713
+#: app/ui/dialogs.slint:1861 app/src/display.rs:713
 msgid "Title"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:714
+#: app/ui/dialogs.slint:1861 app/src/display.rs:714
 msgid "Artist"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:716 app/src/display.rs:877
+#: app/ui/dialogs.slint:1861 app/src/display.rs:716 app/src/display.rs:877
 msgid "Album artist"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:718 app/src/display.rs:883
+#: app/ui/dialogs.slint:1861 app/src/display.rs:718 app/src/display.rs:883
 msgid "Genre"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:717
+#: app/ui/dialogs.slint:1861 app/src/display.rs:717
 msgid "Year"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840
+#: app/ui/dialogs.slint:1861
 msgid "Track no."
 msgstr ""
 
-#: app/ui/dialogs.slint:1840
+#: app/ui/dialogs.slint:1861
 msgid "Disc no."
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:720
+#: app/ui/dialogs.slint:1861 app/src/display.rs:720
 msgid "Composer"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/src/display.rs:731
+#: app/ui/dialogs.slint:1861 app/src/display.rs:731
 msgid "Comment"
 msgstr ""
 
-#: app/ui/dialogs.slint:1853
+#: app/ui/dialogs.slint:1874
 msgid "(multiple values – unchanged)"
 msgstr ""
 
-#: app/ui/dialogs.slint:1867
+#: app/ui/dialogs.slint:1888
 msgid "Saving…"
 msgstr ""
 
-#: app/ui/dialogs.slint:1877
+#: app/ui/dialogs.slint:1898
 msgid "Update available"
 msgstr ""
 
-#: app/ui/dialogs.slint:1885
+#: app/ui/dialogs.slint:1906
 msgid "OpenMP {} is ready to download (you have {})."
 msgstr ""
 
-#: app/ui/dialogs.slint:1926
+#: app/ui/dialogs.slint:1947
 msgid "Skip this version"
 msgstr ""
 
-#: app/ui/dialogs.slint:1930
+#: app/ui/dialogs.slint:1951
 msgid "Open download page"
 msgstr ""
 
-#: app/ui/dialogs.slint:1930
+#: app/ui/dialogs.slint:1951
 msgid "Install and restart"
 msgstr ""
 
@@ -1822,15 +1846,15 @@ msgstr ""
 msgid "Full window"
 msgstr ""
 
-#: app/ui/video.slint:1399
+#: app/ui/video.slint:1399 app/src/win.rs:634
 msgid "Play / pause"
 msgstr ""
 
-#: app/ui/video.slint:1502 app/src/win.rs:327
+#: app/ui/video.slint:1502 app/src/win.rs:331 app/src/win.rs:636
 msgid "Previous"
 msgstr ""
 
-#: app/ui/video.slint:1516 app/src/win.rs:327
+#: app/ui/video.slint:1516 app/src/win.rs:331 app/src/win.rs:635
 msgid "Next"
 msgstr ""
 
@@ -2050,7 +2074,7 @@ msgstr ""
 msgid "Saved “{}”"
 msgstr ""
 
-#: app/src/dialogs.rs:105
+#: app/src/dialogs.rs:105 app/src/prefs.rs:721
 msgid "Could not save: {}"
 msgstr ""
 
@@ -2062,7 +2086,7 @@ msgstr ""
 msgid "Searching TMDB: “{}”"
 msgstr ""
 
-#: app/src/dialogs.rs:218
+#: app/src/dialogs.rs:218 app/src/prefs.rs:720
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] ""
@@ -2465,43 +2489,43 @@ msgstr ""
 msgid "Video: always on top"
 msgstr ""
 
-#: app/src/keys.rs:74 app/src/menu.rs:146
+#: app/src/keys.rs:74 app/src/menu.rs:146 app/src/win.rs:638
 msgid "Quit"
 msgstr ""
 
-#: app/src/keys.rs:218 app/src/libview.rs:957 app/src/lists.rs:719
+#: app/src/keys.rs:219 app/src/libview.rs:957 app/src/lists.rs:719
 msgid "List {}"
 msgstr ""
 
-#: app/src/keys.rs:267
+#: app/src/keys.rs:268
 msgid "Stop after the current track"
 msgstr ""
 
-#: app/src/keys.rs:267
+#: app/src/keys.rs:268
 msgid "Continuous playback"
 msgstr ""
 
-#: app/src/keys.rs:483
+#: app/src/keys.rs:484
 msgid "Shuffle: on"
 msgstr ""
 
-#: app/src/keys.rs:483
+#: app/src/keys.rs:484
 msgid "Shuffle: off"
 msgstr ""
 
-#: app/src/keys.rs:494
+#: app/src/keys.rs:495
 msgid "Repeat off"
 msgstr ""
 
-#: app/src/keys.rs:494
+#: app/src/keys.rs:495
 msgid "Repeat list"
 msgstr ""
 
-#: app/src/keys.rs:494
+#: app/src/keys.rs:495
 msgid "Repeat track"
 msgstr ""
 
-#: app/src/keys.rs:512
+#: app/src/keys.rs:513
 msgid "The clipboard has no link or file path"
 msgstr ""
 
@@ -2909,19 +2933,23 @@ msgstr ""
 msgid "Close tab"
 msgstr ""
 
-#: app/src/main.rs:92
+#: app/src/main.rs:68
+msgid "OpenMP closed unexpectedly last time. The report is in {} – you can send it to the author."
+msgstr ""
+
+#: app/src/main.rs:114
 msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
 msgstr ""
 
-#: app/src/main.rs:655
+#: app/src/main.rs:685
 msgid "Radio stream URL"
 msgstr ""
 
-#: app/src/main.rs:711
+#: app/src/main.rs:741
 msgid "Equalizer preset name"
 msgstr ""
 
-#: app/src/main.rs:711
+#: app/src/main.rs:741
 msgid "Mine"
 msgstr ""
 
@@ -3073,75 +3101,95 @@ msgstr ""
 msgid "Custom"
 msgstr ""
 
-#: app/src/prefs.rs:162
+#: app/src/prefs.rs:163
 msgid "Idea and development: {}"
 msgstr ""
 
-#: app/src/prefs.rs:164
+#: app/src/prefs.rs:165
 msgid "System default device"
 msgstr ""
 
-#: app/src/prefs.rs:170
+#: app/src/prefs.rs:171
 msgid "libmpv – video, subtitles, streams, hardware decoding"
 msgstr ""
 
-#: app/src/prefs.rs:231
+#: app/src/prefs.rs:232
 msgctxt "language"
 msgid "System"
 msgstr ""
 
-#: app/src/prefs.rs:255
+#: app/src/prefs.rs:260
 msgid "Some texts will change language after restarting OpenMP"
 msgstr ""
 
-#: app/src/prefs.rs:356
+#: app/src/prefs.rs:361
 msgid "ReplayGain will apply from the next track"
 msgstr ""
 
-#: app/src/prefs.rs:497
+#: app/src/prefs.rs:502
 msgid "AutoEQ profile (ParametricEQ.txt)"
 msgstr ""
 
-#: app/src/prefs.rs:497
+#: app/src/prefs.rs:502
 msgid "AutoEQ profile"
 msgstr ""
 
-#: app/src/prefs.rs:516
+#: app/src/prefs.rs:521
 msgid "{n} filter"
 msgid_plural "{n} filters"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/prefs.rs:516
+#: app/src/prefs.rs:521
 msgid "Loaded “{}” – {}, preamp {} dB"
 msgstr ""
 
-#: app/src/prefs.rs:518
+#: app/src/prefs.rs:523
 msgid "This is not an AutoEQ profile (ParametricEQ.txt)"
 msgstr ""
 
-#: app/src/prefs.rs:554
+#: app/src/prefs.rs:559
 msgid "Another program is using some shortcuts ({} of 5 work)"
 msgstr ""
 
-#: app/src/prefs.rs:626
+#: app/src/prefs.rs:631
 msgid "Equalizer: {} (genre {})"
 msgstr ""
 
-#: app/src/prefs.rs:646
+#: app/src/prefs.rs:651
 msgid "Video folder"
 msgstr ""
 
-#: app/src/prefs.rs:646
+#: app/src/prefs.rs:651
 msgid "Music folder"
 msgstr ""
 
-#: app/src/prefs.rs:653
+#: app/src/prefs.rs:658
 msgid "Network path (e.g. \\\\NAS\\Music or Z:\\Movies)"
 msgstr ""
 
-#: app/src/prefs.rs:662
+#: app/src/prefs.rs:667
 msgid "The folder “{}” is unavailable – check the path and network connection"
+msgstr ""
+
+#: app/src/prefs.rs:718
+msgid "Export backup"
+msgstr ""
+
+#: app/src/prefs.rs:718 app/src/prefs.rs:731
+msgid "OpenMP backup"
+msgstr ""
+
+#: app/src/prefs.rs:720
+msgid "Backup saved ({})"
+msgstr ""
+
+#: app/src/prefs.rs:731
+msgid "Import backup"
+msgstr ""
+
+#: app/src/prefs.rs:743
+msgid "Could not restore the backup: {}"
 msgstr ""
 
 #: app/src/radio.rs:50
@@ -3428,6 +3476,10 @@ msgstr ""
 msgid "Skip credits"
 msgstr ""
 
+#: app/src/win.rs:632
+msgid "Show OpenMP"
+msgstr ""
+
 #: core/src/audio/decoder.rs:74
 msgid "No audio track"
 msgstr ""
@@ -3544,11 +3596,15 @@ msgstr ""
 msgid "OpenSubtitles returned no link (download limit?)"
 msgstr ""
 
-#: core/src/settings.rs:293
+#: core/src/paths.rs:101 core/src/paths.rs:103
+msgid "This is not an OpenMP backup"
+msgstr ""
+
+#: core/src/settings.rs:296
 msgid "Top rated"
 msgstr ""
 
-#: core/src/settings.rs:294
+#: core/src/settings.rs:297
 msgid "Played often"
 msgstr ""
 

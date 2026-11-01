@@ -1597,6 +1597,12 @@ export component SettingsDialog inherits Dialog {
                     toggled => { Prefs.changed("single-instance"); }
                 }
                 SettingSwitch {
+                    title: @tr("Icon in the notification area");
+                    hint: @tr("Closing the window hides it there and playback continues; right-click the icon for the menu");
+                    checked <=> Prefs.tray;
+                    toggled => { Prefs.changed("tray"); }
+                }
+                SettingSwitch {
                     title: @tr("Media keys and the Windows panel");
                     hint: @tr("Control from the keyboard, headphones and the volume overlay");
                     checked <=> Prefs.media-keys;
@@ -1612,6 +1618,21 @@ export component SettingsDialog inherits Dialog {
                     title: @tr("Keep the computer awake during movies");
                     checked <=> Prefs.prevent-sleep;
                     toggled => { Prefs.changed("prevent-sleep"); }
+                }
+                SettingRow {
+                    title: @tr("Backup");
+                    hint: @tr("Settings, playlists, favorites, ratings and statistics in one file – also for moving to another computer");
+                    HorizontalLayout {
+                        spacing: 8px;
+                        Btn {
+                            text: @tr("Export…");
+                            clicked => { Prefs.backup-export(); }
+                        }
+                        Btn {
+                            text: @tr("Import…");
+                            clicked => { Prefs.backup-import(); }
+                        }
+                    }
                 }
                 SettingRow {
                     title: @tr("File associations");

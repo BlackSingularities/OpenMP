@@ -54,12 +54,34 @@ pub fn apply_language(code: &str) {
     }
 }
 
+/// Poprzednie uruchomienie skończyło się awarią: raport trafia do `crash-last.txt` (obok dziennika
+/// `openmp.log`), a program mówi, gdzie go znaleźć i otwiera folder, żeby można go było przesłać.
+fn crash_report(app: &mut App) {
+    let dir = openmp_core::paths::cache();
+    let fresh = dir.join("crash.txt");
+    if !fresh.exists() {
+        return;
+    }
+    let last = dir.join("crash-last.txt");
+    let _ = std::fs::remove_file(&last);
+    if std::fs::rename(&fresh, &last).is_ok() {
+        app.toast(tr!("OpenMP closed unexpectedly last time. The report is in {} – you can send it to the author.", last.display()));
+        win::reveal(&last.to_string_lossy());
+    }
+}
+
 fn main() {
     // Awaria w dowolnym wątku trafia do dziennika – bez konsoli komunikat inaczej by zniknął.
     std::panic::set_hook(Box::new(|info| {
         let bt = std::backtrace::Backtrace::force_capture();
         openmp_core::paths::log(&format!("PANIC {info}
 {bt}"));
+        // Raport do pokazania przy następnym uruchomieniu (dopisywany, gdy pada kilka wątków).
+        let report = format!("OpenMP {} · Windows {}\n\n{info}\n\n{bt}\n", openmp_core::version(), win::system_language());
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(openmp_core::paths::cache().join("crash.txt")) {
+            use std::io::Write;
+            let _ = f.write_all(report.as_bytes());
+        }
     }));
     let argv: Vec<String> = std::env::args().skip(1).collect();
     openmp_core::paths::log(&format!("start {} {:?}", openmp_core::version(), argv));
@@ -265,6 +287,9 @@ fn main() {
             if let Some(ui) = app.ui() {
                 win::thumb_init(&ui);
             }
+            if app.s.tray {
+                win::tray(app, true);
+            }
             if app.s.global_hotkeys {
                 win::hotkeys(app, true);
             }
@@ -277,6 +302,7 @@ fn main() {
             if app.s.check_updates {
                 dialogs::check_update(app, false);
             }
+            crash_report(app);
         });
         drop(w);
     });
@@ -409,6 +435,10 @@ fn wire(ui: &AppWindow) {
         slint::winit_030::EventResult::Propagate
     });
     ui.window().on_close_requested(|| {
+        // Z ikoną w zasobniku zamknięcie tylko chowa okno.
+        if win::hide_to_tray() {
+            return slint::CloseRequestResponse::KeepWindowShown;
+        }
         with(keys::quit);
         slint::CloseRequestResponse::HideWindow
     });
@@ -714,6 +744,8 @@ fn wire(ui: &AppWindow) {
     pr.on_add_network_folder(|k| later(move |app| prefs::add_network_folder(app, k)));
     pr.on_remove_folder(|k, i| later(move |app| prefs::remove_folder(app, k, i as usize)));
     pr.on_pick_screenshot_dir(|| later(prefs::pick_screenshot_dir));
+    pr.on_backup_export(|| later(prefs::backup_export));
+    pr.on_backup_import(|| later(prefs::backup_import));
     pr.on_check_update(|| later(|app| dialogs::check_update(app, true)));
     pr.on_open_url(|u| {
         let _ = open::that(u.as_str());

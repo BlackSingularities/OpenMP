@@ -106,6 +106,7 @@ pub fn publish(app: &mut App) {
     p.set_track_grid(s.track_grid);
     p.set_grid_size(s.grid_size);
     p.set_caption_overlay(s.caption_overlay);
+    p.set_tray(s.tray);
     publish_theme(app);
     p.set_video_leave(s.video_leave);
     p.set_video_open_view(s.video_open_view);
@@ -241,6 +242,10 @@ pub fn changed(app: &mut App, key: &str) {
     let p = ui.global::<Prefs>();
     match key {
         "caption-overlay" => app.s.caption_overlay = p.get_caption_overlay(),
+        "tray" => {
+            app.s.tray = p.get_tray();
+            crate::win::tray(app, app.s.tray);
+        }
         "language" => {
             let i = p.get_language();
             let langs = openmp_core::i18n::languages();
@@ -702,4 +707,40 @@ pub fn pick_screenshot_dir(app: &mut App) {
         }
         app.s.save();
     });
+}
+
+/// Kopia danych do pliku (najpierw zapis bieżącego stanu).
+pub fn backup_export(app: &mut App) {
+    crate::keys::save_all(app);
+    let name = format!("OpenMP-{}.json", openmp_core::version());
+    crate::dialogs::ask(
+        app,
+        move |d| d.set_title(tr!("Export backup")).set_file_name(name).add_filter(tr!("OpenMP backup"), &["json"]).save_file(),
+        |app, f| match openmp_core::paths::export_backup(&f) {
+            Ok(n) => app.toast(tr!("Backup saved ({})", trn!("{n} file", "{n} files", n))),
+            Err(e) => app.toast(tr!("Could not save: {}", e)),
+        },
+    );
+}
+
+/// Przywrócenie kopii: pliki danych zostają nadpisane, a program uruchamia się od nowa – bez
+/// zapisywania stanu z pamięci, który nadpisałby przywrócone dane.
+pub fn backup_import(app: &mut App) {
+    crate::dialogs::ask(
+        app,
+        |d| d.set_title(tr!("Import backup")).add_filter(tr!("OpenMP backup"), &["json"]).pick_file(),
+        |app, f| match openmp_core::paths::import_backup(&f) {
+            Ok(_) => {
+                openmp_core::paths::log("przywrócono kopię danych – ponowne uruchomienie");
+                crate::win::tray_remove();
+                openmp_core::instance::release();
+                app.engine.stop();
+                if let Ok(exe) = std::env::current_exe() {
+                    let _ = std::process::Command::new(exe).spawn();
+                }
+                std::process::exit(0);
+            }
+            Err(e) => app.toast(tr!("Could not restore the backup: {}", e)),
+        },
+    );
 }

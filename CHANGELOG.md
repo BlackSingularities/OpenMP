@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.6.1
+
+- **Ikona w zasobniku systemowym** (Ustawienia → System): zamknięcie okna chowa je do zasobnika, a muzyka gra dalej; kliknięcie przywraca okno, prawy przycisk – menu (odtwórz/pauza, następny, poprzedni, zakończ); podpowiedź pokazuje bieżący utwór.
+- **Kopia zapasowa** (Ustawienia → System): eksport i import ustawień, list, ulubionych, ocen i statystyk w jednym pliku – także na inny komputer; po imporcie program uruchamia się ponownie.
+- **Raport awarii:** gdy program zamknie się nieoczekiwanie, przy następnym uruchomieniu pokazuje plik z raportem (crash-last.txt), który można wysłać autorowi.
+
 ## 1.6.0
 
 - **Wersja angielska:** cały interfejs po angielsku i po polsku; domyślnie język Windows, zmiana w Ustawieniach → Wygląd → Język.

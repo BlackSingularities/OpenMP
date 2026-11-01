@@ -63,7 +63,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
     props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has);
     props!(v, Prefs:
-        compact_ui, track_grid, grid_size, caption_overlay, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
+        compact_ui, track_grid, grid_size, caption_overlay, tray, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
         video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
         deband, tone_mapping, ambient, video_tint, tint_rate, seek_preview, wheel_action, dblclick_seek, video_autonext,
         volume_boost, night_mode, downmix, ytdl_format, ytdl, cache_mb, sub_font, sub_color, sub_style,
@@ -118,7 +118,7 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
     }
     fwd!(Prefs:
         changed(k), eq_band(i, v), eq_preset(i), eq_save_preset(), eq_reset(), add_folder(i),
-        add_network_folder(i), remove_folder(i, j), pick_screenshot_dir(), check_update(), open_url(u),
+        add_network_folder(i), remove_folder(i, j), pick_screenshot_dir(), backup_export(), backup_import(), check_update(), open_url(u),
         associate(),
     );
     fwd!(Ui:

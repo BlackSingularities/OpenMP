@@ -158,6 +158,8 @@ pub struct Settings {
     pub sub_auto: i32,
     // System
     pub single_instance: bool,
+    /// Ikona w zasobniku systemowym; zamknięcie okna chowa je tam.
+    pub tray: bool,
     pub media_keys: bool,
     /// Globalne skróty Ctrl+Alt+Spacja/strzałki.
     pub global_hotkeys: bool,
@@ -279,6 +281,7 @@ impl Default for Settings {
             sub_override: false,
             sub_auto: 2,
             single_instance: true,
+            tray: false,
             media_keys: true,
             global_hotkeys: true,
             prevent_sleep: true,
