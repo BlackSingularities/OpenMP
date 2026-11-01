@@ -708,29 +708,17 @@ export component SettingsDialog inherits Dialog {
                 SectionTitle {
                     text: "LISTY UTWORÓW";
                 }
-                SettingSwitch {
-                    title: "Utwory jako okładki";
-                    hint: "Listy i biblioteka jako siatka kafelków z okładkami zamiast wierszy (przełącznik też nad listą)";
-                    checked <=> Prefs.track-grid;
-                    toggled => { Prefs.changed("track-grid"); }
-                }
-                if Prefs.track-grid: SettingRow {
-                    title: "Wielkość okładek";
-                    hint: round(Prefs.grid-size) + " px";
+                SettingRow {
+                    title: "Widok utworów";
+                    hint: Prefs.track-grid ? "Okładki " + round(Prefs.grid-size) + " px – ten sam suwak jest nad listą" : "Lista – przesuń w prawo, by pokazać okładki";
                     HSlider {
                         width: 180px;
-                        minimum: 100;
+                        minimum: 90;
                         maximum: 280;
                         step: 10;
-                        value: Prefs.grid-size;
-                        moved(v) => {
-                            Prefs.grid-size = v;
-                            Prefs.changed("grid-size");
-                        }
-                        reset => {
-                            Prefs.grid-size = 160;
-                            Prefs.changed("grid-size");
-                        }
+                        value: Prefs.view-size;
+                        moved(v) => { Prefs.set-view(v); }
+                        reset => { Prefs.set-view(160); }
                     }
                 }
                 SettingSwitch {
@@ -806,6 +794,8 @@ export component SettingsDialog inherits Dialog {
                             Prefs.wave-style = self.current-index;
                             Prefs.changed("wave-style");
                         }
+                    }
+                }
                 if Prefs.show-waveform: SettingRow {
                     title: "Efekt przy znaczniku";
                     hint: "Część taśmy wokół miejsca odtwarzania porusza się z muzyką";
@@ -834,8 +824,6 @@ export component SettingsDialog inherits Dialog {
                     title: "Poświata przy znaczniku";
                     checked <=> Prefs.live-glow;
                     toggled => { Prefs.changed("live-glow"); }
-                }
-                    }
                 }
             }
             if Ui.settings-page == 3: Page {

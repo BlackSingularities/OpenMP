@@ -282,6 +282,23 @@ export global Prefs {
     in-out property <bool> compact-ui;
     in-out property <bool> track-grid;
     in-out property <float> grid-size: 160;
+    // Jeden suwak widoku: skrajnie po lewej lista, dalej okładki coraz większe.
+    out property <float> view-size: track-grid ? grid-size : 90;
+    public function set-view(v: float) {
+        if v < 100 {
+            if track-grid {
+                track-grid = false;
+                changed("track-grid");
+            }
+        } else {
+            grid-size = v;
+            changed("grid-size");
+            if !track-grid {
+                track-grid = true;
+                changed("track-grid");
+            }
+        }
+    }
     // Wideo – wygląd i obraz
     in-out property <int> video-ui;
     in-out property <int> video-leave;

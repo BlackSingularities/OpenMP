@@ -255,6 +255,35 @@ export component ControlsBar inherits Rectangle {
 }
 
 // Panel nawigacji: listy, biblioteka, zbiory, radio.
+// Widok utworów jednym suwakiem: lista po lewej, dalej coraz większe okładki.
+component ViewSize inherits HorizontalLayout {
+    spacing: 4px;
+    IconBtn {
+        icon: Icons.playlist;
+        size: 26px;
+        icon-size: 15px;
+        tip: "Lista";
+        clicked => { Prefs.set-view(90); }
+    }
+    HSlider {
+        y: (parent.height - self.height) / 2;
+        width: 110px;
+        minimum: 90;
+        maximum: 280;
+        step: 10;
+        value: Prefs.view-size;
+        moved(v) => { Prefs.set-view(v); }
+        reset => { Prefs.set-view(160); }
+    }
+    IconBtn {
+        icon: Icons.album;
+        size: 26px;
+        icon-size: 15px;
+        tip: "Duże okładki";
+        clicked => { Prefs.set-view(280); }
+    }
+}
+
 export component Sidebar inherits Rectangle {
     width: Prefs.sidebar-width * 1px;
     background: Theme.side-pane;
@@ -519,30 +548,8 @@ export component PlaylistView inherits Rectangle {
                     }
                 }
             }
-            if Prefs.track-grid: HSlider {
+            ViewSize {
                 y: (parent.height - self.height) / 2;
-                width: 90px;
-                minimum: 100;
-                maximum: 280;
-                step: 10;
-                value: Prefs.grid-size;
-                moved(v) => {
-                    Prefs.grid-size = v;
-                    Prefs.changed("grid-size");
-                }
-                reset => {
-                    Prefs.grid-size = 160;
-                    Prefs.changed("grid-size");
-                }
-            }
-            IconBtn {
-                y: (parent.height - self.height) / 2;
-                icon: Prefs.track-grid ? Icons.playlist : Icons.album;
-                tip: Prefs.track-grid ? "Pokaż jako listę" : "Pokaż jako okładki";
-                clicked => {
-                    Prefs.track-grid = !Prefs.track-grid;
-                    Prefs.changed("track-grid");
-                }
             }
             Field {
                 y: (parent.height - self.height) / 2;
@@ -564,8 +571,7 @@ export component PlaylistView inherits Rectangle {
             grid: Prefs.track-grid;
             tile: Prefs.grid-size * 1px;
             zoom(d) => {
-                Prefs.grid-size = clamp(Prefs.grid-size + d, 100, 280);
-                Prefs.changed("grid-size");
+                Prefs.set-view(clamp(Prefs.view-size + d, 90, 280));
             }
             show-album: !Lists.grouped;
             scroll-y: Lists.scroll-y;
@@ -651,30 +657,8 @@ export component LibraryView inherits Rectangle {
                     clicked => { Lib.add-all(); }
                 }
             }
-            if !Lib.show-tiles && Prefs.track-grid: HSlider {
+            if !Lib.show-tiles: ViewSize {
                 y: (parent.height - self.height) / 2;
-                width: 90px;
-                minimum: 100;
-                maximum: 280;
-                step: 10;
-                value: Prefs.grid-size;
-                moved(v) => {
-                    Prefs.grid-size = v;
-                    Prefs.changed("grid-size");
-                }
-                reset => {
-                    Prefs.grid-size = 160;
-                    Prefs.changed("grid-size");
-                }
-            }
-            if !Lib.show-tiles: IconBtn {
-                y: (parent.height - self.height) / 2;
-                icon: Prefs.track-grid ? Icons.playlist : Icons.album;
-                tip: Prefs.track-grid ? "Pokaż jako listę" : "Pokaż jako okładki";
-                clicked => {
-                    Prefs.track-grid = !Prefs.track-grid;
-                    Prefs.changed("track-grid");
-                }
             }
             Field {
                 y: (parent.height - self.height) / 2;
@@ -835,8 +819,7 @@ export component LibraryView inherits Rectangle {
             grid: Prefs.track-grid;
             tile: Prefs.grid-size * 1px;
             zoom(d) => {
-                Prefs.grid-size = clamp(Prefs.grid-size + d, 100, 280);
-                Prefs.changed("grid-size");
+                Prefs.set-view(clamp(Prefs.view-size + d, 90, 280));
             }
             show-album: true;
             empty-text: Lib.empty-text;

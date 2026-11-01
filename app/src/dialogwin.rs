@@ -61,7 +61,7 @@ macro_rules! props {
 
 fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
-    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense);
+    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale);
     props!(v, Prefs:
         compact_ui, track_grid, grid_size, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
         video_ui, video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
@@ -77,6 +77,10 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
         soft_pause, speed, sub_lang, sub_size, swap, version, video_fit, video_folders, video_resume,
         viz_bands, viz_sensitivity, wave_style, width,
+    );
+    props!(v, Prefs:
+        nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, nav_text,
+        live_style, live_span, live_glow,
     );
     props!(v, Ui:
         about, equalizer, rename_dialog, rename_text, rename_title, settings, settings_page, tag_busy,

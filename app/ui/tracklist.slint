@@ -108,7 +108,7 @@ export component TrackList inherits Rectangle {
             y: 8px + floor(i / sv.cols) * sv.cell-h;
             width: sv.cell;
             height: sv.cell-h;
-            property <bool> shown: self.y + self.height > -sv.viewport-y - sv.cell-h && self.y < -sv.viewport-y + sv.visible-height + sv.cell-h;
+            property <bool> shown: self.y + self.height > -sv.content-y - sv.cell-h && self.y < -sv.content-y + sv.visible-height + sv.cell-h;
             if cellr.shown && !r.header: Rectangle {
                 x: 5px;
                 y: 5px;

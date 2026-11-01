@@ -835,40 +835,41 @@ component CinemaView inherits Rectangle {
         x: (root.width - self.width) / 2;
         y: root.height - self.height - (root.show ? 14px : -10px);
         width: w;
-        height: 86px;
+        height: 128px;
         opacity: root.show ? 1 : 0;
         visible: self.opacity > 0.01;
         animate opacity, y { duration: 220ms; easing: ease-out; }
         TouchArea {
             changed has-hover => { Video.hover-controls(self.has-hover); }
         }
+        // Ten sam układ co pasek muzyki: taśma, czasy, głośność – odtwarzanie – przełączniki.
         VerticalLayout {
-            padding-left: 16px;
-            padding-right: 16px;
-            padding-top: 10px;
-            padding-bottom: 6px;
-            spacing: 4px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 12px;
+            padding-bottom: 8px;
+            spacing: 2px;
+            VideoSeek {
+                on-video: true;
+            }
             HorizontalLayout {
-                spacing: 10px;
+                height: 20px;
                 Text {
                     text: Fmt.time(Video.pos);
                     color: root.c2;
-                    font-size: Theme.fs-sm;
+                    font-size: Theme.fs;
+                    font-family: Theme.font-display;
                     vertical-alignment: center;
-                    width: 52px;
                 }
-                VideoSeek {
-                    y: (parent.height - self.height) / 2;
+                Rectangle {
                     horizontal-stretch: 1;
-                    on-video: true;
                 }
                 Text {
                     text: Video.duration > 0 ? (Prefs.remaining ? "-" + Fmt.time(Video.duration - Video.pos) : Fmt.time(Video.duration)) : "na żywo";
                     color: root.c2;
-                    font-size: Theme.fs-sm;
+                    font-size: Theme.fs;
+                    font-family: Theme.font-display;
                     vertical-alignment: center;
-                    horizontal-alignment: right;
-                    width: 52px;
                     TouchArea {
                         mouse-cursor: pointer;
                         clicked => {
@@ -879,125 +880,178 @@ component CinemaView inherits Rectangle {
                 }
             }
             HorizontalLayout {
-                spacing: 2px;
-                IconBtn {
-                    icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Icons.volume;
-                    tip: Player.muted ? "Włącz dźwięk (M)" : "Wycisz (M)";
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    clicked => { Player.toggle-mute(); }
-                }
-                HSlider {
-                    y: (parent.height - self.height) / 2;
-                    width: bar.w > 600px ? 96px : 60px;
-                    value: Player.volume;
-                    fill-color: Theme.scope >= 1 ? Theme.tint : #ffffff;
-                    track-color: #ffffff33;
-                    moved(v) => { Player.set-volume(v); }
-                }
-                if bar.w > 600px && Video.speed != 1: Text {
-                    text: "  " + round(Video.speed * 100) / 100 + "×";
-                    color: Theme.tint-hi;
-                    font-size: Theme.fs-sm;
-                    font-weight: 700;
-                    vertical-alignment: center;
-                }
-                Rectangle {
+                height: 62px;
+                spacing: 8px;
+                // Lewa strona: głośność i prędkość.
+                HorizontalLayout {
                     horizontal-stretch: 1;
-                }
-                IconBtn {
-                    icon: Icons.prev;
-                    tip: "Poprzedni (Ctrl+←)";
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    clicked => { Player.prev(); }
-                }
-                IconBtn {
-                    icon: Icons.rewind;
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "-10 s";
-                    clicked => { Player.seek-rel(-10); }
-                }
-                Rectangle {
-                    width: 44px;
-                    height: 44px;
-                    y: (parent.height - self.height) / 2;
-                    border-radius: 22px;
-                    background: Theme.scope >= 1 ? (vpta.has-hover ? Theme.tint.brighter(0.15) : Theme.tint) : (vpta.has-hover ? #ffffff : #ffffffe6);
-                    drop-shadow-blur: Theme.scope >= 1 ? 16px : 0;
-                    drop-shadow-color: Theme.glow;
-                    Icon {
-                        icon: Video.playing ? Icons.pause : Icons.play;
-                        size: 24px;
-                        fill: Theme.scope >= 1 ? #ffffff : #000000;
+                    alignment: start;
+                    spacing: 4px;
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
+                        size: 32px;
+                        icon-size: 18px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: Player.muted ? "Włącz dźwięk (M)" : "Wycisz (M)";
+                        clicked => { Player.toggle-mute(); }
                     }
-                    vpta := TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => { Player.play-pause(); }
+                    HSlider {
+                        y: (parent.height - self.height) / 2;
+                        width: bar.w > 600px ? 110px : 64px;
+                        value: Player.volume;
+                        fill-color: Player.muted ? root.c2 : Theme.tint;
+                        track-color: #ffffff33;
+                        moved(v) => { Player.set-volume(v); }
+                    }
+                    if bar.w > 600px: Text {
+                        width: 38px;
+                        text: round(Player.volume * 100) + "%";
+                        color: root.c2;
+                        font-size: Theme.fs-sm;
+                        vertical-alignment: center;
+                        horizontal-alignment: right;
+                    }
+                    if bar.w > 600px && Video.speed != 1: Text {
+                        text: "  " + round(Video.speed * 100) / 100 + "×";
+                        color: Theme.tint-hi;
+                        font-size: Theme.fs-sm;
+                        font-weight: 700;
+                        vertical-alignment: center;
                     }
                 }
-                IconBtn {
-                    icon: Icons.forward;
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "+10 s";
-                    clicked => { Player.seek-rel(10); }
+                // Środek: odtwarzanie – przyciski i pierścień jak w oknie muzyki.
+                HorizontalLayout {
+                    spacing: bar.w > 600px ? 14px : 6px;
+                    alignment: center;
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.prev;
+                        size: 44px;
+                        icon-size: 26px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Poprzedni (Ctrl+←)";
+                        clicked => { Player.prev(); }
+                    }
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.rewind;
+                        size: 40px;
+                        icon-size: 20px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "-10 s";
+                        clicked => { Player.seek-rel(-10); }
+                    }
+                    Rectangle {
+                        y: (parent.height - self.height) / 2;
+                        width: 56px;
+                        height: 56px;
+                        border-radius: 28px;
+                        background: vpta.pressed ? Theme.tint.with-alpha(0.32) : vpta.has-hover ? Theme.tint.with-alpha(0.2) : Theme.tint.with-alpha(0.08);
+                        border-width: 2px;
+                        border-color: Theme.tint;
+                        drop-shadow-blur: 22px;
+                        drop-shadow-color: Theme.glow;
+                        animate background { duration: 140ms; }
+                        Icon {
+                            icon: Video.playing ? Icons.pause : Icons.play;
+                            size: 24px;
+                            fill: Theme.ink;
+                        }
+                        vpta := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { Player.play-pause(); }
+                        }
+                    }
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.forward;
+                        size: 40px;
+                        icon-size: 20px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "+10 s";
+                        clicked => { Player.seek-rel(10); }
+                    }
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.next;
+                        size: 44px;
+                        icon-size: 26px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Następny (Ctrl+→)";
+                        clicked => { Player.next(); }
+                    }
                 }
-                IconBtn {
-                    icon: Icons.next;
-                    tip: "Następny (Ctrl+→)";
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    clicked => { Player.next(); }
-                }
-                Rectangle {
+                // Prawa strona: napisy, ustawienia filmu, więcej i pełny ekran.
+                HorizontalLayout {
                     horizontal-stretch: 1;
-                }
-                if bar.w > 470px: IconBtn {
-                    icon: Icons.subtitles;
-                    on-dark: true;
-                    active: Video.panel && Video.panel-page == 1;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "Napisy (V)";
-                    clicked => {
-                        Video.panel = !(Video.panel && Video.panel-page == 1);
-                        Video.panel-page = 1;
+                    alignment: end;
+                    spacing: 2px;
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.subtitles;
+                        size: 34px;
+                        icon-size: 17px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Napisy (V)";
+                        active: Video.panel && Video.panel-page == 1;
+                        clicked => { Video.panel = !(Video.panel && Video.panel-page == 1); Video.panel-page = 1; }
                     }
-                }
-                IconBtn {
-                    icon: Icons.tune;
-                    on-dark: true;
-                    active: Video.panel && Video.panel-page != 1;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "Dźwięk, obraz, prędkość, szczegóły";
-                    clicked => {
-                        Video.panel = !(Video.panel && Video.panel-page != 1);
-                        Video.panel-page = Video.panel-page == 1 || Video.panel-page == 5 ? 0 : Video.panel-page;
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.tune;
+                        size: 34px;
+                        icon-size: 17px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Dźwięk, obraz, prędkość, szczegóły";
+                        active: Video.panel && Video.panel-page != 1;
+                        clicked => { Video.panel = !(Video.panel && Video.panel-page != 1); Video.panel-page = Video.panel-page == 1 || Video.panel-page == 5 ? 0 : Video.panel-page; }
                     }
-                }
-                if bar.w > 540px: IconBtn {
-                    icon: Icons.more;
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "Więcej";
-                    clicked => { Video.menu(); }
-                }
-                IconBtn {
-                    icon: Video.fullscreen ? Icons.fullscreen-exit : Icons.fullscreen;
-                    on-dark: true;
-                    icon-color: root.c2;
-                    hover-color: #ffffff;
-                    tip: "Pełny ekran (F)";
-                    clicked => { Video.toggle-fullscreen(); }
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.more;
+                        size: 34px;
+                        icon-size: 17px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Więcej";
+                        clicked => { Video.menu(); }
+                    }
+                    IconBtn {
+                        tip-above: true;
+                        y: (parent.height - self.height) / 2;
+                        icon: Video.fullscreen ? Icons.fullscreen-exit : Icons.fullscreen;
+                        size: 34px;
+                        icon-size: 17px;
+                        on-dark: true;
+                        icon-color: root.c2;
+                        hover-color: #ffffff;
+                        tip: "Pełny ekran (F)";
+                        clicked => { Video.toggle-fullscreen(); }
+                    }
                 }
             }
         }
