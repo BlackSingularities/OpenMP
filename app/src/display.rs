@@ -821,3 +821,143 @@ pub fn cycle_viz(app: &mut App) {
     app.toast(if n.is_empty() { "Wizualizacja wyłączona".to_string() } else { format!("Wizualizacja: {n}") });
     app.dirty = true;
 }
+
+/// Tryb zaznaczenia: gdy nic nie gra, w miejscu „Teraz odtwarzane” są szczegóły zaznaczonego
+/// pliku, kilku plików albo otwartego folderu / grupy w bibliotece.
+pub fn sel_info(app: &mut App) {
+    let Some(ui) = app.ui() else { return };
+    let p = ui.global::<Player>();
+    if app.cur.is_some() {
+        p.set_sel_mode(false);
+        return;
+    }
+    let lib = ui.global::<Lib>();
+    let in_lib = lib.get_view() == 1;
+    let sel: Vec<TrackInfo> = if in_lib { crate::libview::selected(app) } else { crate::lists::selected_tracks(app) };
+    let mut rows: Vec<(&str, &str, String)> = Vec::new();
+    let (title, sub, cover_path);
+    let fmt_size = |b: u64| if b >= 1 << 30 { format!("{:.2} GB", b as f64 / (1u64 << 30) as f64).replace('.', ",") } else { format!("{:.1} MB", b as f64 / 1_048_576.0).replace('.', ",") };
+    if sel.len() == 1 {
+        let t = &sel[0];
+        let video = meta::is_video(Path::new(&t.path));
+        title = t.display_title();
+        sub = if video { Path::new(&t.path).parent().map(|d| d.to_string_lossy().into_owned()).unwrap_or_default() } else { t.display_artist() };
+        if !t.album.is_empty() {
+            rows.push(("album", "Album", t.album.clone()));
+        }
+        if t.year > 0 {
+            rows.push(("calendar", "Rok", t.year.to_string()));
+        }
+        if !t.genre.is_empty() {
+            rows.push(("tag", "Gatunek", t.genre.clone()));
+        }
+        if t.duration > 0.0 {
+            rows.push(("clock", "Długość", meta::fmt_time(t.duration)));
+        }
+        let b = badges(t, None);
+        if !b.is_empty() {
+            rows.push(("file", "Format", b.join(" · ")));
+        }
+        if t.size > 0 {
+            rows.push(("download", "Rozmiar", fmt_size(t.size)));
+        }
+        let st = app.stats.get(&t.path);
+        if st.plays > 0 {
+            rows.push(("history", if video { "Obejrzane" } else { "Odtworzenia" }, st.plays.to_string()));
+        }
+        rows.push(("folder-open", "Plik", t.path.clone()));
+        cover_path = t.path.clone();
+    } else {
+        // Kilka plików albo cała grupa (otwarty folder, album, wykonawca) w bibliotece.
+        let group: Vec<TrackInfo> = if sel.len() > 1 { sel } else if in_lib && !app.libv.stack.is_empty() { app.libv.tracks.clone() } else { Vec::new() };
+        if group.is_empty() {
+            p.set_sel_mode(false);
+            return;
+        }
+        let n = group.len();
+        title = if sel_is_group(app, in_lib, n) { lib.get_title().to_string() } else { format!("{n} {}", crate::lists::plural(n, "zaznaczony plik", "zaznaczone pliki", "zaznaczonych plików")) };
+        sub = format!("{n} {}", crate::lists::plural(n, "pozycja", "pozycje", "pozycji"));
+        let dur: f64 = group.iter().map(|t| t.duration.max(0.0)).sum();
+        let size: u64 = group.iter().map(|t| t.size).sum();
+        if dur > 0.0 {
+            rows.push(("clock", "Łącznie", meta::fmt_time(dur)));
+        }
+        if size > 0 {
+            rows.push(("download", "Rozmiar", fmt_size(size)));
+        }
+        let mut artists: Vec<String> = group.iter().map(|t| t.display_artist()).filter(|a| !a.is_empty()).collect();
+        artists.sort();
+        artists.dedup();
+        if !artists.is_empty() {
+            let more = if artists.len() > 3 { format!(" i {} innych", artists.len() - 3) } else { String::new() };
+            rows.push(("artist", "Wykonawcy", format!("{}{more}", artists.iter().take(3).cloned().collect::<Vec<_>>().join(", "))));
+        }
+        let mut fmts: Vec<String> = group.iter().map(|t| t.format()).filter(|f| !f.is_empty()).collect();
+        fmts.sort();
+        fmts.dedup();
+        if !fmts.is_empty() {
+            rows.push(("file", "Formaty", fmts.join(", ")));
+        }
+        let mut years: Vec<u32> = group.iter().map(|t| t.year).filter(|y| *y > 0).collect();
+        years.sort();
+        if let (Some(a), Some(b)) = (years.first(), years.last()) {
+            rows.push(("calendar", "Lata", if a == b { a.to_string() } else { format!("{a}–{b}") }));
+        }
+        if let Some(d) = Path::new(&group[0].path).parent() {
+            rows.push(("folder-open", "Folder", d.to_string_lossy().into_owned()));
+        }
+        cover_path = group[0].path.clone();
+    }
+    let opts: Vec<Opt> = rows.into_iter().map(|(i, l, v)| Opt { id: ss(i), label: ss(l), sub: ss(v), selected: false }).collect();
+    p.set_sel_title(ss(title));
+    p.set_sel_sub(ss(sub));
+    p.set_sel_rows(ModelRc::new(VecModel::from(opts)));
+    match crate::covers::get(&cover_path) {
+        Some(img) => {
+            p.set_sel_cover(img);
+            p.set_sel_has_cover(true);
+        }
+        None => p.set_sel_has_cover(false),
+    }
+    p.set_sel_mode(true);
+}
+
+/// Bez zaznaczenia w otwartym folderze / grupie – opis dotyczy całej grupy.
+fn sel_is_group(app: &App, in_lib: bool, n: usize) -> bool {
+    in_lib && app.libv.sel.is_empty() && n == app.libv.tracks.len()
+}
+
+/// Zamknięcie bieżącego pliku (krzyżyk przy „Teraz odtwarzane”): zatrzymanie i powrót
+/// do trybu zaznaczenia.
+pub fn close_current(app: &mut App) {
+    crate::player::stop(app);
+    app.cur = None;
+    app.lyrics.clear();
+    app.lyrics_text.clear();
+    app.m.lyrics.set_vec(Vec::new());
+    app.sub_live = false;
+    SUB_GEN.fetch_add(1, Ordering::SeqCst);
+    GEN.fetch_add(1, Ordering::SeqCst);
+    crate::video::clear(app);
+    if let Some(ui) = app.ui() {
+        let p = ui.global::<Player>();
+        p.set_idle(true);
+        p.set_playing(false);
+        p.set_title(ss(""));
+        p.set_artist(ss(""));
+        p.set_album(ss(""));
+        p.set_credits(ss(""));
+        p.set_overview(ss(""));
+        p.set_position_text(ss(""));
+        set_badges(&p, &[]);
+        p.set_cover(Image::default());
+        p.set_backdrop(Image::default());
+        p.set_has_cover(false);
+        p.set_subs_mode(false);
+        p.set_lyrics_source(ss(""));
+        ui.global::<Theme>().set_glass_has(false);
+        ui.global::<Theme>().set_tint(ui.global::<Theme>().get_accent());
+    }
+    crate::win::smtc_state(app);
+    sel_info(app);
+}

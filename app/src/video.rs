@@ -849,11 +849,27 @@ pub fn on_reconfig(app: &mut App) {
     }
 }
 
-/// Filtry dźwięku mpv: korektor (firequalizer), tryb nocny i przedwzmocnienie.
+/// Filtry dźwięku mpv – te same co dla muzyki: korektor (firequalizer), korektor parametryczny,
+/// przestrzeń (balans, szerokość, mono, zamiana kanałów, przesłuch), ogranicznik i tryb nocny.
 pub fn apply_audio_filters(app: &App) {
     let Some(m) = &app.mpv else { return };
     let d = &app.s.dsp;
     let mut f: Vec<String> = Vec::new();
+    // Przestrzeń: najpierw układ kanałów, potem szerokość i balans.
+    if d.swap {
+        f.push("lavfi=[pan=stereo|c0=c1|c1=c0]".into());
+    }
+    if d.mono {
+        f.push("lavfi=[pan=stereo|c0=0.5*c0+0.5*c1|c1=0.5*c0+0.5*c1]".into());
+    } else if (d.width - 1.0).abs() > 0.01 {
+        f.push(format!("lavfi=[extrastereo=m={:.2}:c=0]", d.width.clamp(0.0, 2.0)));
+    }
+    if d.balance.abs() > 0.01 {
+        f.push(format!("lavfi=[stereotools=balance_out={:.2}]", d.balance.clamp(-1.0, 1.0)));
+    }
+    if d.crossfeed {
+        f.push("lavfi=[crossfeed]".into());
+    }
     if d.eq_on {
         let entries: Vec<String> = openmp_core::audio::dsp::BANDS.iter().zip(d.gains.iter()).map(|(f, g)| format!("entry({f},{g:.1})")).collect();
         f.push(format!("lavfi=[firequalizer=gain_entry='{}']", entries.join(";")));
@@ -876,6 +892,10 @@ pub fn apply_audio_filters(app: &App) {
     }
     if app.s.night_mode {
         f.push("lavfi=[dynaudnorm=f=200:g=15:p=0.7]".into());
+    }
+    // Ogranicznik na końcu – chroni przed przesterowaniem po podbiciu.
+    if d.limiter {
+        f.push("lavfi=[alimiter=limit=0.97:level=disabled]".into());
     }
     m.set("af", &f.join(","));
 }

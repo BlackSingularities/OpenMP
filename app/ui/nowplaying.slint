@@ -454,6 +454,61 @@ component HeroVideo inherits Rectangle {
 }
 
 // Okładka i opis obok siebie – górna część pełnego okna i cały widok pomniejszony.
+// Tryb zaznaczenia: nic nie gra – szczegóły zaznaczonego pliku, kilku plików albo grupy,
+// w tym samym układzie co „Teraz odtwarzane”: nagłówek, tytuł, podtytuł i wiersze z ikonami.
+component SelInfo inherits VerticalLayout {
+    in property <bool> small;
+    alignment: center;
+    spacing: root.small ? 4px : 7px;
+    if !root.small: Text {
+        text: "ZAZNACZENIE";
+        color: Theme.text3;
+        font-size: Theme.fs-xs;
+        letter-spacing: 3px;
+    }
+    Marquee {
+        text: Player.sel-title;
+        font-size: root.small ? 22px : 36px;
+        font-family: Theme.font-serif;
+        text-color: Theme.heading;
+        enabled: Prefs.scroll-title;
+    }
+    if Player.sel-sub != "": Text {
+        text: Player.sel-sub;
+        color: Theme.tint.mix(Theme.text2, 0.45);
+        font-size: root.small ? Theme.fs-md : 18px;
+        overflow: elide;
+    }
+    Rectangle {
+        height: root.small ? 2px : 6px;
+    }
+    for r in Player.sel-rows: HorizontalLayout {
+        spacing: 8px;
+        height: 20px;
+        Icon {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.get(r.id);
+            size: 14px;
+            fill: Theme.text3;
+        }
+        Text {
+            text: r.label;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            min-width: 90px;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: r.sub;
+            color: Theme.text2;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+}
+
 export component Hero inherits Rectangle {
     in property <bool> small;
     // Szerokie okno i tekst dostępny – kolumna z tekstem obok opisu.
@@ -467,7 +522,16 @@ export component Hero inherits Rectangle {
         padding-left: root.small ? 4px : 8px;
         padding-top: root.small ? 6px : 4px;
         padding-bottom: root.small ? 6px : 4px;
-        if !Video.active: CoverArt {
+        // Tryb zaznaczenia: okładka zaznaczonego pliku / grupy.
+        if Player.idle && Player.sel-mode: Cover {
+            width: self.height;
+            border-radius: root.small ? 10px : 14px;
+            source: Player.sel-cover;
+            has: Player.sel-has-cover;
+            fallback: Icons.folder;
+            background: Theme.panel2;
+        }
+        if !Video.active && !(Player.idle && Player.sel-mode): CoverArt {
             width: self.height;
             radius: root.small ? 10px : 14px;
             clicked => {
@@ -486,13 +550,27 @@ export component Hero inherits Rectangle {
             // Proste rogi: zaokrąglone przycięcie Slint rysuje z bufora i obraz stałby w miejscu.
             radius: 0;
         }
-        NowInfo {
+        if !(Player.idle && Player.sel-mode): NowInfo {
+            horizontal-stretch: 1;
+            small: root.small;
+        }
+        if Player.idle && Player.sel-mode: SelInfo {
             horizontal-stretch: 1;
             small: root.small;
         }
         if root.show-lyrics: HeroLyrics {
             width: min(root.avail * 0.27, 520px);
         }
+    }
+    // Zamknięcie bieżącego pliku – odtwarzanie staje, a w tym miejscu pojawia się zaznaczenie.
+    if !Player.idle: IconBtn {
+        x: parent.width - self.width - 2px;
+        y: 2px;
+        icon: Icons.close;
+        size: 28px;
+        icon-size: 15px;
+        tip: "Zamknij plik";
+        clicked => { Player.close-current(); }
     }
 }
 

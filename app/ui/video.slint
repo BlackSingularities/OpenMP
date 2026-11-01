@@ -264,6 +264,13 @@ component VideoPages inherits VerticalLayout {
                     empty: "Brak ścieżek dźwiękowych";
                     picked(id) => { Video.select-audio(id); }
                 }
+                // Ten sam korektor i efekty co dla muzyki – działają też na dźwięk filmu.
+                Btn {
+                    text: Player.eq-on ? "Korektor i efekty dźwięku (włączony)" : "Korektor i efekty dźwięku…";
+                    icon: Icons.equalizer;
+                    compact: true;
+                    clicked => { Ui.equalizer = true; }
+                }
                 Rectangle {
                     height: 6px;
                 }

@@ -62,6 +62,15 @@ export global Player {
     in-out property <bool> hero-lyrics;
     in-out property <string> lyrics-source;
     callback save-lyrics();
+    // Zamknięcie bieżącego pliku krzyżykiem – potem tryb zaznaczenia.
+    callback close-current();
+    // Tryb zaznaczenia (nic nie gra): szczegóły zaznaczonego pliku, kilku plików albo grupy.
+    in-out property <bool> sel-mode;
+    in-out property <string> sel-title;
+    in-out property <string> sel-sub;
+    in-out property <[Opt]> sel-rows;
+    in-out property <image> sel-cover;
+    in-out property <bool> sel-has-cover;
     // Gra film – w panelu tekstu są jego napisy, z wyborem języka.
     in-out property <bool> subs-mode;
     in-out property <[string]> sub-langs;

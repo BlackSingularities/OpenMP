@@ -910,7 +910,7 @@ pub fn row_double(app: &mut App, i: usize) {
     play_tracks(app, t, i, false);
 }
 
-fn selected(app: &App) -> Vec<TrackInfo> {
+pub fn selected(app: &App) -> Vec<TrackInfo> {
     let mut v: Vec<usize> = app.libv.sel.iter().copied().collect();
     v.sort();
     v.into_iter().filter_map(|i| app.libv.tracks.get(i).cloned()).collect()

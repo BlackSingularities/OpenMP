@@ -441,6 +441,7 @@ fn wire(ui: &AppWindow) {
     let p = ui.global::<Player>();
     p.on_play_pause(|| later(player::play_pause));
     p.on_stop(|| later(player::stop));
+    p.on_close_current(|| later(display::close_current));
     p.on_next(|| later(player::next));
     p.on_prev(|| later(player::prev));
     p.on_seek(|v| later(move |app| {
@@ -522,8 +523,15 @@ fn wire(ui: &AppWindow) {
     l.on_tab_menu(|i, x, y| later(move |app| lists::tab_menu(app, i as usize, x, y)));
     l.on_tab_add(|| later(|app| keys::action(app, "new-list")));
     l.on_tab_close(|i| later(move |app| lists::close_tab(app, i as usize)));
-    l.on_row_clicked(|i, c, s| later(move |app| lists::select_click(app, i as usize, c, s)));
-    l.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| lists::select_band(app, (r0, r1, c0, c1, n), k)));
+    // Po każdej zmianie zaznaczenia – szczegóły w trybie zaznaczenia (gdy nic nie gra).
+    l.on_row_clicked(|i, c, s| later(move |app| {
+        lists::select_click(app, i as usize, c, s);
+        display::sel_info(app);
+    }));
+    l.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| {
+        lists::select_band(app, (r0, r1, c0, c1, n), k);
+        display::sel_info(app);
+    }));
     l.on_row_double(|i| later(move |app| {
         let id = app.active_id();
         player::play(app, id, i as usize, None);
@@ -566,13 +574,22 @@ fn wire(ui: &AppWindow) {
 
     // Biblioteka i radio
     let b = ui.global::<Lib>();
-    b.on_nav_clicked(|id| later(move |app| libview::nav_clicked(app, &id)));
+    b.on_nav_clicked(|id| later(move |app| {
+        libview::nav_clicked(app, &id);
+        display::sel_info(app);
+    }));
     b.on_nav_menu(|id, x, y| later(move |app| libview::nav_menu(app, &id, x, y)));
     b.on_nav_toggle(|id| later(move |app| libview::nav_toggle(app, &id)));
-    b.on_tile_clicked(|k| later(move |app| libview::tile_clicked(app, &k)));
+    b.on_tile_clicked(|k| later(move |app| {
+        libview::tile_clicked(app, &k);
+        display::sel_info(app);
+    }));
     b.on_tile_double(|k| later(move |app| libview::tile_double(app, &k)));
     b.on_tile_menu(|k, x, y| later(move |app| libview::tile_menu(app, &k, x, y)));
-    b.on_back(|| later(libview::back));
+    b.on_back(|| later(|app| {
+        libview::back(app);
+        display::sel_info(app);
+    }));
     b.on_play_all(|| later(|app| {
         let t = app.libv.tracks.clone();
         libview::play_tracks(app, t, 0, false);
@@ -585,8 +602,14 @@ fn wire(ui: &AppWindow) {
         app.libv.sel = (0..app.libv.tracks.len()).collect();
         libview::command(app, "l-add");
     }));
-    b.on_row_clicked(|i, c, s| later(move |app| libview::row_clicked(app, i as usize, c, s)));
-    b.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| libview::row_band(app, (r0, r1, c0, c1, n), k)));
+    b.on_row_clicked(|i, c, s| later(move |app| {
+        libview::row_clicked(app, i as usize, c, s);
+        display::sel_info(app);
+    }));
+    b.on_row_band(|r0, r1, c0, c1, n, k| later(move |app| {
+        libview::row_band(app, (r0, r1, c0, c1, n), k);
+        display::sel_info(app);
+    }));
     b.on_row_double(|i| later(move |app| libview::row_double(app, i as usize)));
     b.on_row_menu(|_, x, y| later(move |app| libview::row_menu(app, x, y)));
     b.on_search_changed(|t| later(move |app| {
