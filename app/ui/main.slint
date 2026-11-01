@@ -20,8 +20,8 @@ export component AppWindow inherits Window {
     icon: @image-url("../icon.png");
     no-frame: true;
     background: Ui.mode == 1 ? #000000 : Theme.bg;
-    min-width: Ui.mode == 2 ? 260px : Ui.mode == 1 || Prefs.compact ? 480px : 720px;
-    min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 240px : Prefs.compact ? 300px : 560px;
+    min-width: Ui.mode == 2 ? 260px : Ui.mode == 1 ? 320px : Prefs.compact ? 480px : 720px;
+    min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 180px : Prefs.compact ? 300px : 560px;
     preferred-width: 1180px;
     preferred-height: 780px;
     default-font-family: Theme.font;
@@ -192,7 +192,8 @@ export component AppWindow inherits Window {
 
     // Uchwyty zmiany rozmiaru okna bez ramki.
     if !Ui.maximized && !Video.fullscreen: Rectangle {
-        property <length> e: 5px;
+        // Szersze w widoku filmu – obraz sięga krawędzi okna.
+        property <length> e: Ui.mode == 1 ? 8px : 6px;
         for h in [
             { x: 0px, y: e, w: e, hh: root.height - 2 * e, d: 3, c: MouseCursor.ew-resize },
             { x: root.width - e, y: e, w: e, hh: root.height - 2 * e, d: 4, c: MouseCursor.ew-resize },

@@ -1024,6 +1024,7 @@ component CinemaView inherits Rectangle {
 component WideView inherits Rectangle {
     background: Theme.bg;
     property <bool> narrow: root.width < 820px;
+    property <bool> tiny: root.width < 560px;
     // Tło: poświata z obrazu na całe okno.
     if Video.has-ambient && Video.active && Prefs.ambient > 0: Image {
         width: 100%;
@@ -1214,7 +1215,7 @@ component WideView inherits Rectangle {
                         tip: "Wycisz (M)";
                         clicked => { Player.toggle-mute(); }
                     }
-                    HSlider {
+                    if !root.tiny: HSlider {
                         y: (parent.height - self.height) / 2;
                         width: root.narrow ? 70px : 120px;
                         value: Player.volume;
@@ -1285,6 +1286,8 @@ component WideView inherits Rectangle {
                     horizontal-stretch: 1;
                     alignment: end;
                     spacing: 2px;
+                    if !root.narrow: HorizontalLayout {
+                    spacing: 2px;
                     for b in [
                         { i: 1, icon: Icons.subtitles, tip: "Napisy (V)" },
                         { i: 0, icon: Icons.audiotrack, tip: "Ścieżki dźwiękowe i prędkość" },
@@ -1312,6 +1315,7 @@ component WideView inherits Rectangle {
                         size: 34px;
                         tip: "Zrzut ekranu (S)";
                         clicked => { Video.screenshot(); }
+                    }
                     }
                     IconBtn {
                         tip-above: true;
