@@ -6,6 +6,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover } from "widgets.slint";
 import { Player, Prefs, Ui } from "state.slint";
+import { GlassFill } from "glass.slint";
 
 // Okno dialogowe: osobne okno programu (DialogWindow), karta wypełnia całe okno.
 export component Dialog inherits Rectangle {
@@ -16,7 +17,10 @@ export component Dialog inherits Rectangle {
     out property <length> natural-width: card-width;
     out property <length> natural-height: card-height > 0 ? card-height : lay.preferred-height;
     callback close();
-    background: Theme.panel;
+    background: Theme.glass-color;
+    GlassFill {
+        min-alpha: 0.5;
+    }
     lay := VerticalLayout {
         HorizontalLayout {
             height: 50px;
@@ -424,9 +428,59 @@ export component SettingsDialog inherits Dialog {
     HorizontalLayout {
         vertical-stretch: 1;
         VerticalLayout {
-            width: 200px;
+            width: 220px;
             padding: 10px;
             spacing: 2px;
+            // Szukanie ustawienia po nazwie i opisie – klik przenosi na stronę i podświetla wiersz.
+            Field {
+                icon: Icons.search;
+                placeholder: "Szukaj ustawienia";
+                text <=> Ui.settings-query;
+                edited(t) => { Ui.settings-search(t); }
+                escape => {
+                    Ui.settings-query = "";
+                    Ui.settings-search("");
+                }
+            }
+            Rectangle {
+                height: 6px;
+            }
+            if Ui.settings-query != "" && Ui.settings-results.length == 0: Text {
+                text: "Nic nie znaleziono";
+                color: Theme.text3;
+                font-size: Theme.fs-sm;
+                horizontal-alignment: center;
+            }
+            for r in Ui.settings-results: Rectangle {
+                min-height: 40px;
+                border-radius: Theme.radius;
+                background: rta.has-hover ? Theme.hover : transparent;
+                VerticalLayout {
+                    padding-left: 10px;
+                    padding-right: 6px;
+                    padding-top: 4px;
+                    padding-bottom: 4px;
+                    alignment: center;
+                    Text {
+                        text: r.label;
+                        color: Theme.text;
+                        font-size: Theme.fs;
+                        overflow: elide;
+                    }
+                    Text {
+                        text: r.sub;
+                        color: Theme.text3;
+                        font-size: Theme.fs-xs;
+                        overflow: elide;
+                    }
+                }
+                rta := TouchArea {
+                    clicked => {
+                        Ui.settings-page = r.id.to-float();
+                        Theme.settings-flash = r.label;
+                    }
+                }
+            }
             for p[i] in [
                 { icon: Icons.palette, l: "Wygląd" },
                 { icon: Icons.queue, l: "Układ" },
@@ -440,7 +494,9 @@ export component SettingsDialog inherits Dialog {
                 { icon: Icons.system, l: "System" },
                 { icon: Icons.info, l: "O programie" },
             ]: Rectangle {
-                height: 34px;
+                // Podczas szukania zamiast stron są wyniki.
+                height: Ui.settings-query == "" ? 34px : 0px;
+                visible: Ui.settings-query == "";
                 border-radius: Theme.radius;
                 background: Ui.settings-page == i ? Theme.sel : pta.has-hover ? Theme.hover : transparent;
                 HorizontalLayout {
@@ -604,8 +660,8 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SettingRow {
-                    title: "Przezroczystość paneli";
-                    hint: round(Prefs.panel-glass * 100) + "% – listy i panel nawigacji prześwitują rozmytym tłem z okładki";
+                    title: "Szkło: przezroczystość";
+                    hint: round(Prefs.panel-glass * 100) + "% – wszystkie okna, menu, panele i paski boczne prześwitują rozmytą okładką albo filmem";
                     HSlider {
                         width: 180px;
                         minimum: 0;
@@ -619,6 +675,18 @@ export component SettingsDialog inherits Dialog {
                         reset => {
                             Prefs.panel-glass = 0;
                             Prefs.changed("panel-glass");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: "Szkło: barwa";
+                    hint: "Kolor tła wszystkich okien, menu i paneli";
+                    Segmented {
+                        options: ["Neutralna", "Z akcentu", "Czerń"];
+                        selected: Prefs.glass-tint;
+                        changed(i) => {
+                            Prefs.glass-tint = i;
+                            Prefs.changed("glass-tint");
                         }
                     }
                 }
@@ -1047,6 +1115,18 @@ export component SettingsDialog inherits Dialog {
                     hint: "Akcent programu płynnie podąża za barwami filmu";
                     checked <=> Prefs.video-tint;
                     toggled => { Prefs.changed("video-tint"); }
+                }
+                if Prefs.video-tint: SettingRow {
+                    title: "Jak często brać kolor z obrazu";
+                    hint: "Częściej – kolor szybciej nadąża za sceną, rzadziej – spokojniej i lżej dla karty";
+                    Segmented {
+                        options: ["0,5 s", "1,2 s", "3 s", "8 s"];
+                        selected: Prefs.tint-rate;
+                        changed(i) => {
+                            Prefs.tint-rate = i;
+                            Prefs.changed("tint-rate");
+                        }
+                    }
                 }
                 SettingSwitch {
                     title: "Podgląd klatek nad paskiem przewijania";

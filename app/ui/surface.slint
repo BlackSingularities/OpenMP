@@ -5,6 +5,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Cover } from "widgets.slint";
 import { Player, Video, Prefs } from "state.slint";
+import { FadeImage } from "glass.slint";
 
 // Powierzchnia obrazu – mpv rysuje dokładnie w jej rozmiarze. W danej chwili istnieje jedna.
 export component VideoSurface inherits Rectangle {
@@ -121,11 +122,9 @@ export component Backdrop inherits Rectangle {
     animate ca, cb, cc { duration: 900ms; easing: ease-in-out; }
     property <float> o: Prefs.backdrop-opacity;
     property <float> t: Prefs.backdrop-motion ? animation-tick() / 30s : 0;
-    if Prefs.backdrop == 1 && Player.has-cover && !Video.active: Image {
-        width: 100%;
-        height: 100%;
+    // Nowa okładka przenika płynnie ze starej.
+    if Prefs.backdrop == 1 && Player.has-cover && !Video.active: FadeImage {
         source: Player.backdrop;
-        image-fit: cover;
         opacity: root.o * 1.4;
     }
     if Prefs.backdrop == 2 && !Player.idle && !Video.active: Rectangle {

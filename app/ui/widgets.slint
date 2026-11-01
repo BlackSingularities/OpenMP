@@ -402,6 +402,10 @@ export component SettingRow inherits Rectangle {
     in property <string> title;
     in property <string> hint;
     min-height: 46px;
+    // Znalezione w wyszukiwarce ustawień – tło w kolorze akcentu.
+    border-radius: Theme.radius;
+    background: root.title != "" && root.title == Theme.settings-flash ? Theme.sel-strong : transparent;
+    animate background { duration: 400ms; }
     HorizontalLayout {
         padding-top: 7px;
         padding-bottom: 7px;

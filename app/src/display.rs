@@ -14,6 +14,8 @@ use crate::app::*;
 use crate::*;
 
 static GEN: AtomicU64 = AtomicU64::new(0);
+/// Czytanie napisów z kontenera – nowa ścieżka albo film przerywa poprzednie.
+static SUB_GEN: AtomicU64 = AtomicU64::new(0);
 
 fn khz(r: u32) -> String {
     if r == 0 {
@@ -25,6 +27,37 @@ fn khz(r: u32) -> String {
     } else {
         format!("{k:.1} kHz").replace('.', ",")
     }
+}
+
+/// Ikona parametru przy tytule (nazwa z Icons.get).
+fn badge_icon(b: &str) -> &'static str {
+    let l = b.to_lowercase();
+    if l.ends_with('p') && l[..l.len() - 1].chars().all(|c| c.is_ascii_digit()) || l == "4k" || l == "8k" {
+        "aspect"
+    } else if l.contains("kl./s") {
+        "movie"
+    } else if l.contains("khz") {
+        "equalizer"
+    } else if l.contains("bit") && !l.contains("kb/s") {
+        "tune"
+    } else if l.contains("kb/s") {
+        "trending"
+    } else if l.contains("hdr") || l == "hlg" {
+        "eye"
+    } else if l == "mono" || l == "stereo" || l.contains("kan.") {
+        "audiotrack"
+    } else if l.contains("wyłączny") || l.starts_with('→') {
+        "volume"
+    } else {
+        "file"
+    }
+}
+
+/// Parametry przy tytule z ikonami – muzyka i film tak samo.
+pub fn set_badges(p: &Player, b: &[String]) {
+    p.set_badges(crate::app::strings(b));
+    let icons: Vec<String> = b.iter().map(|s| badge_icon(s).to_string()).collect();
+    p.set_badge_icons(crate::app::strings(&icons));
 }
 
 fn badges(t: &TrackInfo, info: Option<&StreamInfo>) -> Vec<String> {
@@ -102,7 +135,7 @@ pub fn show_track(app: &mut App) {
             });
         });
     }
-    p.set_badges(crate::app::strings(&badges(t, None)));
+    set_badges(&p, &badges(t, None));
     p.set_idle(false);
     p.set_fav(app.stats.get(&t.path).rating >= 5);
     p.set_position_text(ss(match c.list.and_then(|l| app.list_index(l)) {
@@ -138,7 +171,9 @@ pub fn show_track(app: &mut App) {
         let (big, back, tint, pal) = match &decoded {
             Some(img) => {
                 let big = img.thumbnail(600, 600).to_rgba8();
-                let small = img.thumbnail(48, 48).blur(2.5).to_rgba8();
+                // Tło i szkło: większa miniatura i mocne rozmycie gaussowskie – po rozciągnięciu
+                // na okno gładkie przejścia barw zamiast kwadratów.
+                let small = img.thumbnail(160, 160).blur(12.0).to_rgba8();
                 let thumb = img.thumbnail(32, 32).to_rgba8();
                 let tint = dominant(&thumb);
                 let pal = palette(&thumb, 3);
@@ -163,13 +198,18 @@ pub fn show_track(app: &mut App) {
             match (big, back) {
                 (Some(b), Some(k)) => {
                     p.set_cover(Image::from_rgba8(b));
-                    p.set_backdrop(Image::from_rgba8(k));
+                    let k = Image::from_rgba8(k);
+                    p.set_backdrop(k.clone());
                     p.set_has_cover(true);
+                    let th = ui.global::<Theme>();
+                    th.set_glass_image(k);
+                    th.set_glass_has(true);
                 }
                 _ => {
                     p.set_cover(Image::default());
                     p.set_backdrop(Image::default());
                     p.set_has_cover(false);
+                    ui.global::<Theme>().set_glass_has(false);
                 }
             }
             let accent = ui.global::<Theme>().get_accent();
@@ -300,7 +340,7 @@ pub fn update_badges_from(app: &mut App, info: &StreamInfo) {
     if let Some(ui) = app.ui() {
         let cur: Vec<String> = ui.global::<Player>().get_badges().iter().map(|s| s.to_string()).collect();
         if cur != b {
-            ui.global::<Player>().set_badges(crate::app::strings(&b));
+            set_badges(&ui.global::<Player>(), &b);
         }
     }
 }
@@ -309,6 +349,24 @@ fn load_lyrics(app: &mut App) {
     app.lyrics.clear();
     app.lyrics_text.clear();
     let Some(c) = &app.cur else { return };
+    let video = c.video;
+    if let Some(ui) = app.ui() {
+        let p = ui.global::<Player>();
+        p.set_subs_mode(video);
+        // Wyszukiwanie dotyczy tylko bieżącego utworu – nowy zaczyna bez niego.
+        p.set_lyrics_query(ss(""));
+    }
+    app.sub_live = false;
+    SUB_GEN.fetch_add(1, Ordering::SeqCst);
+    // Napisy filmu przychodzą po wczytaniu pliku przez mpv (sub_panel_setup).
+    if video {
+        app.sub_panel.clear();
+        app.sub_panel_id = 0;
+        app.sub_live = false;
+        publish_sub_langs(app);
+        set_lyrics(app, None, "");
+        return;
+    }
     let mut text = None;
     let mut source = "";
     if !meta::is_url(&c.info.path) && !c.video {
@@ -349,10 +407,10 @@ fn set_lyrics(app: &mut App, text: Option<String>, source: &str) {
         let lrc = meta::parse_lrc(text);
         if !lrc.is_empty() {
             synced = true;
-            lines = lrc.iter().map(|(_, l)| LyricLine { text: ss(l), active: false }).collect();
+            lines = lrc.iter().map(|(_, l)| LyricLine { text: ss(l), active: false, hit: false }).collect();
             app.lyrics = lrc;
         } else {
-            lines = text.lines().map(|l| LyricLine { text: ss(l.trim()), active: false }).collect();
+            lines = text.lines().map(|l| LyricLine { text: ss(l.trim()), active: false, hit: false }).collect();
         }
     }
     app.lyrics_text = text.unwrap_or_default();
@@ -363,6 +421,241 @@ fn set_lyrics(app: &mut App, text: Option<String>, source: &str) {
         p.set_lyrics_active(-1);
         p.set_lyrics_source(ss(if app.lyrics_text.is_empty() { "" } else { source }));
     }
+    apply_search(app, true);
+}
+
+/// Ścieżki napisów filmu do panelu tekstu – po wczytaniu pliku. Domyślnie ta na ekranie,
+/// potem pierwsza w preferowanym języku.
+pub fn sub_panel_setup(app: &mut App, tracks: &[openmp_core::mpv::TrackEntry]) {
+    // Napisy obrazkowe (PGS, DVD, DVB) nie mają tekstu.
+    let text = |t: &&openmp_core::mpv::TrackEntry| t.kind == "sub" && !matches!(t.codec.as_str(), "hdmv_pgs_subtitle" | "dvd_subtitle" | "dvb_subtitle" | "pgs" | "vobsub");
+    app.sub_panel = tracks.iter().filter(text).cloned().collect();
+    let keep = app.sub_panel.iter().any(|t| t.id == app.sub_panel_id);
+    if !keep {
+        let langs: Vec<String> = app.s.sub_lang.split(',').map(|l| l.trim().to_lowercase()).filter(|l| !l.is_empty()).collect();
+        app.sub_panel_id = app
+            .sub_panel
+            .iter()
+            .find(|t| t.selected)
+            .or_else(|| langs.iter().find_map(|l| app.sub_panel.iter().find(|t| t.lang.to_lowercase() == *l)))
+            .or(app.sub_panel.first())
+            .map(|t| t.id)
+            .unwrap_or(0);
+    }
+    publish_sub_langs(app);
+    load_sub_panel(app);
+}
+
+pub fn pick_sub_panel(app: &mut App, i: i32) {
+    let Some(t) = app.sub_panel.get(i.max(0) as usize) else { return };
+    app.sub_panel_id = t.id;
+    publish_sub_langs(app);
+    load_sub_panel(app);
+}
+
+fn publish_sub_langs(app: &App) {
+    let names: Vec<String> = app
+        .sub_panel
+        .iter()
+        .map(|t| {
+            let mut n = if t.lang.is_empty() { format!("Ścieżka {}", t.id) } else { t.lang.clone() };
+            if !t.title.is_empty() {
+                n = format!("{n} · {}", t.title);
+            }
+            n
+        })
+        .collect();
+    let idx = app.sub_panel.iter().position(|t| t.id == app.sub_panel_id).map(|i| i as i32).unwrap_or(-1);
+    if let Some(ui) = app.ui() {
+        let p = ui.global::<Player>();
+        p.set_sub_langs(crate::app::strings(&names));
+        p.set_sub_lang(idx);
+    }
+}
+
+/// Plik zewnętrzny – cały od razu; ścieżka z kontenera – zbierana na bieżąco jako
+/// niewidoczne napisy dodatkowe mpv.
+fn load_sub_panel(app: &mut App) {
+    app.sub_live = false;
+    SUB_GEN.fetch_add(1, Ordering::SeqCst);
+    if let Some(m) = &app.mpv {
+        m.set("secondary-sid", "no");
+    }
+    let Some(t) = app.sub_panel.iter().find(|t| t.id == app.sub_panel_id).cloned() else {
+        set_lyrics(app, None, "");
+        return;
+    };
+    if t.external && !t.external_filename.is_empty() {
+        if let Ok(b) = std::fs::read(&t.external_filename) {
+            let lines = meta::parse_subs(&decode_text(&b));
+            if !lines.is_empty() {
+                set_sub_lines(app, lines);
+                return;
+            }
+        }
+    }
+    app.sub_live = true;
+    set_sub_lines(app, Vec::new());
+    if let Some(m) = &app.mpv {
+        m.set("secondary-sub-visibility", "no");
+        m.set("secondary-sid", &t.id.to_string());
+    }
+    // Napisy z pliku Matroska – całe w tle; do tego czasu kwestie dopisują się na bieżąco.
+    let gen = SUB_GEN.fetch_add(1, Ordering::SeqCst) + 1;
+    let Some(path) = app.cur.as_ref().map(|c| c.info.path.clone()).filter(|p| !meta::is_url(p)) else { return };
+    if t.src_id < 0 {
+        return;
+    }
+    let (id, src) = (t.id, t.src_id as u64);
+    std::thread::spawn(move || {
+        let stop = || SUB_GEN.load(Ordering::SeqCst) != gen;
+        let Some(lines) = openmp_core::mkvsubs::subtitles(Path::new(&path), src, &stop) else { return };
+        if lines.is_empty() {
+            return;
+        }
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| {
+                let same = app.cur.as_ref().is_some_and(|c| c.info.path == path);
+                if SUB_GEN.load(Ordering::SeqCst) == gen && same && app.sub_panel_id == id {
+                    app.sub_live = false;
+                    set_sub_lines(app, lines);
+                }
+            })
+        });
+    });
+}
+
+fn set_sub_lines(app: &mut App, lines: Vec<(f64, String)>) {
+    app.m.lyrics.set_vec(lines.iter().map(|(_, l)| LyricLine { text: ss(l), active: false, hit: false }).collect::<Vec<_>>());
+    app.lyrics = lines;
+    app.lyrics_text.clear();
+    if let Some(ui) = app.ui() {
+        let p = ui.global::<Player>();
+        p.set_lyrics_synced(true);
+        p.set_lyrics_active(-1);
+        p.set_lyrics_source(ss("napisy"));
+    }
+    apply_search(app, true);
+}
+
+/// UTF-8 albo (częste w polskich SRT) Windows-1250.
+fn decode_text(b: &[u8]) -> String {
+    if let Ok(s) = std::str::from_utf8(b) {
+        return s.to_string();
+    }
+    b.iter()
+        .map(|&c| match c {
+            0x8C => 'Ś',
+            0x8F => 'Ź',
+            0x9C => 'ś',
+            0x9F => 'ź',
+            0xA3 => 'Ł',
+            0xA5 => 'Ą',
+            0xAF => 'Ż',
+            0xB3 => 'ł',
+            0xB9 => 'ą',
+            0xBF => 'ż',
+            0xC6 => 'Ć',
+            0xCA => 'Ę',
+            0xD1 => 'Ń',
+            0xD3 => 'Ó',
+            0xE6 => 'ć',
+            0xEA => 'ę',
+            0xF1 => 'ń',
+            0xF3 => 'ó',
+            c => char::from(c),
+        })
+        .collect()
+}
+
+/// Kolejna kwestia z napisów z kontenera – dopisana w kolejności czasu.
+fn poll_live_subs(app: &mut App) {
+    if !app.sub_live {
+        return;
+    }
+    let Some(m) = &app.mpv else { return };
+    // Ta sama ścieżka na ekranie – mpv nie da jej drugi raz jako dodatkowej.
+    let same = m.get_str("sid").is_some_and(|s| s == app.sub_panel_id.to_string());
+    let (tp, sp) = if same { ("sub-text", "sub-start") } else { ("secondary-sub-text", "secondary-sub-start") };
+    let Some(text) = m.get_str(tp) else { return };
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    let Some(start) = m.get_f64(sp) else { return };
+    if text.is_empty() || app.lyrics.iter().any(|(t, _)| (t - start).abs() < 0.05) {
+        return;
+    }
+    let i = app.lyrics.partition_point(|(t, _)| *t < start);
+    app.lyrics.insert(i, (start, text.clone()));
+    app.m.lyrics.insert(i, LyricLine { text: ss(text), active: false, hit: false });
+    if let Some(ui) = app.ui() {
+        // Wstawienie przesuwa wiersze – podświetlenie od nowa.
+        let p = ui.global::<Player>();
+        let mut old = p.get_lyrics_active();
+        if old >= i as i32 {
+            old += 1;
+        }
+        if old >= 0 && (old as usize) < app.m.lyrics.row_count() {
+            if let Some(mut r) = app.m.lyrics.row_data(old as usize) {
+                r.active = false;
+                app.m.lyrics.set_row_data(old as usize, r);
+            }
+        }
+        p.set_lyrics_active(-1);
+    }
+    apply_search(app, false);
+}
+
+/// Wyszukiwanie w tekście albo napisach bieżącego utworu (tylko w nim – bez indeksu).
+pub fn lyrics_search(app: &mut App) {
+    apply_search(app, true);
+}
+
+/// Zaznacza pasujące wiersze; `jump` – przewija do pierwszego trafienia.
+fn apply_search(app: &mut App, jump: bool) {
+    let Some(ui) = app.ui() else { return };
+    let p = ui.global::<Player>();
+    let q = p.get_lyrics_query().trim().to_lowercase();
+    let mut hits = Vec::new();
+    for i in 0..app.m.lyrics.row_count() {
+        let Some(mut r) = app.m.lyrics.row_data(i) else { continue };
+        let hit = !q.is_empty() && r.text.to_lowercase().contains(&q);
+        if hit {
+            hits.push(i);
+        }
+        if r.hit != hit {
+            r.hit = hit;
+            app.m.lyrics.set_row_data(i, r);
+        }
+    }
+    p.set_lyrics_hits(hits.len() as i32);
+    if jump || p.get_lyrics_hit() as usize >= hits.len() {
+        p.set_lyrics_hit(0);
+        p.set_lyrics_focus(hits.first().map(|&i| i as i32).unwrap_or(-1));
+    }
+    app.lyrics_hits = hits;
+}
+
+/// Następne / poprzednie trafienie (Enter, strzałki przy polu).
+pub fn lyrics_next(app: &mut App, d: i32) {
+    let n = app.lyrics_hits.len() as i32;
+    let Some(ui) = app.ui() else { return };
+    if n == 0 {
+        return;
+    }
+    let p = ui.global::<Player>();
+    let h = (p.get_lyrics_hit() + d).rem_euclid(n);
+    p.set_lyrics_hit(h);
+    p.set_lyrics_focus(app.lyrics_hits[h as usize] as i32);
+}
+
+/// Klik w wiersz: utwór albo film przewija się do tej linii (tekst z czasami / napisy).
+pub fn lyrics_seek(app: &mut App, i: i32) {
+    let Some(&(t, _)) = app.lyrics.get(i.max(0) as usize) else { return };
+    let video = app.cur.as_ref().is_some_and(|c| c.video);
+    let delay = match app.ui() {
+        Some(ui) if video => ui.global::<Video>().get_sub_delay() as f64,
+        _ => 0.0,
+    };
+    crate::player::seek_abs(app, (t + delay).max(0.0));
 }
 
 /// Zapis pobranego tekstu jako .lrc obok utworu – kolejne odtworzenia nie potrzebują sieci.
@@ -430,6 +723,7 @@ fn details(app: &mut App) {
 /// Klatka analizatora i tekstu piosenki.
 pub fn frame(app: &mut App) {
     let Some(ui) = app.ui() else { return };
+    poll_live_subs(app);
     let now = Instant::now();
     let dt = now.duration_since(app.last_frame).as_secs_f32().min(0.1);
     app.last_frame = now;
@@ -494,7 +788,9 @@ pub fn frame(app: &mut App) {
     p.set_viz_active(true);
     // Tekst synchronizowany
     if !app.lyrics.is_empty() {
-        let pos = p.get_pos() as f64 + 0.15;
+        // Napisy filmu przesunięte razem z obrazem.
+        let delay = if app.cur.as_ref().is_some_and(|c| c.video) { ui.global::<Video>().get_sub_delay() as f64 } else { 0.0 };
+        let pos = p.get_pos() as f64 + 0.15 - delay;
         let idx = app.lyrics.iter().rposition(|(t, _)| *t <= pos).map(|i| i as i32).unwrap_or(-1);
         if idx != p.get_lyrics_active() {
             let old = p.get_lyrics_active();

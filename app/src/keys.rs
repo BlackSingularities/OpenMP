@@ -262,7 +262,9 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         return;
     }
     if text == "video-menu" {
-        crate::menu::video_menu(app);
+        // Z klawiatury – pośrodku u góry okna.
+        let x = app.ui().map(|u| u.window().size().width as f32 / u.window().scale_factor() / 2.0 - 140.0).unwrap_or(40.0);
+        crate::menu::video_menu(app, x, 80.0, false);
         return;
     }
     let Some(c) = text.chars().next() else { return };

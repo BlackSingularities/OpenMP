@@ -162,6 +162,13 @@ pub struct App {
     pub ab: (Option<f64>, Option<f64>),
     pub lyrics: Vec<(f64, String)>,
     pub lyrics_text: String,
+    /// Napisy filmu w panelu tekstu: ścieżki tekstowe i wybrana (id mpv, 0 – brak).
+    pub sub_panel: Vec<openmp_core::mpv::TrackEntry>,
+    pub sub_panel_id: i64,
+    /// Napisy z kontenera – zbierane na bieżąco z mpv (nie da się ich wczytać z góry).
+    pub sub_live: bool,
+    /// Wiersze tekstu / napisów pasujące do wyszukiwania w panelu.
+    pub lyrics_hits: Vec<usize>,
     pub wave_raw: Vec<f32>,
     /// Ostatnie widma do widma 3D.
     pub viz_hist: std::collections::VecDeque<Vec<f32>>,

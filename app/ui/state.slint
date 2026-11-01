@@ -11,6 +11,8 @@ export global Player {
     in-out property <string> artist;
     in-out property <string> album;
     in-out property <[string]> badges;
+    // Nazwy ikon parametrów (Icons.get) – w tej samej kolejności co badges.
+    in-out property <[string]> badge-icons;
     in-out property <string> position-text;
     in-out property <string> state-text;
     in-out property <image> cover;
@@ -60,6 +62,19 @@ export global Player {
     in-out property <bool> hero-lyrics;
     in-out property <string> lyrics-source;
     callback save-lyrics();
+    // Gra film – w panelu tekstu są jego napisy, z wyborem języka.
+    in-out property <bool> subs-mode;
+    in-out property <[string]> sub-langs;
+    in-out property <int> sub-lang;
+    callback pick-sub-lang(int);
+    // Wyszukiwanie w tekście / napisach bieżącego utworu i przewijanie do linii.
+    in-out property <string> lyrics-query;
+    in-out property <int> lyrics-hits;
+    in-out property <int> lyrics-hit;
+    in-out property <int> lyrics-focus: -1;
+    callback lyrics-search(string);
+    callback lyrics-next(int);
+    callback lyrics-seek(int);
     in-out property <[Opt]> details;
     in-out property <[TrackRow]> queue;
 
@@ -230,7 +245,8 @@ export global Video {
     callback rotate-view();
     callback reset-view();
     callback set-layout(int);
-    callback menu();
+    // Menu filmu w punkcie okna (x, y); above – nad punktem (przyciski na dolnym pasku).
+    callback menu(length, length, bool);
     callback mini();
     callback panel-page-changed(int);
     callback mouse-moved();
@@ -285,6 +301,7 @@ export global Prefs {
     in-out property <bool> show-sidebar: true;
     in-out property <float> sidebar-width: 236;
     in-out property <float> panel-glass;
+    in-out property <int> glass-tint;
     in-out property <float> nav-text: 1;
     // Sekcje panelu nawigacji.
     in-out property <bool> nav-playlist: true;
@@ -335,6 +352,7 @@ export global Prefs {
     in-out property <int> tone-mapping;
     in-out property <int> ambient: 1;
     in-out property <bool> video-tint: true;
+    in-out property <int> tint-rate: 1;
     in-out property <bool> seek-preview: true;
     in-out property <int> wheel-action;
     in-out property <bool> dblclick-seek: true;
@@ -422,6 +440,12 @@ export global Ui {
     in-out property <bool> maximized;
     in-out property <bool> settings;
     in-out property <int> settings-page;
+    // Okno ustawień: rozmiar zmieniony przez użytkownika (0 – domyślny) i wyszukiwanie.
+    in-out property <length> settings-w;
+    in-out property <length> settings-h;
+    in-out property <string> settings-query;
+    in-out property <[Opt]> settings-results;
+    callback settings-search(string);
     in-out property <bool> equalizer;
     in-out property <bool> about;
     in-out property <bool> url-dialog;

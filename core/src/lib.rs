@@ -7,6 +7,7 @@ pub mod library;
 pub mod listenbrainz;
 pub mod lrclib;
 pub mod meta;
+pub mod mkvsubs;
 pub mod mpv;
 pub mod opensubs;
 pub mod paths;

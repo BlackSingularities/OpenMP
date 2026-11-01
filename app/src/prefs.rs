@@ -100,6 +100,7 @@ pub fn publish(app: &mut App) {
     p.set_corners(s.corners);
     p.set_text_scale(s.text_scale);
     p.set_panel_glass(s.panel_glass);
+    p.set_glass_tint(s.glass_tint);
     p.set_nav_text(s.nav_text);
     p.set_title_font(s.title_font);
     p.set_compact_ui(s.compact_ui);
@@ -119,6 +120,7 @@ pub fn publish(app: &mut App) {
     p.set_tone_mapping(s.tone_mapping);
     p.set_ambient(s.ambient);
     p.set_video_tint(s.video_tint);
+    p.set_tint_rate(s.tint_rate);
     p.set_seek_preview(s.seek_preview);
     p.set_wheel_action(s.wheel_action);
     p.set_dblclick_seek(s.dblclick_seek);
@@ -185,6 +187,7 @@ pub fn publish_theme(app: &App) {
     t.set_corners(app.s.corners.clamp(0, 2));
     t.set_text_scale(app.s.text_scale.clamp(0.8, 1.4));
     t.set_glass(app.s.panel_glass.clamp(0.0, 0.8));
+    t.set_glass_tint(app.s.glass_tint.clamp(0, 2));
     t.set_nav_scale(app.s.nav_text.clamp(0.8, 1.5));
     t.set_title_font(app.s.title_font.clamp(0, 2));
     t.set_glow_k(app.s.glow.clamp(0.0, 2.0));
@@ -362,8 +365,9 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.hwdec = app.s.hwdec_mode != 0;
             apply_mpv(app, key);
         }
-        "panel-glass" | "nav-text" => {
+        "panel-glass" | "nav-text" | "glass-tint" => {
             app.s.panel_glass = p.get_panel_glass();
+            app.s.glass_tint = p.get_glass_tint();
             app.s.nav_text = p.get_nav_text();
             publish_theme(app);
         }
@@ -399,6 +403,7 @@ pub fn changed(app: &mut App, key: &str) {
                 crate::display::show_track(app);
             }
         }
+        "tint-rate" => app.s.tint_rate = p.get_tint_rate(),
         "seek-preview" => app.s.seek_preview = p.get_seek_preview(),
         "wheel-action" => app.s.wheel_action = p.get_wheel_action(),
         "dblclick-seek" => app.s.dblclick_seek = p.get_dblclick_seek(),

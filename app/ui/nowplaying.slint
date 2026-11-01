@@ -104,32 +104,80 @@ export component CoverArt inherits Rectangle {
     }
 }
 
-component Chip inherits Rectangle {
+// Parametr przy tytule: ikona i tekst, bez obramowania. Pierwszy (najważniejszy) – w akcencie.
+component Param inherits HorizontalLayout {
     in property <string> text;
+    in property <string> icon;
     in property <bool> lit;
-    height: 26px;
-    width: ct.preferred-width + 24px;
-    border-radius: 13px;
-    background: root.lit ? Theme.tint.with-alpha(0.16) : #ffffff08;
-    border-width: 1px;
-    border-color: root.lit ? Theme.tint.with-alpha(0.55) : Theme.line2;
-    ct := Text {
+    spacing: 5px;
+    Icon {
+        y: (parent.height - self.height) / 2;
+        icon: Icons.get(root.icon);
+        size: 14px;
+        fill: root.lit ? Theme.tint-hi : Theme.text3;
+    }
+    Text {
         text: root.text;
-        color: root.lit ? Theme.tint.brighter(0.5) : Theme.text2;
+        color: root.lit ? Theme.tint-hi : Theme.text2;
         font-size: Theme.fs-sm;
+        font-weight: root.lit ? 600 : 400;
+        vertical-alignment: center;
     }
 }
 
-// Opis bieżącego utworu obok okładki.
+// Włączony tryb silnika (losowo, korektor…) – widoczny tylko, gdy działa.
+component Flag inherits HorizontalLayout {
+    in property <string> text;
+    in property <string> icon;
+    spacing: 4px;
+    Icon {
+        y: (parent.height - self.height) / 2;
+        icon: root.icon;
+        size: 13px;
+        fill: Theme.tint-hi;
+    }
+    Text {
+        text: root.text;
+        color: Theme.tint-hi;
+        font-size: Theme.fs-xs;
+        vertical-alignment: center;
+    }
+}
+
+// Opis bieżącego utworu albo filmu obok okładki – jeden układ dla muzyki i wideo:
+// stan, tytuł, wykonawca/opis, parametry z ikonami, przyciski i włączone tryby.
 export component NowInfo inherits VerticalLayout {
     in property <bool> small;
+    property <bool> movie: Video.active || Video.bg-audio || Player.subs-mode;
     alignment: center;
-    spacing: root.small ? 4px : 8px;
-    if !root.small: Text {
-        text: Player.idle ? "OPENMP" : Player.playing ? "TERAZ ODTWARZANE" : "WSTRZYMANE";
-        color: Theme.text3;
-        font-size: Theme.fs-xs;
-        letter-spacing: 3px;
+    spacing: root.small ? 4px : 7px;
+    // Stan: pulsująca kropka, „teraz odtwarzane” / „wstrzymane”, rodzaj i miejsce na liście.
+    if !root.small: HorizontalLayout {
+        spacing: 8px;
+        alignment: start;
+        height: 14px;
+        if !Player.idle: Rectangle {
+            y: (parent.height - self.height) / 2;
+            width: 7px;
+            height: 7px;
+            border-radius: 3.5px;
+            background: Player.playing ? Theme.tint-hi : Theme.text3;
+            opacity: Player.playing ? 0.55 + 0.45 * abs(sin(animation-tick() / 1.6s * 180deg)) : 1;
+        }
+        Text {
+            text: Player.idle ? "OPENMP" : (Player.playing ? "TERAZ ODTWARZANE" : "WSTRZYMANE") + (root.movie ? "  ·  FILM" : "");
+            color: Theme.text3;
+            font-size: Theme.fs-xs;
+            letter-spacing: 3px;
+            vertical-alignment: center;
+        }
+        if Player.position-text != "": Text {
+            text: "·  " + Player.position-text;
+            color: Theme.text3;
+            font-size: Theme.fs-xs;
+            letter-spacing: 1px;
+            vertical-alignment: center;
+        }
     }
     Marquee {
         text: Player.idle ? "Nic nie gra" : Player.title;
@@ -142,24 +190,47 @@ export component NowInfo inherits VerticalLayout {
             clicked => { Player.show-current(); }
         }
     }
-    Marquee {
+    if Player.idle || Player.artist != "": Marquee {
         text: Player.idle ? "Upuść pliki albo foldery, by zacząć słuchać" : Player.artist;
-        font-size: root.small ? 15px : 25px;
+        font-size: root.small ? 15px : 24px;
         font-family: Theme.font-serif;
         text-color: Theme.tint.mix(Theme.text2, 0.45);
         enabled: Prefs.scroll-title;
     }
-    if Player.album != "": Text {
-        text: Player.album;
-        color: Theme.text3;
-        font-size: root.small ? Theme.fs-sm : Theme.fs-md;
-        overflow: elide;
+    // Album i rok (muzyka) albo rok, gatunki i ocena / folder (film) – z ikoną.
+    if Player.album != "": HorizontalLayout {
+        spacing: 6px;
+        Icon {
+            y: (parent.height - self.height) / 2;
+            icon: root.movie ? Icons.calendar : Icons.album;
+            size: 14px;
+            fill: Theme.text3;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: Player.album;
+            color: Theme.text2;
+            font-size: root.small ? Theme.fs-sm : Theme.fs-md;
+            vertical-alignment: center;
+            overflow: elide;
+        }
     }
-    if !root.small && Player.credits != "": Text {
-        text: Player.credits;
-        color: Theme.text3;
-        font-size: Theme.fs-sm;
-        overflow: elide;
+    if !root.small && Player.credits != "": HorizontalLayout {
+        spacing: 6px;
+        Icon {
+            y: (parent.height - self.height) / 2;
+            icon: Icons.artist;
+            size: 14px;
+            fill: Theme.text3;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: Player.credits;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            overflow: elide;
+        }
     }
     // Opis w prostokącie o stałych wymiarach: zawijany tekst nie bierze udziału w układzie
     // (inaczej jego wysokość zależy od szerokości – pętla wiązań z szerokością okładki).
@@ -181,13 +252,16 @@ export component NowInfo inherits VerticalLayout {
         }
     }
     if !Player.idle: Rectangle {
-        height: root.small ? 2px : 8px;
+        height: root.small ? 2px : 6px;
     }
-    if !Player.idle: HorizontalLayout {
-        spacing: 7px;
+    // Parametry techniczne – ikona i wartość, oddzielone odstępem, bez ramek.
+    if !Player.idle && Player.badges.length > 0: HorizontalLayout {
+        spacing: 16px;
         alignment: start;
-        for b[i] in Player.badges: Chip {
+        height: 18px;
+        for b[i] in Player.badges: Param {
             text: b;
+            icon: Player.badge-icons[i];
             lit: i == 0;
         }
     }
@@ -204,11 +278,11 @@ export component NowInfo inherits VerticalLayout {
             clicked => { Player.toggle-fav(); }
         }
         if !Player.hero-lyrics: IconBtn {
-            icon: Icons.lyrics;
+            icon: root.movie ? Icons.subtitles : Icons.lyrics;
             size: 30px;
             icon-size: 17px;
             active: Prefs.side-panel == 1;
-            tip: "Tekst (L)";
+            tip: root.movie ? "Napisy w panelu (L)" : "Tekst (L)";
             clicked => {
                 Prefs.side-panel = Prefs.side-panel == 1 ? 0 : 1;
                 Prefs.changed("side-panel");
@@ -252,51 +326,35 @@ export component NowInfo inherits VerticalLayout {
             }
         }
         Rectangle {
-            width: 8px;
+            width: 12px;
         }
-        // Stan silnika: losowo, powtarzanie, korektor, przenikanie, ReplayGain, szybkość, wyłącznik.
-        for f in [
-            { on: Player.shuffle, t: "LOS" },
-            { on: Player.eq-on, t: "EQ" },
-            { on: Player.crossfade-on, t: "XF" },
-            { on: Player.rg-on, t: "RG" },
-        ]: Text {
-            text: f.t;
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: f.on ? Theme.tint.brighter(0.3) : Theme.text3.with-alpha(0.55);
-            vertical-alignment: center;
-            width: self.preferred-width + 6px;
-        }
-        if Player.speed-text != "": Text {
-            text: Player.speed-text;
-            font-size: 10px;
-            font-weight: 700;
-            color: Theme.tint.brighter(0.3);
-            vertical-alignment: center;
-        }
-        if Player.sleep-text != "": HorizontalLayout {
-            spacing: 3px;
-            padding-left: 6px;
-            Icon {
-                y: (parent.height - self.height) / 2;
+        // Tylko włączone tryby – z ikoną i nazwą, bez szarych skrótów.
+        HorizontalLayout {
+            spacing: 12px;
+            if Player.shuffle: Flag {
+                icon: Icons.shuffle;
+                text: "Losowo";
+            }
+            if Player.eq-on: Flag {
+                icon: Icons.equalizer;
+                text: "Korektor";
+            }
+            if Player.crossfade-on: Flag {
+                icon: Icons.compact;
+                text: "Przenikanie";
+            }
+            if Player.rg-on: Flag {
+                icon: Icons.volume-low;
+                text: "ReplayGain";
+            }
+            if Player.speed-text != "": Flag {
+                icon: Icons.speed;
+                text: Player.speed-text;
+            }
+            if Player.sleep-text != "": Flag {
                 icon: Icons.timer;
-                size: 13px;
-                fill: Theme.tint.brighter(0.3);
-            }
-            Text {
                 text: Player.sleep-text;
-                font-size: 10px;
-                color: Theme.tint.brighter(0.3);
-                vertical-alignment: center;
             }
-        }
-        if Player.position-text != "": Text {
-            text: "   " + Player.position-text;
-            color: Theme.text3;
-            font-size: Theme.fs-xs;
-            vertical-alignment: center;
         }
     }
 }

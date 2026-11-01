@@ -308,15 +308,23 @@ fn image_of(t: &Target) -> slint::Image {
 
 /// Rozmiary kolejnych zmniejszeń obrazu – co najwyżej 4× na krok, żeby poświata nie migotała.
 fn chain_sizes(w: u32, h: u32) -> Vec<(u32, u32)> {
+    // Piramida: w dół co 2× do ~24 px (każdy krok uśrednia 2×2), potem w górę co 2× do ~200 px –
+    // dwuliniowe powiększanie krok po kroku daje miękkie rozmycie bez schodków i migotania.
     let mut v = Vec::new();
     let (mut cw, mut ch) = (w, h);
-    while cw / 4 > 48 {
-        cw /= 4;
-        ch = (ch / 4).max(1);
+    while cw / 2 >= 24 {
+        cw /= 2;
+        ch = (ch / 2).max(1);
         v.push((cw, ch));
     }
-    let fh = ((40.0 * h as f32 / w.max(1) as f32).round() as u32).clamp(4, 40);
-    v.push((40, fh));
+    let mut up = v.len();
+    while up >= 2 && v[up - 2].0 <= 200 {
+        up -= 1;
+        v.push(v[up - 1]);
+    }
+    if v.is_empty() {
+        v.push((w.max(1), h.max(1)));
+    }
     v
 }
 
@@ -326,6 +334,7 @@ fn draw(ui: &AppWindow) {
     let active = v.get_active();
     let want_ambient = pr.get_ambient() > 0;
     let want_tint = pr.get_video_tint();
+    let tint_every = Duration::from_millis([500, 1200, 3000, 8000][pr.get_tint_rate().clamp(0, 3) as usize]);
     let sf = ui.window().scale_factor();
     let win = ui.window().size();
     let (sw, sh) = (v.get_surface_w() * sf, v.get_surface_h() * sf);
@@ -404,8 +413,9 @@ fn draw(ui: &AppWindow) {
                     }
                 }
                 // Barwa przewodnia z obrazu – rzadko, odczyt zatrzymuje na chwilę kartę graficzną.
-                if want_tint && g.last_sample.elapsed() > Duration::from_millis(1200) {
-                    if let Some(last) = g.chain.last() {
+                if want_tint && g.last_sample.elapsed() > tint_every {
+                    // Najmniejszy stopień piramidy – mało pikseli do odczytu.
+                    if let Some(last) = g.chain.iter().min_by_key(|t| t.size.0) {
                         let (lw, lh) = last.size;
                         let mut buf = vec![0u8; (lw * lh * 4) as usize];
                         gl.bind_framebuffer(glow::READ_FRAMEBUFFER, Some(last.fbo));
@@ -633,6 +643,9 @@ pub fn on_loaded(app: &mut App) {
     let bg = v.get_bg_audio();
     v.set_audio_only(is_video && !has_video && !bg);
     publish_tracks(app, &tracks);
+    if is_video {
+        crate::display::sub_panel_setup(app, &tracks);
+    }
     let dur = m.get_f64("duration").unwrap_or(0.0);
     app.chapters = m.chapters();
     let chapters = app.chapters.clone();
@@ -746,7 +759,7 @@ fn info_line(app: &mut App) {
     if let Some(ui) = app.ui() {
         ui.global::<Video>().set_info(ss(parts.join("  ·  ")));
         if is_video && !badges.is_empty() {
-            ui.global::<Player>().set_badges(crate::app::strings(&badges));
+            crate::display::set_badges(&ui.global::<Player>(), &badges);
         }
     }
 }
@@ -1169,7 +1182,10 @@ pub fn fetch_sub(app: &mut App) {
                 Ok(p) => {
                     if let Some(m) = app.mpv.clone() {
                         let _ = m.command(&["sub-add", &p.to_string_lossy(), "select"]);
-                        publish_tracks(app, &m.tracks());
+                        let tracks = m.tracks();
+                        publish_tracks(app, &tracks);
+                        app.sub_panel_id = 0;
+                        crate::display::sub_panel_setup(app, &tracks);
                     }
                     app.osd("Napisy pobrane");
                 }
@@ -1193,7 +1209,10 @@ pub fn load_sub(app: &mut App) {
         |app, p| {
             if let Some(m) = app.mpv.clone() {
                 let _ = m.command(&["sub-add", &p.to_string_lossy(), "select"]);
-                publish_tracks(app, &m.tracks());
+                let tracks = m.tracks();
+                publish_tracks(app, &tracks);
+                app.sub_panel_id = 0;
+                crate::display::sub_panel_setup(app, &tracks);
             }
         },
     );
@@ -1262,6 +1281,16 @@ fn tint_tick(app: &mut App) {
     let sample = SAMPLE.with(|s| s.borrow_mut().take()).filter(|_| picture_on(app));
     if let Some((buf, w, h)) = sample {
         if let Some(img) = image::RgbaImage::from_raw(w, h, buf) {
+            // Szkło okien i menu w barwach filmu: próbka powiększona i rozmyta.
+            // Odczyt z karty jest odwrócony w pionie.
+            let gw = 128u32;
+            let gh = ((gw as f32 * h as f32 / w.max(1) as f32).round() as u32).clamp(8, 256);
+            let glass = image::imageops::blur(&image::imageops::flip_vertical(&image::imageops::resize(&img, gw, gh, image::imageops::FilterType::Triangle)), 6.0);
+            if let Some(ui) = app.ui() {
+                let th = ui.global::<Theme>();
+                th.set_glass_image(slint::Image::from_rgba8(slint::SharedPixelBuffer::clone_from_slice(glass.as_raw(), glass.width(), glass.height())));
+                th.set_glass_has(true);
+            }
             let pal = crate::display::palette(&img, 3);
             if let Some(&(r, g, b)) = pal.first() {
                 app.tint_target = Some(slint::Color::from_rgb_u8(r, g, b));

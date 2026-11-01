@@ -13,6 +13,7 @@ import { WinButtons } from "views.slint";
 import { VideoStage } from "surface.slint";
 import { Player, Video, Ui, Prefs, Lists } from "state.slint";
 import { Opt } from "types.slint";
+import { GlassFill } from "glass.slint";
 
 component Pill inherits Rectangle {
     background: #0c0e12d9;
@@ -760,7 +761,7 @@ component StageInput inherits TouchArea {
             root.gesture = 0;
         }
         if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
-            Video.menu();
+            Video.menu(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y, false);
         }
         if e.kind == PointerEventKind.up && e.button == PointerEventButton.middle {
             Video.toggle-fullscreen();
@@ -1127,7 +1128,7 @@ component CinemaView inherits Rectangle {
                         icon-color: root.c2;
                         hover-color: #ffffff;
                         tip: "Więcej";
-                        clicked => { Video.menu(); }
+                        clicked => { Video.menu(self.absolute-position.x, self.absolute-position.y, true); }
                     }
                     IconBtn {
                         tip-above: true;
@@ -1226,23 +1227,45 @@ component CinemaView inherits Rectangle {
         }
     }
     // Panel boczny: dźwięk, napisy, obraz, rozdziały, szczegóły.
-    // Panel przy prawej krawędzi, od górnego paska do dolnego – bez zaokrągleń, jak dolny pasek.
+    // Pełny pasek boczny przy prawej krawędzi – od góry do dołu okna, z własnym zamknięciem.
     if Video.panel: Rectangle {
-        // Pod górnym paskiem (przyciski okna zostają odkryte) i nad dolnym.
         x: root.width - self.width;
-        y: 56px;
+        y: 0;
         width: min(360px, root.width);
-        height: max(140px, bar.y + 24px - 56px);
-        background: @linear-gradient(90deg, #0b0c10c8 0%, #0b0c10f2 30%, #0b0c10f8 100%);
-        TouchArea { }
-        // Cienka linia oddzielająca panel od obrazu (u góry, nie z boku).
-        Rectangle {
-            y: 0;
-            height: 1px;
-            background: Theme.tint.with-alpha(0.35);
+        height: root.height;
+        // Nad obrazem filmu szkło nigdy nie jest całkiem przezroczyste – tekst musi być czytelny.
+        GlassFill {
+            base: Theme.dark ? #0b0c10 : Theme.glass-color;
+            min-alpha: 0.72;
         }
+        TouchArea { }
         VerticalLayout {
             padding: 16px;
+            padding-top: 10px;
+            spacing: 6px;
+            HorizontalLayout {
+                height: 36px;
+                Rectangle {
+                    horizontal-stretch: 1;
+                    // Przeciąganie okna za nagłówek panelu.
+                    TouchArea {
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                                Ui.drag();
+                            }
+                        }
+                    }
+                }
+                IconBtn {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.close;
+                    tip: "Zamknij panel";
+                    size: 30px;
+                    icon-size: 15px;
+                    on-dark: true;
+                    clicked => { Video.panel = false; }
+                }
+            }
             VideoPages {
                 vertical-stretch: 1;
                 themed: false;
@@ -1378,9 +1401,12 @@ component WideView inherits Rectangle {
             if Video.side && !root.narrow: Rectangle {
                 width: 340px;
                 border-radius: Theme.radius-lg;
-                background: Theme.panel.with-alpha(0.82);
                 border-width: 1px;
                 border-color: Theme.line;
+                GlassFill {
+                    border-radius: Theme.radius-lg;
+                    min-alpha: 0.6;
+                }
                 VerticalLayout {
                     padding: 12px;
                     VideoPages {
@@ -1555,7 +1581,7 @@ component WideView inherits Rectangle {
                         icon: Icons.more;
                         size: 34px;
                         tip: "Więcej";
-                        clicked => { Video.menu(); }
+                        clicked => { Video.menu(self.absolute-position.x, self.absolute-position.y, true); }
                     }
                     IconBtn {
                         tip-above: true;
@@ -1594,7 +1620,7 @@ export component MiniView inherits Rectangle {
                 Ui.drag();
             }
             if e.kind == PointerEventKind.up && e.button == PointerEventButton.right && Video.active {
-                Video.menu();
+                Video.menu(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y, false);
             }
         }
         double-clicked => {

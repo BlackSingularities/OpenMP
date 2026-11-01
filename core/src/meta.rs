@@ -320,3 +320,72 @@ pub fn parse_lrc(text: &str) -> Vec<(f64, String)> {
     out.sort_by(|a, b| a.0.total_cmp(&b.0));
     out
 }
+
+/// Tekst kwestii bez znaczników ASS/HTML – też dla napisów z kontenera (mkvsubs).
+pub fn clean_sub(s: &str) -> String {
+    let s = s.replace("\\N", " ").replace("\\n", " ");
+    let mut out = String::new();
+    let mut skip = None;
+    for ch in s.chars() {
+        match (skip, ch) {
+            (None, '{') => skip = Some('}'),
+            (None, '<') => skip = Some('>'),
+            (Some(e), c) if c == e => skip = None,
+            (Some(_), _) => {}
+            (None, c) => out.push(c),
+        }
+    }
+    out.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+/// Napisy filmu z pliku SRT, VTT albo ASS/SSA: (czas w s, linia). Puste – nieznany format.
+pub fn parse_subs(text: &str) -> Vec<(f64, String)> {
+    fn stamp(s: &str) -> Option<f64> {
+        let s = s.trim().replace(',', ".");
+        let p: Vec<&str> = s.split(':').collect();
+        let n = |x: &str| x.trim().parse::<f64>().ok();
+        match p.len() {
+            3 => Some(n(p[0])? * 3600.0 + n(p[1])? * 60.0 + n(p[2])?),
+            2 => Some(n(p[0])? * 60.0 + n(p[1])?),
+            _ => None,
+        }
+    }
+    let clean = clean_sub;
+    let text = text.trim_start_matches('\u{feff}');
+    let mut out = Vec::new();
+    if text.contains("[Events]") {
+        // Pola: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+        for line in text.lines() {
+            let Some(rest) = line.strip_prefix("Dialogue:") else { continue };
+            let f: Vec<&str> = rest.splitn(10, ',').collect();
+            if f.len() == 10 {
+                if let Some(t) = stamp(f[1]) {
+                    let l = clean(f[9]);
+                    if !l.is_empty() {
+                        out.push((t, l));
+                    }
+                }
+            }
+        }
+    } else {
+        let mut lines = text.lines().peekable();
+        while let Some(line) = lines.next() {
+            let Some((a, _)) = line.split_once("-->") else { continue };
+            let Some(t) = stamp(a) else { continue };
+            let mut parts = Vec::new();
+            while let Some(l) = lines.peek() {
+                if l.trim().is_empty() {
+                    break;
+                }
+                parts.push(clean(l));
+                lines.next();
+            }
+            let l = parts.join(" ").trim().to_string();
+            if !l.is_empty() {
+                out.push((t, l));
+            }
+        }
+    }
+    out.sort_by(|a, b| a.0.total_cmp(&b.0));
+    out
+}

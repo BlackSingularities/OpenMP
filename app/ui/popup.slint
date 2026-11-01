@@ -5,6 +5,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon } from "widgets.slint";
 import { MenuEntry } from "types.slint";
+import { GlassFill } from "glass.slint";
 
 export component MenuWindow inherits Window {
     in property <[MenuEntry]> items;
@@ -16,9 +17,13 @@ export component MenuWindow inherits Window {
     title: "OpenMP";
     width: 280px;
     height: lay.preferred-height;
-    background: Theme.raised;
+    background: Theme.glass-color;
     default-font-family: Theme.font;
     default-font-size: Theme.fs;
+    GlassFill {
+        base: Theme.raised;
+        min-alpha: 0.55;
+    }
     FocusScope {
         key-pressed(e) => {
             if e.text == Key.Escape {

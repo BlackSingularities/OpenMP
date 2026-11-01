@@ -366,6 +366,10 @@ pub struct TrackEntry {
     pub codec: String,
     pub selected: bool,
     pub external: bool,
+    /// Plik napisów zewnętrznych (pusty dla ścieżek z kontenera).
+    pub external_filename: String,
+    /// Numer ścieżki w pliku (w Matroce – TrackNumber).
+    pub src_id: i64,
 }
 
 impl Mpv {
@@ -383,6 +387,8 @@ impl Mpv {
                         codec: t["codec"].as_str().unwrap_or("").into(),
                         selected: t["selected"].as_bool().unwrap_or(false),
                         external: t["external"].as_bool().unwrap_or(false),
+                        external_filename: t["external-filename"].as_str().unwrap_or("").into(),
+                        src_id: t["src-id"].as_i64().unwrap_or(-1),
                     })
                     .collect()
             })

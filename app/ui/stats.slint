@@ -4,6 +4,7 @@ import { ScrollView } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Lib } from "state.slint";
 import { StatTop } from "types.slint";
+import { GlassFill } from "glass.slint";
 
 component Card inherits Rectangle {
     in property <string> label;
@@ -105,7 +106,9 @@ component TopList inherits VerticalLayout {
 }
 
 export component StatsView inherits Rectangle {
-    background: Theme.pane;
+    GlassFill {
+        border-radius: Theme.radius-lg;
+    }
     ScrollView {
         VerticalLayout {
             padding: 24px;

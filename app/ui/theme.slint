@@ -14,6 +14,13 @@ export global Theme {
     in-out property <float> text-scale: 1;
     // Przezroczystość paneli i wielkość tekstu panelu nawigacji.
     in-out property <float> glass: 0;
+    // Szkło: rozmyty obraz pod przezroczystymi powierzchniami (okładka albo film)
+    // i barwa szkła: 0 – neutralna, 1 – w kolorze akcentu, 2 – głęboka czerń.
+    in-out property <image> glass-image;
+    in-out property <bool> glass-has;
+    in-out property <int> glass-tint;
+    // Ustawienie wybrane w wyszukiwarce ustawień – jego wiersz na chwilę się podświetla.
+    in-out property <string> settings-flash;
     in-out property <float> nav-scale: 1;
     // 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
     in-out property <int> title-font;
@@ -47,8 +54,10 @@ export global Theme {
     out property <color> panel: panel0.mix(tint, wash);
     out property <color> panel2: panel20.mix(tint, wash);
     // Tła paneli (lista, biblioteka, panel nawigacji) z ustawianą przezroczystością.
-    out property <color> pane: panel.with-alpha(1 - glass);
-    out property <color> side-pane: side.with-alpha(1 - glass);
+    out property <color> glass-color: glass-tint == 1 ? panel.mix(tint, 0.78) : glass-tint == 2 ? bg0 : panel;
+    out property <color> side-glass: glass-tint == 1 ? side.mix(tint, 0.8) : glass-tint == 2 ? bg0 : side;
+    out property <color> pane: glass-color.with-alpha(1 - glass);
+    out property <color> side-pane: side-glass.with-alpha(1 - glass);
     out property <color> raised: raised0.mix(tint, wash);
     out property <color> line: line0.mix(tint, scope >= 2 ? 0.88 : 1);
     out property <color> line2: line20.mix(tint, scope >= 2 ? 0.86 : 1);

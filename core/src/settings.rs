@@ -51,6 +51,8 @@ pub struct Settings {
     pub text_scale: f32,
     /// Przezroczystość paneli (0 – pełne, do 0.8) – prześwituje rozmyte tło z okładki.
     pub panel_glass: f32,
+    /// Barwa szkła wszystkich okien i paneli: 0 – neutralna, 1 – w kolorze akcentu, 2 – czerń.
+    pub glass_tint: i32,
     /// Wielkość tekstu panelu nawigacji względem reszty.
     pub nav_text: f32,
     /// Czcionka tytułu: 0 – szeryfowa, 1 – bezszeryfowa, 2 – techniczna.
@@ -115,6 +117,8 @@ pub struct Settings {
     pub ambient: i32,
     /// Kolor przewodni z barw filmu.
     pub video_tint: bool,
+    /// Jak często kolor z obrazu: 0 – 0,5 s, 1 – 1,2 s, 2 – 3 s, 3 – 8 s.
+    pub tint_rate: i32,
     /// Podgląd klatek nad paskiem przewijania.
     pub seek_preview: bool,
     /// Kółko myszy nad obrazem: 0 – głośność, 1 – przewijanie.
@@ -206,6 +210,7 @@ impl Default for Settings {
             corners: 1,
             text_scale: 1.0,
             panel_glass: 0.0,
+            glass_tint: 0,
             nav_text: 1.0,
             title_font: 0,
             compact_ui: false,
@@ -249,6 +254,7 @@ impl Default for Settings {
             tone_mapping: 0,
             ambient: 1,
             video_tint: true,
+            tint_rate: 1,
             seek_preview: true,
             wheel_action: 0,
             dblclick_seek: true,

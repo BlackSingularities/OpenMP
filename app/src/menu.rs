@@ -63,11 +63,23 @@ fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, a
     mt.set_corners(t.get_corners());
     mt.set_text_scale(t.get_text_scale());
     mt.set_dense(t.get_dense());
+    mt.set_glass(t.get_glass());
+    mt.set_glass_tint(t.get_glass_tint());
+    mt.set_glass_image(t.get_glass_image());
+    mt.set_glass_has(t.get_glass_has());
     mw.set_items(ModelRc::new(VecModel::from(items)));
     let sf = ui.window().scale_factor();
     let w = 280.0 * sf;
     let h = mw.get_content_height() * sf;
-    let (wx, wy, _, _) = crate::win::geometry(&ui);
+    // Początek obszaru okna (bez niewidocznych ramek Windows) – x, y są liczone od niego.
+    let (wx, wy) = ui
+        .window()
+        .with_winit_window(|w| w.inner_position().ok().map(|p| (p.x, p.y)))
+        .flatten()
+        .unwrap_or_else(|| {
+            let (gx, gy, _, _) = crate::win::geometry(&ui);
+            (gx, gy)
+        });
     // Pozycja kliknięcia na ekranie; menu nie wychodzi poza monitor.
     let mut px = wx as f32 + x * sf;
     let mut py = wy as f32 + y * sf;
@@ -75,17 +87,22 @@ fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, a
         py -= h + 6.0 * sf;
     }
     if let Some((mx, my, mw_, mh)) = crate::win::monitor(&ui) {
-        py = py.max(my as f32);
         px = px.min((mx + mw_ as i32) as f32 - w - 4.0).max(mx as f32);
-        if py + h > (my + mh as i32) as f32 {
-            py = (py - h).max(my as f32);
-        }
+        // Za nisko – menu przesuwa się w górę tylko o tyle, ile trzeba (zostaje przy kursorze).
+        py = py.min((my + mh as i32) as f32 - h - 4.0).max(my as f32);
     }
+    let pos = slint::PhysicalPosition::new(px as i32, py as i32);
     mw.window().set_size(slint::PhysicalSize::new(w as u32, h.max(10.0) as u32));
-    mw.window().set_position(slint::PhysicalPosition::new(px as i32, py as i32));
+    mw.window().set_position(pos);
     let _ = mw.show();
     crate::win::popup_style(mw.window());
-    mw.window().with_winit_window(|w| w.focus_window());
+    // Pierwsze pokazanie potrafi zignorować pozycję – ustawiamy ją jeszcze raz. Menu zawsze
+    // nad oknem programu, także gdy to jest „zawsze na wierzchu” (bez przeskakiwania pod nie).
+    mw.window().set_position(pos);
+    mw.window().with_winit_window(|w| {
+        w.set_window_level(slint::winit_030::winit::window::WindowLevel::AlwaysOnTop);
+        w.focus_window();
+    });
 }
 
 /// Zamyka okno menu.
@@ -131,7 +148,7 @@ pub fn main_menu(app: &mut App, x: f32, y: f32) {
     open(app, MenuCtx::Main, items, x, y);
 }
 
-pub fn video_menu(app: &mut App) {
+pub fn video_menu(app: &mut App, x: f32, y: f32, above: bool) {
     let fs = app.ui().map(|u| u.global::<Video>().get_fullscreen()).unwrap_or(false);
     let ontop = app.ui().map(|u| u.global::<Video>().get_ontop()).unwrap_or(false);
     let aspect = app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0);
@@ -169,8 +186,8 @@ pub fn video_menu(app: &mut App) {
         item("v-audio-only", "Tylko dźwięk (obraz w tle wyłączony)", "audiotrack", ""),
         item("v-back", "Biblioteka (film gra dalej)", "back", "Esc"),
     ]);
-    let (x, y) = app.ui().map(|u| (u.window().size().width as f32 / u.window().scale_factor() / 2.0 - 130.0, 80.0)).unwrap_or((40.0, 80.0));
-    open(app, MenuCtx::Video, items, x, y);
+    // Przy kursorze (prawy klik) albo nad przyciskiem „Więcej”.
+    open_at(app, MenuCtx::Video, items, x, y, above);
 }
 
 pub fn sleep_menu(app: &mut App, x: f32, y: f32) {

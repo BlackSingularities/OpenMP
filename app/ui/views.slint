@@ -1,13 +1,14 @@
 // Części okna trybu muzyki: pasek tytułu, sterowanie, panel boczny, listy, biblioteka, radio,
 // panel tekstu/informacji i pasek stanu.
 
-import { ScrollView, ListView } from "std-widgets.slint";
+import { ScrollView, ListView, ComboBox } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, Btn, HSlider, Field, Cover, Segmented, SectionTitle, Divider } from "widgets.slint";
 import { TrackList } from "tracklist.slint";
 import { Player, Lists, Lib, Prefs, Ui } from "state.slint";
 import { Fmt } from "display.slint";
+import { GlassFill } from "glass.slint";
 
 export component WinButtons inherits HorizontalLayout {
     in property <bool> on-dark;
@@ -259,6 +260,7 @@ export component ControlsBar inherits Rectangle {
 component ViewSize inherits HorizontalLayout {
     spacing: 4px;
     IconBtn {
+        y: (parent.height - self.height) / 2;
         icon: Icons.playlist;
         size: 26px;
         icon-size: 15px;
@@ -276,6 +278,7 @@ component ViewSize inherits HorizontalLayout {
         reset => { Prefs.set-view(160); }
     }
     IconBtn {
+        y: (parent.height - self.height) / 2;
         icon: Icons.album;
         size: 26px;
         icon-size: 15px;
@@ -286,7 +289,9 @@ component ViewSize inherits HorizontalLayout {
 
 export component Sidebar inherits Rectangle {
     width: Prefs.sidebar-width * 1px;
-    background: Theme.side-pane;
+    GlassFill {
+        base: Theme.side-glass;
+    }
     VerticalLayout {
         padding: 10px;
         padding-top: 4px;
@@ -483,7 +488,9 @@ export component Sidebar inherits Rectangle {
 }
 
 export component PlaylistView inherits Rectangle {
-    background: Theme.pane;
+    GlassFill {
+        border-radius: Theme.radius-lg;
+    }
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -603,7 +610,9 @@ export component PlaylistView inherits Rectangle {
 }
 
 export component LibraryView inherits Rectangle {
-    background: Theme.pane;
+    GlassFill {
+        border-radius: Theme.radius-lg;
+    }
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -635,25 +644,28 @@ export component LibraryView inherits Rectangle {
                     overflow: elide;
                 }
             }
+            // Odtwarzanie całego folderu – przycisk główny i dwie ikony, bez rozciągania na pasek.
             if !Lib.show-tiles && Lib.rows.length > 0: HorizontalLayout {
-                spacing: 6px;
+                horizontal-stretch: 0;
+                spacing: 4px;
                 Btn {
                     y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 0;
                     text: "Odtwórz";
                     icon: Icons.play;
                     primary: true;
                     clicked => { Lib.play-all(); }
                 }
-                Btn {
+                IconBtn {
                     y: (parent.height - self.height) / 2;
-                    text: "Losowo";
                     icon: Icons.shuffle;
+                    tip: "Odtwórz losowo";
                     clicked => { Lib.shuffle-all(); }
                 }
-                Btn {
+                IconBtn {
                     y: (parent.height - self.height) / 2;
-                    text: "Do listy";
                     icon: Icons.add;
+                    tip: "Dodaj wszystko do listy";
                     clicked => { Lib.add-all(); }
                 }
             }
@@ -842,7 +854,9 @@ export component LibraryView inherits Rectangle {
 }
 
 export component RadioView inherits Rectangle {
-    background: Theme.pane;
+    GlassFill {
+        border-radius: Theme.radius-lg;
+    }
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -974,7 +988,9 @@ export component SidePanel inherits Rectangle {
     width: 300px;
     // Tekst jest obok opisu utworu – karta „Tekst” znika, zostają informacje i kolejka.
     property <int> page: Player.hero-lyrics && Prefs.side-panel == 1 ? 2 : Prefs.side-panel;
-    background: Theme.pane;
+    GlassFill {
+        border-radius: Theme.radius-lg;
+    }
     border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
@@ -1009,10 +1025,76 @@ export component SidePanel inherits Rectangle {
             }
         }
         Divider { }
+        if root.page == 1 && Player.subs-mode && Player.sub-langs.length > 0: HorizontalLayout {
+            padding: 10px;
+            spacing: 8px;
+            Text {
+                text: "Napisy";
+                color: Theme.text3;
+                font-size: Theme.fs-sm;
+                vertical-alignment: center;
+            }
+            ComboBox {
+                horizontal-stretch: 1;
+                model: Player.sub-langs;
+                current-index: Player.sub-lang;
+                selected => { Player.pick-sub-lang(self.current-index); }
+            }
+        }
+        // Szukanie w tekście / napisach tego utworu: Enter – następne, Shift+Enter… strzałki obok.
+        if root.page == 1 && Player.lyrics.length > 0: HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 6px;
+            padding-top: 8px;
+            padding-bottom: 4px;
+            spacing: 2px;
+            Field {
+                horizontal-stretch: 1;
+                icon: Icons.search;
+                placeholder: Player.subs-mode ? "Szukaj w napisach" : "Szukaj w tekście";
+                text <=> Player.lyrics-query;
+                edited(t) => { Player.lyrics-search(t); }
+                accepted(t) => { Player.lyrics-next(1); }
+                escape => {
+                    Player.lyrics-query = "";
+                    Player.lyrics-search("");
+                }
+            }
+            if Player.lyrics-query != "": Text {
+                text: Player.lyrics-hits == 0 ? "0" : (Player.lyrics-hit + 1) + "/" + Player.lyrics-hits;
+                color: Player.lyrics-hits == 0 ? Theme.danger : Theme.text3;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+                min-width: 34px;
+                horizontal-alignment: center;
+            }
+            if Player.lyrics-query != "": IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.chevron-up;
+                size: 26px;
+                icon-size: 15px;
+                tip: "Poprzednie";
+                enabled: Player.lyrics-hits > 0;
+                clicked => { Player.lyrics-next(-1); }
+            }
+            if Player.lyrics-query != "": IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.chevron-down;
+                size: 26px;
+                icon-size: 15px;
+                tip: "Następne (Enter)";
+                enabled: Player.lyrics-hits > 0;
+                clicked => { Player.lyrics-next(1); }
+            }
+        }
         if root.page == 1: Rectangle {
             vertical-stretch: 1;
             if Player.lyrics.length == 0: Text {
-                text: "Brak tekstu dla tego utworu.\nOpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach.";
+                text: !Player.subs-mode ? "Brak tekstu dla tego utworu.
+OpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach."
+                    : Player.sub-langs.length == 0 ? "Ten film nie ma napisów tekstowych.
+Wczytaj albo pobierz napisy w panelu filmu."
+                    : "Wczytywanie napisów…";
                 color: Theme.text3;
                 font-size: Theme.fs;
                 horizontal-alignment: center;
@@ -1021,28 +1103,55 @@ export component SidePanel inherits Rectangle {
                 width: parent.width - 40px;
             }
             if Player.lyrics.length > 0: lyr := Flickable {
-                property <length> line-h: 30px;
+                // Kwestie z filmu są dłuższe – dwa wiersze.
+                property <length> line-h: Player.subs-mode ? 48px : 30px;
+                property <length> base: Player.lyrics-synced ? self.height / 2 - self.line-h : 16px;
                 content-height: Player.lyrics.length * line-h + self.height;
                 property <int> act: Player.lyrics-active;
+                property <int> want: Player.lyrics-focus;
+                // Bieżąca linia na środku – chyba że trwa wyszukiwanie (wtedy widok trzyma trafienie).
                 changed act => {
-                    if Player.lyrics-synced && self.act >= 0 {
+                    if Player.lyrics-synced && self.act >= 0 && Player.lyrics-query == "" {
                         self.content-y = -(self.act * self.line-h);
                     }
                 }
+                changed want => {
+                    if self.want >= 0 {
+                        self.content-y = -max(0px, self.base + self.want * self.line-h - self.height / 2 + self.line-h / 2);
+                    }
+                }
                 animate content-y { duration: 350ms; easing: ease-out; }
-                for l[i] in Player.lyrics: Text {
-                    x: 16px;
-                    y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h : 16px) + i * lyr.line-h;
-                    width: lyr.width - 32px;
+                for l[i] in Player.lyrics: Rectangle {
+                    x: 8px;
+                    y: lyr.base + i * lyr.line-h;
+                    width: lyr.width - 16px;
                     height: lyr.line-h;
-                    text: l.text;
-                    color: !Player.lyrics-synced ? Theme.text : l.active ? Theme.text : Theme.text3;
-                    font-size: l.active ? Theme.fs-md + 1px : Theme.fs-md;
-                    font-weight: l.active ? 700 : 400;
-                    horizontal-alignment: Player.lyrics-synced ? center : left;
-                    vertical-alignment: center;
-                    overflow: elide;
-                    animate color { duration: 250ms; }
+                    border-radius: Theme.radius;
+                    // Trafienie wyszukiwania – tło, bieżące trafienie mocniej; najechanie – lekko.
+                    background: l.hit ? (i == Player.lyrics-focus ? Theme.sel-strong : Theme.sel) : lta.has-hover && Player.lyrics-synced ? Theme.hover : transparent;
+                    Text {
+                        x: 8px;
+                        width: parent.width - 16px;
+                        height: parent.height;
+                        text: l.text;
+                        color: l.hit ? Theme.text : !Player.lyrics-synced ? Theme.text : l.active ? Theme.text : Theme.text3;
+                        font-size: l.active ? Theme.fs-md + 1px : Theme.fs-md;
+                        font-weight: l.active ? 700 : 400;
+                        horizontal-alignment: Player.lyrics-synced ? center : left;
+                        vertical-alignment: center;
+                        wrap: Player.subs-mode ? word-wrap : no-wrap;
+                        overflow: elide;
+                        animate color { duration: 250ms; }
+                    }
+                    // Klik – przewinięcie utworu albo filmu do tej linii (gdy tekst ma czasy).
+                    lta := TouchArea {
+                        mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
+                        clicked => {
+                            if Player.lyrics-synced {
+                                Player.lyrics-seek(i);
+                            }
+                        }
+                    }
                 }
             }
             if Player.lyrics-source == "LRCLIB": Rectangle {

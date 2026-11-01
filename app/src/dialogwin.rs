@@ -61,11 +61,11 @@ macro_rules! props {
 
 fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
-    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale);
+    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has);
     props!(v, Prefs:
         compact_ui, track_grid, grid_size, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
         video_ui, video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
-        deband, tone_mapping, ambient, video_tint, seek_preview, wheel_action, dblclick_seek, video_autonext,
+        deband, tone_mapping, ambient, video_tint, tint_rate, seek_preview, wheel_action, dblclick_seek, video_autonext,
         volume_boost, night_mode, downmix, ytdl_format, ytdl, cache_mb, sub_font, sub_color, sub_style,
         sub_pos, sub_bold, sub_override, sub_auto,
     );
@@ -79,7 +79,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         viz_bands, viz_sensitivity, wave_style, width,
     );
     props!(v, Prefs:
-        nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, nav_text,
+        nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, glass_tint, nav_text,
         live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
     );
     props!(v, Ui:
@@ -141,7 +141,79 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
             });
         }
     });
+    let sw = d.as_weak();
+    d.global::<Ui>().on_settings_search(move |q| {
+        let Some(d) = sw.upgrade() else { return };
+        let rows: Vec<Opt> = settings_search(&q)
+            .into_iter()
+            .map(|(page, name, title)| Opt { id: ss(page.to_string()), label: ss(title), sub: ss(name), selected: false })
+            .collect();
+        d.global::<Ui>().set_settings_results(slint::ModelRc::new(slint::VecModel::from(rows)));
+        if q.trim().is_empty() {
+            d.global::<Theme>().set_settings_flash(ss(""));
+        }
+    });
     Some(Dialogs { win: d, props: all_props(), open: false })
+}
+
+/// Ustawienia do wyszukiwarki: (strona, nazwa strony, tytuł, opis) – czytane z pliku okna
+/// ustawień przy kompilacji, więc każde nowe ustawienie od razu da się znaleźć.
+fn settings_index() -> &'static Vec<(i32, String, String, String)> {
+    static IDX: std::sync::OnceLock<Vec<(i32, String, String, String)>> = std::sync::OnceLock::new();
+    IDX.get_or_init(|| {
+        let src = include_str!("../ui/dialogs.slint");
+        let quoted = |l: &str| -> String {
+            // Tekst ze wszystkich "…" w linii (opisy bywają składane z wyrażeń).
+            l.split('"').skip(1).step_by(2).collect::<Vec<_>>().join("")
+        };
+        let mut v: Vec<(i32, String, String, String)> = Vec::new();
+        let (mut page, mut name) = (-1, String::new());
+        let mut in_settings = false;
+        for l in src.lines() {
+            let t = l.trim();
+            if t.starts_with("export component SettingsDialog") {
+                in_settings = true;
+            } else if t.starts_with("export component") {
+                in_settings = false;
+            }
+            if !in_settings {
+                continue;
+            }
+            if let Some(rest) = t.strip_prefix("if Ui.settings-page == ") {
+                if let Some(n) = rest.split(':').next().and_then(|n| n.trim().parse().ok()) {
+                    page = n;
+                    name.clear();
+                }
+            } else if page >= 0 && t.starts_with("heading:") && name.is_empty() {
+                name = quoted(t);
+            } else if page >= 0 && t.starts_with("title:") {
+                let title = quoted(t);
+                if !title.is_empty() {
+                    v.push((page, name.clone(), title, String::new()));
+                }
+            } else if page >= 0 && t.starts_with("hint:") {
+                if let Some(last) = v.last_mut() {
+                    if last.3.is_empty() {
+                        last.3 = quoted(t);
+                    }
+                }
+            }
+        }
+        v
+    })
+}
+
+fn settings_search(q: &str) -> Vec<(i32, String, String)> {
+    let q = q.trim().to_lowercase();
+    if q.is_empty() {
+        return Vec::new();
+    }
+    settings_index()
+        .iter()
+        .filter(|(_, _, t, h)| t.to_lowercase().contains(&q) || h.to_lowercase().contains(&q))
+        .take(40)
+        .map(|(p, n, t, _)| (*p, n.clone(), t.clone()))
+        .collect()
 }
 
 /// Okno główne otworzyło albo zamknęło dialog.

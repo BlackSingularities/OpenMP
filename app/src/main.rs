@@ -137,6 +137,10 @@ fn main() {
         ab: (None, None),
         lyrics: Vec::new(),
         lyrics_text: String::new(),
+        sub_panel: Vec::new(),
+        sub_panel_id: 0,
+        sub_live: false,
+        lyrics_hits: Vec::new(),
         wave_raw: Vec::new(),
         viz_hist: Default::default(),
         music_geom: None,
@@ -452,6 +456,10 @@ fn wire(ui: &AppWindow) {
     p.on_cycle_repeat(|| later(keys::cycle_repeat));
     p.on_cycle_viz(|| later(display::cycle_viz));
     p.on_save_lyrics(|| later(display::save_lyrics));
+    p.on_pick_sub_lang(|i| later(move |app| display::pick_sub_panel(app, i)));
+    p.on_lyrics_search(|_| later(display::lyrics_search));
+    p.on_lyrics_next(|d| later(move |app| display::lyrics_next(app, d)));
+    p.on_lyrics_seek(|i| later(move |app| display::lyrics_seek(app, i)));
     p.on_reveal_current(|| later(|app| {
         if let Some(c) = &app.cur {
             if !openmp_core::meta::is_url(&c.info.path) {
@@ -625,7 +633,7 @@ fn wire(ui: &AppWindow) {
     v.on_rotate_view(|| later(video::rotate));
     v.on_reset_view(|| later(video::reset_view));
     v.on_set_layout(|l| later(move |app| video::set_layout(app, l)));
-    v.on_menu(|| later(crate::menu::video_menu));
+    v.on_menu(|x, y, above| later(move |app| crate::menu::video_menu(app, x, y, above)));
     v.on_mini(|| later(|app| keys::set_mode(app, 2)));
     v.on_panel_page_changed(|p| later(move |app| {
         if p == 4 {
