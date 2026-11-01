@@ -298,6 +298,20 @@ fn main() {
                 win::hotkeys(app, true);
             }
             libview::watch(app);
+            // Pierwsze uruchomienie: ekran powitalny; skanowanie rusza po jego zamknięciu.
+            // Kto ma już bibliotekę albo listy (aktualizacja ze starszej wersji), go nie zobaczy.
+            if !app.s.welcome_done {
+                let empty = app.lib.tracks.is_empty() && app.lib.videos.is_empty() && app.store.lists.iter().all(|l| l.items.is_empty());
+                if empty {
+                    if let Some(ui) = app.ui() {
+                        ui.global::<Ui>().set_welcome(true);
+                    }
+                    crash_report(app);
+                    return;
+                }
+                app.s.welcome_done = true;
+                app.dirty = true;
+            }
             let stale = library::now().saturating_sub(app.lib.scanned) > 6 * 3600;
             let has_folders = !app.s.library_folders.is_empty() || !app.s.video_folders.is_empty();
             if has_folders && (app.lib.tracks.is_empty() && app.lib.videos.is_empty() || stale) {
@@ -449,6 +463,16 @@ fn wire(ui: &AppWindow) {
 
     // Okno
     let u = ui.global::<Ui>();
+    u.on_welcome_done(|| later(|app| {
+        app.s.welcome_done = true;
+        app.s.save();
+        if let Some(ui) = app.ui() {
+            ui.global::<Ui>().set_welcome(false);
+        }
+        if !app.s.library_folders.is_empty() || !app.s.video_folders.is_empty() {
+            libview::start_scan(app);
+        }
+    }));
     u.on_drag(|| later(|app| {
         if let Some(ui) = app.ui().filter(|u| !u.window().is_fullscreen()) {
             win::drag(&ui);

@@ -461,6 +461,9 @@ export global Prefs {
 // Okna, menu i komunikaty.
 export global Ui {
     in-out property <int> mode;
+    // Ekran powitalny (pierwsze uruchomienie).
+    in-out property <bool> welcome;
+    callback welcome-done();
     in-out property <bool> maximized;
     // Okno na pełnym ekranie (ten sam układ co w oknie; F11).
     in-out property <bool> fullscreen;

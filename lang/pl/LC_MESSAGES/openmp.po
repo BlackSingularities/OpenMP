@@ -161,15 +161,15 @@ msgstr "Postaw kawę"
 msgid "No folders."
 msgstr "Brak folderów."
 
-#: app/ui/dialogs.slint:428
+#: app/ui/dialogs.slint:428 app/ui/welcome.slint:81
 msgid "Remove folder from library"
 msgstr "Usuń folder z biblioteki"
 
-#: app/ui/dialogs.slint:437
+#: app/ui/dialogs.slint:437 app/ui/welcome.slint:92
 msgid "Add folder…"
 msgstr "Dodaj folder…"
 
-#: app/ui/dialogs.slint:443
+#: app/ui/dialogs.slint:443 app/ui/welcome.slint:98
 msgid "Add network path…"
 msgstr "Dodaj ścieżkę sieciową…"
 
@@ -229,7 +229,7 @@ msgstr "System"
 msgid "About"
 msgstr "O programie"
 
-#: app/ui/dialogs.slint:563
+#: app/ui/dialogs.slint:563 app/ui/welcome.slint:156
 msgid "Language"
 msgstr "Język"
 
@@ -1436,7 +1436,7 @@ msgstr "Edytor tagów – OpenMP"
 msgid "Drop files or folders to start listening"
 msgstr "Upuść pliki albo foldery, by zacząć słuchać"
 
-#: app/ui/main.slint:141
+#: app/ui/main.slint:142
 msgid "Drop to add to the list"
 msgstr "Upuść, by dodać do listy"
 
@@ -2038,6 +2038,58 @@ msgstr "Usuń z kolejki"
 msgid "Clear queue"
 msgstr "Wyczyść kolejkę"
 
+#: app/ui/welcome.slint:52
+msgid "No folders yet."
+msgstr "Brak folderów."
+
+#: app/ui/welcome.slint:139
+msgid "Welcome to OpenMP"
+msgstr "Witaj w OpenMP"
+
+#: app/ui/welcome.slint:146
+msgid "A music and video player. Show it where your files are – it takes a minute."
+msgstr "Odtwarzacz muzyki i wideo. Pokaż mu, gdzie są twoje pliki – to zajmie chwilę."
+
+#: app/ui/welcome.slint:172 app/src/dialogs.rs:60 app/src/statsview.rs:85
+msgid "Music"
+msgstr "Muzyka"
+
+#: app/ui/welcome.slint:173
+msgid "Folders with music – artists, albums, genres and years are built from the tags. Network drives and NAS shares work too."
+msgstr "Foldery z muzyką – wykonawcy, albumy, gatunki i lata powstaną z tagów. Działają też dyski sieciowe i udziały NAS."
+
+#: app/ui/welcome.slint:181
+msgid "Movies and TV shows"
+msgstr "Filmy i seriale"
+
+#: app/ui/welcome.slint:182
+msgid "Folders with videos – OpenMP remembers where you stopped and can fetch posters and subtitles."
+msgstr "Foldery z filmami – OpenMP pamięta, gdzie skończyłeś, i potrafi pobrać plakaty i napisy."
+
+#: app/ui/welcome.slint:190
+msgid "A few options"
+msgstr "Kilka opcji"
+
+#: app/ui/welcome.slint:191
+msgid "Optional – you will find them later in Settings."
+msgstr "Nieobowiązkowe – znajdziesz je potem w Ustawieniach."
+
+#: app/ui/welcome.slint:203
+msgid "Icon in the notification area – closing the window keeps the music playing"
+msgstr "Ikona w zasobniku – zamknięcie okna nie przerywa muzyki"
+
+#: app/ui/welcome.slint:212
+msgid "Set OpenMP as the default player…"
+msgstr "Ustaw OpenMP jako domyślny odtwarzacz…"
+
+#: app/ui/welcome.slint:225
+msgid "You can also just drop files or folders onto the window."
+msgstr "Możesz też po prostu upuścić pliki albo foldery na okno."
+
+#: app/ui/welcome.slint:233
+msgid "Get started"
+msgstr "Zaczynamy"
+
 #: app/ui/widgets.slint:543
 msgid "Clear"
 msgstr "Wyczyść"
@@ -2085,10 +2137,6 @@ msgstr "Zatrzymano odtwarzanie na urządzeniu"
 #: app/src/dialogs.rs:59
 msgid "Media and playlists"
 msgstr "Multimedia i listy"
-
-#: app/src/dialogs.rs:60 app/src/statsview.rs:85
-msgid "Music"
-msgstr "Muzyka"
 
 #: app/src/dialogs.rs:62 app/src/dialogs.rs:87 app/src/libview.rs:49
 msgid "Playlists"
@@ -3122,15 +3170,15 @@ msgstr "OpenMP zamknął się nieoczekiwanie przy ostatnim uruchomieniu. Raport 
 msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
 msgstr "Niedostępny: {}. Filmy i radio wymagają pliku libmpv-2.dll obok OpenMP.exe."
 
-#: app/src/main.rs:689
+#: app/src/main.rs:713
 msgid "Radio stream URL"
 msgstr "Adres strumienia radia"
 
-#: app/src/main.rs:745
+#: app/src/main.rs:769
 msgid "Equalizer preset name"
 msgstr "Nazwa ustawienia korektora"
 
-#: app/src/main.rs:745
+#: app/src/main.rs:769
 msgid "Mine"
 msgstr "Moje"
 
@@ -3789,11 +3837,11 @@ msgstr "To nie jest kopia OpenMP"
 msgid "This is not a podcast feed (RSS)"
 msgstr "To nie jest kanał podcastu (RSS)"
 
-#: core/src/settings.rs:302
+#: core/src/settings.rs:305
 msgid "Top rated"
 msgstr "Najlepiej oceniane"
 
-#: core/src/settings.rs:303
+#: core/src/settings.rs:306
 msgid "Played often"
 msgstr "Często słuchane"
 

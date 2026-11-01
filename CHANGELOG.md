@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.6.3
+
+- **Ekran powitalny** przy pierwszym uruchomieniu: wybór języka, foldery z muzyką i filmami (także dyski sieciowe), ikona w zasobniku i skojarzenia plików. Skanowanie biblioteki rusza po kliknięciu „Zaczynamy”. Kto aktualizuje starszą wersję z biblioteką, go nie zobaczy.
+- Wydania zawierają już tylko instalator (bez wersji przenośnej ZIP).
+
 ## 1.6.2
 
 - **Odtwarzanie na urządzeniach DLNA** (menu → Odtwórz na urządzeniu): wyszukanie telewizorów, amplitunerów i głośników sieciowych w sieci lokalnej i wysłanie bieżącego utworu albo filmu – lokalny plik przez wbudowany serwer (z przewijaniem), strumień wprost; zatrzymanie z tego samego menu.

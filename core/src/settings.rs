@@ -164,6 +164,8 @@ pub struct Settings {
     pub custom_keys: Vec<(String, String)>,
     /// Subskrybowane podcasty: (adres kanału RSS, tytuł).
     pub podcasts: Vec<(String, String)>,
+    /// Ekran powitalny już zamknięty (pokazywany tylko przy pierwszym uruchomieniu).
+    pub welcome_done: bool,
     pub media_keys: bool,
     /// Globalne skróty Ctrl+Alt+Spacja/strzałki.
     pub global_hotkeys: bool,
@@ -288,6 +290,7 @@ impl Default for Settings {
             tray: false,
             custom_keys: Vec::new(),
             podcasts: Vec::new(),
+            welcome_done: false,
             media_keys: true,
             global_hotkeys: true,
             prevent_sleep: true,

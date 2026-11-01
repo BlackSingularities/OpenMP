@@ -12,6 +12,7 @@ import { Backdrop } from "surface.slint";
 import { StatsView } from "stats.slint";
 import { MenuWindow } from "popup.slint";
 import { DialogWindow } from "dialogwin.slint";
+import { Welcome } from "welcome.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
 import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
 
@@ -145,6 +146,7 @@ export component AppWindow inherits Window {
             }
         }
 
+        if Ui.welcome && Ui.mode == 0: Welcome { }
 
         // Krótki komunikat u dołu okna – karta jak komunikaty na obrazie filmu.
         if Ui.mode != 1: Rectangle {

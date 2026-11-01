@@ -161,15 +161,15 @@ msgstr ""
 msgid "No folders."
 msgstr ""
 
-#: app/ui/dialogs.slint:428
+#: app/ui/dialogs.slint:428 app/ui/welcome.slint:81
 msgid "Remove folder from library"
 msgstr ""
 
-#: app/ui/dialogs.slint:437
+#: app/ui/dialogs.slint:437 app/ui/welcome.slint:92
 msgid "Add folder…"
 msgstr ""
 
-#: app/ui/dialogs.slint:443
+#: app/ui/dialogs.slint:443 app/ui/welcome.slint:98
 msgid "Add network path…"
 msgstr ""
 
@@ -229,7 +229,7 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: app/ui/dialogs.slint:563
+#: app/ui/dialogs.slint:563 app/ui/welcome.slint:156
 msgid "Language"
 msgstr ""
 
@@ -1436,7 +1436,7 @@ msgstr ""
 msgid "Drop files or folders to start listening"
 msgstr ""
 
-#: app/ui/main.slint:141
+#: app/ui/main.slint:142
 msgid "Drop to add to the list"
 msgstr ""
 
@@ -2038,6 +2038,58 @@ msgstr ""
 msgid "Clear queue"
 msgstr ""
 
+#: app/ui/welcome.slint:52
+msgid "No folders yet."
+msgstr ""
+
+#: app/ui/welcome.slint:139
+msgid "Welcome to OpenMP"
+msgstr ""
+
+#: app/ui/welcome.slint:146
+msgid "A music and video player. Show it where your files are – it takes a minute."
+msgstr ""
+
+#: app/ui/welcome.slint:172 app/src/dialogs.rs:60 app/src/statsview.rs:85
+msgid "Music"
+msgstr ""
+
+#: app/ui/welcome.slint:173
+msgid "Folders with music – artists, albums, genres and years are built from the tags. Network drives and NAS shares work too."
+msgstr ""
+
+#: app/ui/welcome.slint:181
+msgid "Movies and TV shows"
+msgstr ""
+
+#: app/ui/welcome.slint:182
+msgid "Folders with videos – OpenMP remembers where you stopped and can fetch posters and subtitles."
+msgstr ""
+
+#: app/ui/welcome.slint:190
+msgid "A few options"
+msgstr ""
+
+#: app/ui/welcome.slint:191
+msgid "Optional – you will find them later in Settings."
+msgstr ""
+
+#: app/ui/welcome.slint:203
+msgid "Icon in the notification area – closing the window keeps the music playing"
+msgstr ""
+
+#: app/ui/welcome.slint:212
+msgid "Set OpenMP as the default player…"
+msgstr ""
+
+#: app/ui/welcome.slint:225
+msgid "You can also just drop files or folders onto the window."
+msgstr ""
+
+#: app/ui/welcome.slint:233
+msgid "Get started"
+msgstr ""
+
 #: app/ui/widgets.slint:543
 msgid "Clear"
 msgstr ""
@@ -2084,10 +2136,6 @@ msgstr ""
 
 #: app/src/dialogs.rs:59
 msgid "Media and playlists"
-msgstr ""
-
-#: app/src/dialogs.rs:60 app/src/statsview.rs:85
-msgid "Music"
 msgstr ""
 
 #: app/src/dialogs.rs:62 app/src/dialogs.rs:87 app/src/libview.rs:49
@@ -3111,15 +3159,15 @@ msgstr ""
 msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
 msgstr ""
 
-#: app/src/main.rs:689
+#: app/src/main.rs:713
 msgid "Radio stream URL"
 msgstr ""
 
-#: app/src/main.rs:745
+#: app/src/main.rs:769
 msgid "Equalizer preset name"
 msgstr ""
 
-#: app/src/main.rs:745
+#: app/src/main.rs:769
 msgid "Mine"
 msgstr ""
 
@@ -3774,11 +3822,11 @@ msgstr ""
 msgid "This is not a podcast feed (RSS)"
 msgstr ""
 
-#: core/src/settings.rs:302
+#: core/src/settings.rs:305
 msgid "Top rated"
 msgstr ""
 
-#: core/src/settings.rs:303
+#: core/src/settings.rs:306
 msgid "Played often"
 msgstr ""
 

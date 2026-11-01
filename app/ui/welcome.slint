@@ -1,0 +1,242 @@
+// Ekran powitalny przy pierwszym uruchomieniu: język, foldery muzyki i wideo, kilka opcji.
+// Wszystko da się potem zmienić w Ustawieniach.
+
+import { ScrollView, ComboBox } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Icon, IconBtn, Btn, Switch } from "widgets.slint";
+import { Prefs, Ui } from "state.slint";
+
+// Krok z numerem, tytułem i opisem.
+component Step inherits HorizontalLayout {
+    in property <string> num;
+    in property <string> title;
+    in property <string> hint;
+    spacing: 14px;
+    Rectangle {
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        background: Theme.tint.with-alpha(0.18);
+        Text {
+            text: root.num;
+            color: Theme.tint-hi;
+            font-size: Theme.fs;
+            font-weight: 700;
+        }
+    }
+    VerticalLayout {
+        spacing: 2px;
+        Text {
+            text: root.title;
+            color: Theme.text;
+            font-size: Theme.fs-lg;
+            font-weight: 600;
+        }
+        Text {
+            text: root.hint;
+            color: Theme.text3;
+            font-size: Theme.fs-sm;
+            wrap: word-wrap;
+        }
+    }
+}
+
+// Lista folderów jednej biblioteki z dodawaniem i usuwaniem.
+component Folders inherits VerticalLayout {
+    in property <[string]> folders;
+    in property <int> kind;
+    spacing: 6px;
+    padding-left: 42px;
+    if root.folders.length == 0: Text {
+        text: @tr("No folders yet.");
+        color: Theme.text3;
+        font-size: Theme.fs-sm;
+    }
+    for f[i] in root.folders: Rectangle {
+        height: 32px;
+        border-radius: Theme.radius;
+        background: Theme.panel2;
+        HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 2px;
+            spacing: 8px;
+            Icon {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.folder;
+                size: 15px;
+                fill: Theme.text3;
+            }
+            Text {
+                text: f;
+                color: Theme.text;
+                font-size: Theme.fs-sm;
+                vertical-alignment: center;
+                overflow: elide;
+                horizontal-stretch: 1;
+            }
+            IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.close;
+                tip: @tr("Remove folder from library");
+                size: 28px;
+                icon-size: 14px;
+                clicked => { Prefs.remove-folder(root.kind, i); }
+            }
+        }
+    }
+    HorizontalLayout {
+        alignment: start;
+        spacing: 8px;
+        Btn {
+            text: @tr("Add folder…");
+            icon: Icons.add;
+            compact: true;
+            clicked => { Prefs.add-folder(root.kind); }
+        }
+        Btn {
+            text: @tr("Add network path…");
+            compact: true;
+            clicked => { Prefs.add-network-folder(root.kind); }
+        }
+    }
+}
+
+export component Welcome inherits Rectangle {
+    background: Theme.bg;
+    // Okno bez ramki – przesuwanie za górny pas.
+    TouchArea {
+        y: 0;
+        height: 40px;
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                Ui.drag();
+            }
+        }
+    }
+    ScrollView {
+        y: 40px;
+        height: parent.height - 40px;
+        VerticalLayout {
+            alignment: start;
+            padding: 24px;
+            HorizontalLayout {
+                alignment: center;
+                VerticalLayout {
+                    width: min(620px, root.width - 48px);
+                    spacing: 18px;
+                    HorizontalLayout {
+                        spacing: 14px;
+                        Image {
+                            source: @image-url("../icon.png");
+                            width: 52px;
+                            height: 52px;
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            Text {
+                                text: @tr("Welcome to OpenMP");
+                                color: Theme.text;
+                                font-size: Theme.fs-xl;
+                                font-family: Theme.font-serif;
+                                font-weight: 600;
+                            }
+                            Text {
+                                text: @tr("A music and video player. Show it where your files are – it takes a minute.");
+                                color: Theme.text2;
+                                font-size: Theme.fs;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: 12px;
+                        Text {
+                            text: @tr("Language");
+                            color: Theme.text2;
+                            vertical-alignment: center;
+                        }
+                        ComboBox {
+                            width: 220px;
+                            model: Prefs.languages;
+                            current-index: Prefs.language;
+                            selected => {
+                                Prefs.language = self.current-index;
+                                Prefs.changed("language");
+                            }
+                        }
+                    }
+                    Step {
+                        num: "1";
+                        title: @tr("Music");
+                        hint: @tr("Folders with music – artists, albums, genres and years are built from the tags. Network drives and NAS shares work too.");
+                    }
+                    Folders {
+                        folders: Prefs.folders;
+                        kind: 0;
+                    }
+                    Step {
+                        num: "2";
+                        title: @tr("Movies and TV shows");
+                        hint: @tr("Folders with videos – OpenMP remembers where you stopped and can fetch posters and subtitles.");
+                    }
+                    Folders {
+                        folders: Prefs.video-folders;
+                        kind: 1;
+                    }
+                    Step {
+                        num: "3";
+                        title: @tr("A few options");
+                        hint: @tr("Optional – you will find them later in Settings.");
+                    }
+                    VerticalLayout {
+                        padding-left: 42px;
+                        spacing: 10px;
+                        HorizontalLayout {
+                            spacing: 10px;
+                            Switch {
+                                checked <=> Prefs.tray;
+                                toggled => { Prefs.changed("tray"); }
+                            }
+                            Text {
+                                text: @tr("Icon in the notification area – closing the window keeps the music playing");
+                                color: Theme.text;
+                                vertical-alignment: center;
+                                wrap: word-wrap;
+                            }
+                        }
+                        HorizontalLayout {
+                            alignment: start;
+                            Btn {
+                                text: @tr("Set OpenMP as the default player…");
+                                compact: true;
+                                clicked => { Prefs.associate(); }
+                            }
+                        }
+                    }
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.line;
+                    }
+                    HorizontalLayout {
+                        spacing: 12px;
+                        Text {
+                            text: @tr("You can also just drop files or folders onto the window.");
+                            color: Theme.text3;
+                            font-size: Theme.fs-sm;
+                            vertical-alignment: center;
+                            wrap: word-wrap;
+                            horizontal-stretch: 1;
+                        }
+                        Btn {
+                            text: @tr("Get started");
+                            primary: true;
+                            clicked => { Ui.welcome-done(); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
