@@ -37,7 +37,7 @@ pub fn is_media(p: &Path) -> bool {
 }
 pub fn is_url(s: &str) -> bool {
     let l = s.to_ascii_lowercase();
-    ["http://", "https://", "rtsp://", "rtmp://", "mms://", "udp://", "ftp://", "ytdl://"].iter().any(|p| l.starts_with(p))
+    ["http://", "https://", "rtsp://", "rtmp://", "mms://", "udp://", "ftp://", "ytdl://", "cdda://"].iter().any(|p| l.starts_with(p))
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -72,6 +72,9 @@ impl TrackInfo {
     pub fn display_title(&self) -> String {
         if !self.title.trim().is_empty() {
             return self.title.clone();
+        }
+        if self.path.starts_with("cdda://") {
+            return crate::tr!("Audio CD").to_string();
         }
         if is_url(&self.path) {
             return self.path.clone();

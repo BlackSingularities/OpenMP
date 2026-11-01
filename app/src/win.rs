@@ -698,3 +698,19 @@ unsafe extern "system" fn tray_proc(
     }
     DefSubclassProc(hwnd, msg, wparam, lparam)
 }
+
+/// Litery napędów CD/DVD, np. „D:”.
+pub fn cd_drives() -> Vec<String> {
+    use windows::core::PCWSTR;
+    use windows::Win32::Storage::FileSystem::{GetDriveTypeW, GetLogicalDrives};
+    const DRIVE_CDROM: u32 = 5;
+    let mask = unsafe { GetLogicalDrives() };
+    (0..26u8)
+        .filter(|i| mask & (1 << i) != 0)
+        .map(|i| format!("{}:", (b'A' + i) as char))
+        .filter(|d| {
+            let root: Vec<u16> = format!("{d}\\").encode_utf16().chain(std::iter::once(0)).collect();
+            unsafe { GetDriveTypeW(PCWSTR(root.as_ptr())) == DRIVE_CDROM }
+        })
+        .collect()
+}

@@ -127,6 +127,7 @@ pub fn main_menu(app: &mut App, x: f32, y: f32) {
         item("open-files", tr!("Open files…"), "file", "Ctrl+O"),
         item("open-folder", tr!("Open folder…"), "folder-open", "Ctrl+Shift+O"),
         item("open-url", tr!("Open URL (stream, radio)…"), "link", "Ctrl+U"),
+        item("open-cd", tr!("Play audio CD"), "album", ""),
         sep(),
         item("new-list", tr!("New list"), "playlist", "Ctrl+N"),
         item("import-list", tr!("Import playlist (M3U, PLS, XSPF, CUE)…"), "download", ""),

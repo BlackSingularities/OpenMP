@@ -2,6 +2,8 @@
 
 ## 1.6.2
 
+- **Płyty CD audio** (menu → Odtwórz płytę CD): odtwarzanie z pierwszego napędu CD/DVD przez silnik wideo; utwory płyty są rozdziałami (PgUp/PgDn).
+- Odcinki podcastów dłuższe niż 20 minut wznawiają się od miejsca przerwania (jak filmy).
 - **Podcasty** (panel biblioteki → Podcasty → Dodaj podcast…): subskrypcja z adresu kanału RSS, lista odcinków z datą i długością, odtwarzanie jak strumień; prawy przycisk – sprawdzenie nowych odcinków albo usunięcie subskrypcji.
 - **Własne skróty klawiszowe** (Ustawienia → Skróty klawiszowe): 20 akcji – odtwarzanie, przewijanie, głośność, losowo, powtarzanie, ulubione, kolejka, korektor, pełny ekran, miniodtwarzacz i inne. Kliknij pole i naciśnij kombinację; Backspace usuwa. Własne skróty mają pierwszeństwo przed domyślnymi.
 

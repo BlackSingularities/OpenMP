@@ -254,6 +254,20 @@ pub fn action(app: &mut App, id: &str) {
             let _ = open::that(openmp_core::SUPPORT_URL);
         }
         "quit" => quit(app),
+        "open-cd" => {
+            // Płyta audio przez mpv (cdda://) – utwory płyty są rozdziałami.
+            let drives = crate::win::cd_drives();
+            let Some(d) = drives.first().cloned() else {
+                app.toast(tr!("No CD/DVD drive found"));
+                return;
+            };
+            let Some(m) = app.mpv.clone() else {
+                app.toast(tr!("Audio CDs need the video engine (libmpv)"));
+                return;
+            };
+            m.set("cdrom-device", &d);
+            crate::player::open_url(app, "cdda://");
+        }
         _ => {}
     }
 }
