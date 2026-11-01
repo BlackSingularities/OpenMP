@@ -170,6 +170,7 @@ pub fn publish(app: &mut App) {
     p.set_mpv_ok(app.mpv.is_some());
     p.set_mpv_info(ss(if app.mpv.is_some() { tr!("libmpv – video, subtitles, streams, hardware decoding").to_string() } else { app.mpv_err.clone() }));
     p.set_keys(ModelRc::new(VecModel::from(crate::keys::help())));
+    crate::keys::publish_custom(app);
     let pl = ui.global::<Player>();
     pl.set_shuffle(s.shuffle);
     pl.set_repeat(s.repeat);
@@ -254,6 +255,7 @@ pub fn changed(app: &mut App, key: &str) {
             // Teksty z kodu, które już są na ekranie.
             publish_languages(app);
             p.set_keys(ModelRc::new(VecModel::from(crate::keys::help())));
+            crate::keys::publish_custom(app);
             publish_presets(app);
             crate::libview::rebuild_nav(app);
             crate::lists::rebuild_tabs(app);

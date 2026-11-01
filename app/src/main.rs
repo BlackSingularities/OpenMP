@@ -745,6 +745,7 @@ fn wire(ui: &AppWindow) {
     pr.on_remove_folder(|k, i| later(move |app| prefs::remove_folder(app, k, i as usize)));
     pr.on_pick_screenshot_dir(|| later(prefs::pick_screenshot_dir));
     pr.on_backup_export(|| later(prefs::backup_export));
+    pr.on_custom_key(|id, t, c, s, a| later(move |app| keys::set_custom(app, &id, &t, c, s, a)));
     pr.on_backup_import(|| later(prefs::backup_import));
     pr.on_check_update(|| later(|app| dialogs::check_update(app, true)));
     pr.on_open_url(|u| {

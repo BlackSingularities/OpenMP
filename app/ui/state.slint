@@ -1,6 +1,6 @@
 // Stan programu wymieniany z Rustem – globalne obiekty zamiast setek właściwości okna.
 
-import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
+import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp, CustomKey } from "types.slint";
 
 // Odtwarzanie, wyświetlacz i analizator.
 export global Player {
@@ -440,6 +440,8 @@ export global Prefs {
     in-out property <bool> mpv-ok;
     in-out property <string> mpv-info;
     in-out property <[KeyHelp]> keys;
+    in-out property <[CustomKey]> custom-keys;
+    callback custom-key(string, string, bool, bool, bool);
     callback changed(string);
     callback eq-band(int, float);
     callback eq-preset(int);

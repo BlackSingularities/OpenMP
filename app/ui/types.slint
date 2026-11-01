@@ -107,6 +107,13 @@ export struct KeyHelp {
     action: string,
 }
 
+// Akcja z własnym skrótem: id, nazwa i przypisana kombinacja (pusta – brak).
+export struct CustomKey {
+    id: string,
+    action: string,
+    keys: string,
+}
+
 export struct Toast {
     text: string,
     visible: bool,

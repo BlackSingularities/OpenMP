@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.6.2
+
+- **Własne skróty klawiszowe** (Ustawienia → Skróty klawiszowe): 20 akcji – odtwarzanie, przewijanie, głośność, losowo, powtarzanie, ulubione, kolejka, korektor, pełny ekran, miniodtwarzacz i inne. Kliknij pole i naciśnij kombinację; Backspace usuwa. Własne skróty mają pierwszeństwo przed domyślnymi.
+
 ## 1.6.1
 
 - 1.6.0 nie zbudowało się (brak importu w siatce okładek) – ta wersja zawiera wszystkie jej zmiany.

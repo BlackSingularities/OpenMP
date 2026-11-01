@@ -8,6 +8,34 @@ import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch
 import { Player, Prefs, Ui } from "state.slint";
 import { GlassFill } from "glass.slint";
 
+// Pole nagrywania skrótu: kliknięcie, potem kombinacja klawiszy (Backspace usuwa skrót).
+component KeyCapture inherits Rectangle {
+    in property <string> keys;
+    callback captured(string, bool, bool, bool);
+    width: 180px;
+    height: 26px;
+    border-radius: 5px;
+    background: fs.has-focus ? Theme.tint.with-alpha(0.15) : Theme.panel2;
+    border-width: 1px;
+    border-color: fs.has-focus ? Theme.tint : Theme.line2;
+    Text {
+        text: fs.has-focus ? @tr("Press keys…") : root.keys != "" ? root.keys : "—";
+        color: fs.has-focus ? Theme.tint-hi : root.keys != "" ? Theme.text : Theme.text3;
+        font-size: Theme.fs-sm;
+        font-family: Theme.mono;
+    }
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { fs.focus(); }
+    }
+    fs := FocusScope {
+        key-pressed(e) => {
+            root.captured(e.text, e.modifiers.control, e.modifiers.shift, e.modifiers.alt);
+            accept
+        }
+    }
+}
+
 // Okno dialogowe: osobne okno programu (DialogWindow), karta wypełnia całe okno.
 export component Dialog inherits Rectangle {
     in property <string> title;
@@ -1582,6 +1610,33 @@ export component SettingsDialog inherits Dialog {
                     }
                     Text {
                         text: k.action;
+                        color: Theme.text2;
+                        font-size: Theme.fs;
+                        vertical-alignment: center;
+                    }
+                }
+                SectionTitle {
+                    text: @tr("YOUR SHORTCUTS");
+                }
+                Text {
+                    text: @tr("Click a field and press a key combination; Backspace removes it. Your shortcuts take precedence over the ones above.");
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+                for c in Prefs.custom-keys: HorizontalLayout {
+                    height: 32px;
+                    spacing: 12px;
+                    Rectangle {
+                        width: 190px;
+                        KeyCapture {
+                            x: 0;
+                            keys: c.keys;
+                            captured(t, ctrl, shift, alt) => { Prefs.custom-key(c.id, t, ctrl, shift, alt); }
+                        }
+                    }
+                    Text {
+                        text: c.action;
                         color: Theme.text2;
                         font-size: Theme.fs;
                         vertical-alignment: center;

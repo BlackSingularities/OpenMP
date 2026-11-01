@@ -270,6 +270,12 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         crate::player::refresh_next(app);
         return;
     }
+    if let Some(k) = combo(text, ctrl, shift, alt) {
+        if let Some(id) = app.s.custom_keys.iter().find(|(c, _)| *c == k).map(|(_, a)| a.clone()) {
+            run_custom(app, &id);
+            return;
+        }
+    }
     if text == "video-menu" {
         // Z klawiatury – pośrodku u góry okna.
         let x = app.ui().map(|u| u.window().size().width as f32 / u.window().scale_factor() / 2.0 - 140.0).unwrap_or(40.0);
@@ -556,4 +562,127 @@ fn clipboard_text() -> Option<String> {
 #[cfg(not(windows))]
 fn clipboard_text() -> Option<String> {
     None
+}
+
+// Własne skróty klawiszowe.
+
+/// Akcje, którym można przypisać własny skrót: (id zapisywane w ustawieniach, nazwa).
+fn custom_actions() -> Vec<(&'static str, &'static str)> {
+    vec![
+        ("play-pause", trc!("shortcut", "Play / pause")),
+        ("stop", tr!("Stop")),
+        ("next", tr!("Next track")),
+        ("prev", tr!("Previous track")),
+        ("seek-fwd", tr!("Seek forward")),
+        ("seek-back", tr!("Seek back")),
+        ("vol-up", tr!("Volume up")),
+        ("vol-down", tr!("Volume down")),
+        ("mute", tr!("Mute")),
+        ("shuffle", tr!("Shuffle")),
+        ("repeat", tr!("Repeat")),
+        ("fav", tr!("Favorites")),
+        ("enqueue", tr!("Add selected to the queue")),
+        ("equalizer", tr!("Equalizer and effects")),
+        ("fullscreen", tr!("Full screen")),
+        ("mini", tr!("Mini player")),
+        ("ontop", tr!("Always on top")),
+        ("open-files", tr!("Open files…")),
+        ("open-url", tr!("Open URL (stream, radio)…")),
+        ("settings", tr!("Settings")),
+    ]
+}
+
+fn run_custom(app: &mut App, id: &str) {
+    match id {
+        "play-pause" => crate::player::play_pause(app),
+        "stop" => crate::player::stop(app),
+        "next" => crate::player::next(app),
+        "prev" => crate::player::prev(app),
+        "seek-fwd" => crate::player::seek_rel(app, app.s.seek_step),
+        "seek-back" => crate::player::seek_rel(app, -app.s.seek_step),
+        "vol-up" => crate::player::set_volume(app, app.s.volume + 0.05),
+        "vol-down" => crate::player::set_volume(app, app.s.volume - 0.05),
+        "mute" => crate::player::toggle_mute(app),
+        "shuffle" => toggle_shuffle(app),
+        "repeat" => cycle_repeat(app),
+        "fav" => crate::lists::command(app, "fav"),
+        "enqueue" => crate::lists::command(app, "enqueue"),
+        "equalizer" => action(app, "equalizer"),
+        "fullscreen" => toggle_full(app),
+        "mini" => set_mode(app, 2),
+        "ontop" => action(app, "ontop"),
+        "open-files" => crate::dialogs::open_files(app),
+        "open-url" => action(app, "open-url"),
+        "settings" => open_settings(app, 0),
+        _ => {}
+    }
+}
+
+/// Zapis kombinacji, np. „Ctrl+Shift+K”, „Alt+Left”, „F5”; same modyfikatory i Esc – brak.
+fn combo(text: &str, ctrl: bool, shift: bool, alt: bool) -> Option<String> {
+    let c = text.chars().next()?;
+    let name = match c {
+        ' ' => "Space".to_string(),
+        UP => "Up".into(),
+        DOWN => "Down".into(),
+        LEFT => "Left".into(),
+        RIGHT => "Right".into(),
+        HOME => "Home".into(),
+        END => "End".into(),
+        PGUP => "PgUp".into(),
+        PGDN => "PgDn".into(),
+        BACKSPACE => "Backspace".into(),
+        ENTER => "Enter".into(),
+        DEL => "Del".into(),
+        '\t' => "Tab".into(),
+        c if ('\u{F704}'..='\u{F70F}').contains(&c) => format!("F{}", c as u32 - 0xF704 + 1),
+        c if c.is_control() || ('\u{F700}'..='\u{F8FF}').contains(&c) => return None,
+        c => c.to_uppercase().to_string(),
+    };
+    let mut s = String::new();
+    if ctrl {
+        s.push_str("Ctrl+");
+    }
+    if alt {
+        s.push_str("Alt+");
+    }
+    if shift {
+        s.push_str("Shift+");
+    }
+    s.push_str(&name);
+    Some(s)
+}
+
+/// Lista akcji z przypisanymi skrótami do ustawień.
+pub fn publish_custom(app: &App) {
+    let Some(ui) = app.ui() else { return };
+    let rows: Vec<CustomKey> = custom_actions()
+        .into_iter()
+        .map(|(id, name)| CustomKey {
+            id: ss(id),
+            action: ss(name),
+            keys: ss(app.s.custom_keys.iter().find(|(_, a)| a == id).map(|(c, _)| c.as_str()).unwrap_or("")),
+        })
+        .collect();
+    ui.global::<Prefs>().set_custom_keys(slint::ModelRc::new(slint::VecModel::from(rows)));
+}
+
+/// Nagrany skrót dla akcji: Backspace/Del bez modyfikatorów usuwa, inna kombinacja zastępuje
+/// poprzednią (także zabraną innej akcji).
+pub fn set_custom(app: &mut App, id: &str, text: &str, ctrl: bool, shift: bool, alt: bool) {
+    let clear = !ctrl && !shift && !alt && matches!(text.chars().next(), Some(BACKSPACE) | Some(DEL));
+    if clear {
+        app.s.custom_keys.retain(|(_, a)| a != id);
+    } else {
+        let Some(k) = combo(text, ctrl, shift, alt) else { return };
+        let taken = app.s.custom_keys.iter().find(|(c, a)| *c == k && a != id).map(|(_, a)| a.clone());
+        app.s.custom_keys.retain(|(c, a)| a != id && *c != k);
+        app.s.custom_keys.push((k.clone(), id.to_string()));
+        if let Some(other) = taken {
+            let name = custom_actions().into_iter().find(|(i, _)| *i == other).map(|(_, n)| n).unwrap_or("");
+            app.toast(tr!("{} was moved from “{}”", k, name));
+        }
+    }
+    app.s.save();
+    publish_custom(app);
 }

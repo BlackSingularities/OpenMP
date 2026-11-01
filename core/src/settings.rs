@@ -160,6 +160,8 @@ pub struct Settings {
     pub single_instance: bool,
     /// Ikona w zasobniku systemowym; zamknięcie okna chowa je tam.
     pub tray: bool,
+    /// Własne skróty: (kombinacja, np. „Ctrl+Shift+K”, id akcji) – mają pierwszeństwo przed domyślnymi.
+    pub custom_keys: Vec<(String, String)>,
     pub media_keys: bool,
     /// Globalne skróty Ctrl+Alt+Spacja/strzałki.
     pub global_hotkeys: bool,
@@ -282,6 +284,7 @@ impl Default for Settings {
             sub_auto: 2,
             single_instance: true,
             tray: false,
+            custom_keys: Vec::new(),
             media_keys: true,
             global_hotkeys: true,
             prevent_sleep: true,
