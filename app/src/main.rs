@@ -94,7 +94,12 @@ fn main() {
     if let Some((_, region)) = system.rsplit_once('-') {
         openmp_core::radio::set_country(region);
     }
-    let settings = Settings::load();
+    // Ekran powitalny tylko przy pierwszym uruchomieniu – gdy nie ma jeszcze pliku ustawień.
+    let first_run = !openmp_core::paths::data().join("settings.json").exists();
+    let mut settings = Settings::load();
+    if !first_run {
+        settings.welcome_done = true;
+    }
     // Działa już okno OpenMP – oddajemy mu pliki i kończymy.
     if settings.single_instance {
         let mut msg = files.clone();
@@ -299,18 +304,12 @@ fn main() {
             }
             libview::watch(app);
             // Pierwsze uruchomienie: ekran powitalny; skanowanie rusza po jego zamknięciu.
-            // Kto ma już bibliotekę albo listy (aktualizacja ze starszej wersji), go nie zobaczy.
             if !app.s.welcome_done {
-                let empty = app.lib.tracks.is_empty() && app.lib.videos.is_empty() && app.store.lists.iter().all(|l| l.items.is_empty());
-                if empty {
-                    if let Some(ui) = app.ui() {
-                        ui.global::<Ui>().set_welcome(true);
-                    }
-                    crash_report(app);
-                    return;
+                if let Some(ui) = app.ui() {
+                    ui.global::<Ui>().set_welcome(true);
                 }
-                app.s.welcome_done = true;
-                app.dirty = true;
+                crash_report(app);
+                return;
             }
             let stale = library::now().saturating_sub(app.lib.scanned) > 6 * 3600;
             let has_folders = !app.s.library_folders.is_empty() || !app.s.video_folders.is_empty();

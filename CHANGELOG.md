@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.6.4
+
+- Ekran powitalny pokazuje się tylko przy pierwszym uruchomieniu (bez pliku ustawień) – nigdy przy już skonfigurowanym programie.
+
 ## 1.6.3
 
 - **Ekran powitalny** przy pierwszym uruchomieniu: wybór języka, foldery z muzyką i filmami (także dyski sieciowe), ikona w zasobniku i skojarzenia plików. Skanowanie biblioteki rusza po kliknięciu „Zaczynamy”. Kto aktualizuje starszą wersję z biblioteką, go nie zobaczy.
