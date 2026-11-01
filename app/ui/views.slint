@@ -1090,10 +1090,8 @@ export component SidePanel inherits Rectangle {
         if root.page == 1: Rectangle {
             vertical-stretch: 1;
             if Player.lyrics.length == 0: Text {
-                text: !Player.subs-mode ? "Brak tekstu dla tego utworu.
-OpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach."
-                    : Player.sub-langs.length == 0 ? "Ten film nie ma napisów tekstowych.
-Wczytaj albo pobierz napisy w panelu filmu."
+                text: !Player.subs-mode ? "Brak tekstu dla tego utworu.\nOpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach."
+                    : Player.sub-langs.length == 0 ? "Ten film nie ma napisów tekstowych.\nWczytaj albo pobierz napisy w panelu filmu."
                     : "Wczytywanie napisów…";
                 color: Theme.text3;
                 font-size: Theme.fs;
