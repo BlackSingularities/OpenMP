@@ -66,6 +66,8 @@ pub struct Settings {
     /// Utwory jako siatka okładek zamiast listy i szerokość kafelka.
     pub track_grid: bool,
     pub grid_size: f32,
+    /// Wysokość górnego panelu (podgląd) w px; 0 – automatyczna.
+    pub hero_h: f32,
     // Dźwięk
     pub volume: f32,
     pub muted: bool,
@@ -249,6 +251,7 @@ impl Default for Settings {
             resume_on_start: true,
             follow_playing: true,
             seek_step: 5.0,
+            hero_h: 0.0,
             hwdec: true,
             video_resume: true,
             autohide_ms: 2200,

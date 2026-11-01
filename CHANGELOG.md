@@ -1,5 +1,16 @@
 # Zmiany
 
+## 1.7.0
+
+- **Ustawienia uporządkowane**: wspólne dla muzyki i filmów w „Odtwarzaniu”, muzyka w „Dźwięku”, wszystko o filmach w „Wideo” – każda strona podzielona na sekcje.
+- **Napisy z plików MP4/M4V/MOV** (mov_text) trafiają do paska tekstu od razu w całości, jak z MKV i plików SRT – można przewinąć listę i kliknąć dowolną kwestię, by przeskoczyć film.
+- **Seriale**: nowa pozycja w filmach biblioteki – kafelki seriali (rozpoznawanych po S01E02/1x02 w nazwie pliku), a po kliknięciu strona serialu z odcinkami podzielonymi na sezony. Podwójne kliknięcie odcinka odtwarza go i kolejne.
+- **Wysokość górnego panelu** (podgląd utworu/filmu) zmienia się przeciągnięciem granicy nad listą; wysokość jest zapamiętywana, podwójne kliknięcie przywraca automatyczną.
+- Bez plakietki „W kolejce” na kafelkach i wierszach.
+- Podwójne kliknięcie filmu w bibliotece (np. we „Wszystkich filmach”) dodaje do kolejki tylko ten film, a nie cały widok.
+- Na filmie większy tytuł, bliżej górnej krawędzi; czasy nad paskiem kontrolek wyrównane do ikon pod spodem.
+- **Rozsądniejszy dobór napisów**: przy polskiej ścieżce dźwiękowej napisy są wyłączone; bez niej włączają się polskie, a gdy ich nie ma – angielskie (kolejność z listy preferowanych języków napisów). Wybór zapamiętany dla filmu ma pierwszeństwo.
+
 ## 1.6.4
 
 - Ekran powitalny pokazuje się tylko przy pierwszym uruchomieniu (bez pliku ustawień) – nigdy przy już skonfigurowanym programie.
@@ -39,7 +50,7 @@
 
 ## 1.5.4
 
-- **Obejrzany i odsłuchany od progu** (Ustawienia → Film, domyślnie 80%): odtworzenie liczy się w statystykach dopiero po przejściu tej części długości, a film dostaje znacznik „obejrzany” od tego samego progu. Pominięte po chwili utwory nie nabijają odtworzeń.
+- **Obejrzany i odsłuchany od progu** (Ustawienia → Odtwarzanie, domyślnie 80%): odtworzenie liczy się w statystykach dopiero po przejściu tej części długości, a film dostaje znacznik „obejrzany” od tego samego progu. Pominięte po chwili utwory nie nabijają odtworzeń.
 - **Zaznaczenie wygląda jak „Teraz odtwarzane”:** ten sam nagłówek, szeryfowy tytuł i wykonawca, album i rok (film – rok, gatunki, ocena) z ikoną, twórcy, opis i parametry techniczne z ikonami. Niżej tylko dodatkowe tagi – dla muzyki m.in. wykonawca albumu, numer, gatunek.
 
 ## 1.5.3

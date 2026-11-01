@@ -3861,3 +3861,60 @@ msgstr "Suma kontrolna pobranego pliku się nie zgadza – aktualizacja przerwan
 msgctxt "decimal separator"
 msgid "."
 msgstr ","
+
+msgid "GENERAL"
+msgstr "OGÓLNE"
+
+msgid "SCROBBLING"
+msgstr "SCROBBLOWANIE"
+
+msgid "OUTPUT"
+msgstr "WYJŚCIE"
+
+msgid "VOLUME AND SOUND"
+msgstr "GŁOŚNOŚĆ I BRZMIENIE"
+
+msgid "TRANSITIONS"
+msgstr "PRZEJŚCIA MIĘDZY UTWORAMI"
+
+msgid "MOVIE PLAYBACK"
+msgstr "ODTWARZANIE FILMÓW"
+
+msgid "COLORS AND GLOW"
+msgstr "KOLORY I POŚWIATA"
+
+msgid "ENGINE AND FILES"
+msgstr "SILNIK I PLIKI"
+
+msgid "MUSIC ONLINE"
+msgstr "MUZYKA Z INTERNETU"
+
+msgid "MOVIES ONLINE"
+msgstr "FILMY Z INTERNETU"
+
+msgid "WINDOWS"
+msgstr "WINDOWS"
+
+msgid "DATA"
+msgstr "DANE"
+
+msgid "UPDATES"
+msgstr "AKTUALIZACJE"
+
+msgid "TV shows"
+msgstr "Seriale"
+
+msgid "{n} season"
+msgid_plural "{n} seasons"
+msgstr[0] "{n} sezon"
+msgstr[1] "{n} sezony"
+msgstr[2] "{n} sezonów"
+
+msgid "{n} show"
+msgid_plural "{n} shows"
+msgstr[0] "{n} serial"
+msgstr[1] "{n} seriale"
+msgstr[2] "{n} seriali"
+
+msgid "No TV shows – episodes are recognized by S01E02 or 1x02 in the file name."
+msgstr "Brak seriali – odcinki są rozpoznawane po S01E02 albo 1x02 w nazwie pliku."

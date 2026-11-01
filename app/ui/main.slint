@@ -102,11 +102,49 @@ export component AppWindow inherits Window {
                             spacing: Theme.dense ? 10px : 16px;
                             VerticalLayout {
                                 horizontal-stretch: 1;
-                                spacing: Theme.gap;
-                                Hero {
+                                property <length> auto-h: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                // Własna wysokość z przeciągnięcia – lista pod spodem zawsze zostaje widoczna.
+                                property <length> max-h: max(110px, root.height - 380px);
+                                property <length> drag-h: -1px;
+                                hero := Hero {
                                     avail: root.width;
-                                    height: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                    height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
                                     small: self.height < 220px;
+                                }
+                                // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
+                                Rectangle {
+                                    height: Theme.gap;
+                                    grip := TouchArea {
+                                        mouse-cursor: row-resize;
+                                        property <length> start;
+                                        pointer-event(e) => {
+                                            if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                                                self.start = hero.height;
+                                            }
+                                            if e.button == PointerEventButton.left && e.kind == PointerEventKind.up && drag-h >= 0 {
+                                                Prefs.hero-h = drag-h / 1px;
+                                                drag-h = -1px;
+                                                Prefs.changed("hero-h");
+                                            }
+                                        }
+                                        moved => {
+                                            if self.pressed {
+                                                drag-h = clamp(self.start + self.mouse-y - self.pressed-y, 110px, max-h);
+                                            }
+                                        }
+                                        double-clicked => {
+                                            drag-h = -1px;
+                                            Prefs.hero-h = 0;
+                                            Prefs.changed("hero-h");
+                                        }
+                                    }
+                                    Rectangle {
+                                        width: 36px;
+                                        height: 3px;
+                                        border-radius: 1.5px;
+                                        background: grip.pressed ? Theme.tint : Theme.line2;
+                                        opacity: grip.has-hover || grip.pressed ? 1 : 0;
+                                    }
                                 }
                                 if Lib.view == 0: PlaylistView {
                                     vertical-stretch: 1;

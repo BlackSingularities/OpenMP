@@ -90,6 +90,7 @@ pub fn publish(app: &mut App) {
     p.set_resume_on_start(s.resume_on_start);
     p.set_follow_playing(s.follow_playing);
     p.set_seek_step(s.seek_step as f32);
+    p.set_hero_h(s.hero_h);
     p.set_video_resume(s.video_resume);
     p.set_accent_scope(s.accent_scope);
     p.set_backdrop(s.backdrop);
@@ -392,6 +393,7 @@ pub fn changed(app: &mut App, key: &str) {
         "resume-on-start" => app.s.resume_on_start = p.get_resume_on_start(),
         "follow-playing" => app.s.follow_playing = p.get_follow_playing(),
         "seek-step" => app.s.seek_step = p.get_seek_step().round() as f64,
+        "hero-h" => app.s.hero_h = p.get_hero_h().max(0.0),
         "hwdec-mode" => {
             app.s.hwdec_mode = p.get_hwdec_mode().clamp(0, 5);
             app.s.hwdec = app.s.hwdec_mode != 0;

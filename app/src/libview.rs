@@ -55,6 +55,7 @@ pub fn rebuild_nav(app: &mut App) {
         nav("all", tr!("All tracks"), "note", n(app.lib.tracks.len())),
         section("sec-video", tr!("VIDEO")),
         nav("v-all", tr!("All videos"), "movie", n(app.lib.videos.len())),
+        nav("v-shows", tr!("TV shows"), "library", n(shows(&app.lib.videos).len())),
         nav("v-continue", tr!("Continue watching"), "history", String::new()),
         nav("v-recent", tr!("Recently added"), "clock", String::new()),
         section("sec-sets", tr!("COLLECTIONS")),
@@ -305,6 +306,7 @@ fn title_for(kind: &str) -> &'static str {
         "dupes" => tr!("Duplicates"),
         "v-all" => tr!("All videos"),
         "v-folder" => tr!("Video folders"),
+        "v-shows" => tr!("TV shows"),
         "v-continue" => tr!("Continue watching"),
         "v-recent" => tr!("Recently added videos"),
         _ => tr!("Library"),
@@ -331,6 +333,7 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
     let kind = app.libv.kind.clone();
     let video_kind = kind.starts_with("v-");
     l.set_can_back(!app.libv.stack.is_empty());
+    l.set_seasons(app.libv.search.trim().is_empty() && app.libv.stack.last().is_some_and(|g| g.0 == "v-show"));
     let empty_lib = if video_kind {
         tr!("No videos in the library.\nAdd video folders (network drives work too) in Settings → Library.")
     } else {
@@ -356,6 +359,16 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             l.set_subtitle(ss(format!("{} · {}", trn!("{n} album", "{n} albums", groups.len()), trn!("{n} track", "{n} tracks", mine.len()))));
             app.libv.tracks = mine;
             set_tiles(app, groups, "album", true);
+            return;
+        }
+        if gk == "v-show" {
+            let eps = show_episodes(source, &name);
+            let seasons = eps.iter().filter_map(|t| episode_of(t).map(|e| e.0)).collect::<std::collections::BTreeSet<_>>().len();
+            let dur: f64 = eps.iter().map(|t| t.duration).sum();
+            l.set_title(ss(&name));
+            l.set_subtitle(ss(format!("{}  ·  {}  ·  {}", trn!("{n} season", "{n} seasons", seasons), trn!("{n} episode", "{n} episodes", eps.len()), meta::fmt_total(dur))));
+            l.set_empty_text(ss(tr!("Empty.")));
+            set_tracks(app, eps);
             return;
         }
         if gk == "dir" || gk == "v-dir" {
@@ -441,6 +454,13 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             }
             l.set_subtitle(ss(trn!("{n} item", "{n} items", t.len())));
             set_tracks(app, t);
+        }
+        "v-shows" => {
+            let groups = shows(source);
+            let eps: usize = groups.iter().map(|g| g.count).sum();
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} show", "{n} shows", groups.len()), trn!("{n} episode", "{n} episodes", eps))));
+            l.set_empty_text(ss(tr!("No TV shows – episodes are recognized by S01E02 or 1x02 in the file name.")));
+            set_tiles(app, groups, "v-show", true);
         }
         "recent" | "v-recent" => {
             let mut t = source.to_vec();
@@ -696,20 +716,70 @@ fn natural(s: &str) -> Vec<(String, u64)> {
     out
 }
 
+/// Sezon i odcinek z nazwy pliku filmu.
+fn episode_of(t: &TrackInfo) -> Option<(u32, u32)> {
+    let p = std::path::Path::new(&t.path);
+    crate::lists::episode(&p.file_stem()?.to_string_lossy())
+}
+
+/// Nazwa serialu odcinka – z nazwy pliku (bez SxxEyy i znaczników jakości), a gdy plik
+/// to samo „S01E02” – z folderu (pominięty folder sezonu).
+fn show_name(t: &TrackInfo) -> Option<String> {
+    episode_of(t)?;
+    let p = std::path::Path::new(&t.path);
+    let n = openmp_core::tmdb::guess(p).0;
+    let n = n.trim().trim_end_matches(['-', '–', ' ']).trim().to_string();
+    if !n.is_empty() {
+        return Some(n);
+    }
+    p.ancestors()
+        .skip(1)
+        .filter_map(|d| d.file_name().map(|f| f.to_string_lossy().into_owned()))
+        .find(|f| {
+            let l = f.to_lowercase();
+            !(l.starts_with("season") || l.starts_with("sezon") || (l.starts_with('s') && l[1..].chars().all(|c| c.is_ascii_digit())))
+        })
+}
+
+/// Seriale biblioteki – po nazwie, z liczbą odcinków; okładka z najwcześniejszego odcinka.
+fn shows(videos: &[TrackInfo]) -> Vec<library::Group> {
+    let mut map: std::collections::BTreeMap<String, (library::Group, Option<(u32, u32)>)> = std::collections::BTreeMap::new();
+    for t in videos {
+        let Some(name) = show_name(t) else { continue };
+        let ep = episode_of(t);
+        let (g, first) = map.entry(name.to_lowercase()).or_insert_with(|| (library::Group { name, first: t.path.clone(), ..Default::default() }, ep));
+        g.count += 1;
+        g.duration += t.duration;
+        if ep < *first {
+            *first = ep;
+            g.first = t.path.clone();
+        }
+    }
+    map.into_values().map(|(g, _)| g).collect()
+}
+
+/// Odcinki serialu po kolei: sezon, odcinek, potem nazwa pliku.
+fn show_episodes(videos: &[TrackInfo], name: &str) -> Vec<TrackInfo> {
+    let key = name.to_lowercase();
+    let mut v: Vec<TrackInfo> = videos.iter().filter(|t| show_name(t).is_some_and(|n| n.to_lowercase() == key)).cloned().collect();
+    v.sort_by_cached_key(|t| (episode_of(t), natural(&t.path)));
+    v
+}
+
 fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool) {
     let Some(ui) = app.ui() else { return };
     let l = ui.global::<Lib>();
     l.set_show_tiles(true);
     l.set_grid(grid);
     app.libv.tile_keys = groups.iter().map(|g| (kind.to_string(), g.name.clone(), g.sub.clone())).collect();
-    let with_cover = matches!(kind, "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir");
+    let with_cover = matches!(kind, "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir" | "v-show");
     let tiles: Vec<Tile> = groups
         .iter()
         .enumerate()
         .map(|(i, g)| {
             let cover = if with_cover { crate::covers::get(&g.first) } else { None };
             let video = kind == "v-folder" || kind == "v-dir";
-            let what = if video { trn!("{n} video", "{n} videos", g.count) } else { trn!("{n} track", "{n} tracks", g.count) };
+            let what = if kind == "v-show" { trn!("{n} episode", "{n} episodes", g.count) } else if video { trn!("{n} video", "{n} videos", g.count) } else { trn!("{n} track", "{n} tracks", g.count) };
             if kind == "dir" || kind == "v-dir" {
                 let name = if g.sub == FILES_HERE { tr!("Files in this folder").to_string() } else { folder_name(&g.name) };
                 return Tile {
@@ -736,7 +806,7 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
             Tile {
                 key: ss(i.to_string()),
                 name: ss(name),
-                sub: ss(if grid && kind == "v-folder" { what.clone() } else { sub }),
+                sub: ss(if grid && (kind == "v-folder" || kind == "v-show") { what.clone() } else { sub }),
                 count: ss(&what),
                 has_cover: cover.is_some(),
                 cover: cover.unwrap_or_default(),
@@ -760,7 +830,9 @@ fn set_tracks(app: &mut App, tracks: Vec<TrackInfo>) {
 fn rows(app: &mut App) {
     let playing = app.cur.as_ref().filter(|c| c.item != 0).map(|c| c.info.path.to_lowercase());
     let qpaths = crate::lists::queue_paths(app);
-    let grid = app.s.track_grid;
+    // Strona serialu – zawsze lista z nagłówkami sezonów.
+    let show_page = app.libv.search.trim().is_empty() && app.libv.stack.last().is_some_and(|g| g.0 == "v-show");
+    let grid = app.s.track_grid && !show_page;
     let rows: Vec<TrackRow> = app
         .libv
         .tracks
@@ -884,7 +956,7 @@ pub fn refresh_covers(app: &mut App, key: &str) {
             continue;
         }
         let Some((kind, name, sub)) = app.libv.tile_keys.get(r).cloned() else { continue };
-        if !matches!(kind.as_str(), "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir" | "files" | "v-files") {
+        if !matches!(kind.as_str(), "album" | "artist" | "folder" | "v-folder" | "dir" | "v-dir" | "files" | "v-files" | "v-show") {
             continue;
         }
         let first = group_tracks_of(app, &kind, &name, &sub).first().map(|t| t.path.clone());
@@ -910,7 +982,7 @@ pub fn tile_clicked(app: &mut App, key: &str) {
 
 /// Pliki kafelka; folder w drzewie obejmuje też wszystkie podfoldery.
 fn group_tracks_of(app: &App, kind: &str, name: &str, sub: &str) -> Vec<TrackInfo> {
-    let video = matches!(kind, "v-folder" | "v-dir" | "v-files");
+    let video = matches!(kind, "v-folder" | "v-dir" | "v-files" | "v-show");
     let src = if video {
         &app.lib.videos
     } else if app.libv.kind == "artist" && !app.libv.stack.is_empty() {
@@ -921,6 +993,7 @@ fn group_tracks_of(app: &App, kind: &str, name: &str, sub: &str) -> Vec<TrackInf
     let mut v: Vec<TrackInfo> = match kind {
         "dir" | "v-dir" => library::in_tree(src, name).into_iter().cloned().collect(),
         "files" | "v-files" | "v-folder" => library::in_group(src, "folder", name, sub).into_iter().cloned().collect(),
+        "v-show" => return show_episodes(src, name),
         _ => library::in_group(src, kind, name, sub).into_iter().cloned().collect(),
     };
     if matches!(kind, "dir" | "v-dir" | "files" | "v-files" | "v-folder") {
@@ -1074,6 +1147,18 @@ pub fn row_clicked(app: &mut App, i: usize, ctrl: bool, shift: bool) {
 }
 
 pub fn row_double(app: &mut App, i: usize) {
+    // Film – do kolejki tylko on, nie cały widok (np. wszystkie filmy z biblioteki).
+    // Na stronie serialu – kolejne odcinki od klikniętego.
+    let show_page = app.libv.stack.last().is_some_and(|g| g.0 == "v-show");
+    if show_page {
+        let t = app.libv.tracks[i.min(app.libv.tracks.len().saturating_sub(1))..].to_vec();
+        play_tracks(app, t, 0, false);
+        return;
+    }
+    if let Some(v) = app.libv.tracks.get(i).filter(|t| t.video).cloned() {
+        play_tracks(app, vec![v], 0, false);
+        return;
+    }
     let t = app.libv.tracks.clone();
     play_tracks(app, t, i, false);
 }

@@ -823,7 +823,7 @@ export component LibraryView inherits Rectangle {
         if !Lib.show-tiles: TrackList {
             vertical-stretch: 1;
             rows: Lib.rows;
-            grid: Prefs.track-grid;
+            grid: Prefs.track-grid && !Lib.seasons;
             tile: Prefs.grid-size * 1px;
             zoom(d) => {
                 Prefs.set-view(clamp(Prefs.view-size + d, 90, 280));

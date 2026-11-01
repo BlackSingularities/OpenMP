@@ -867,9 +867,9 @@ component FullView inherits Rectangle {
         HorizontalLayout {
             padding-left: 18px;
             padding-right: 6px;
-            padding-top: 8px;
+            padding-top: 2px;
             alignment: stretch;
-            height: 44px;
+            height: 48px;
             spacing: 2px;
             IconBtn {
                 y: 4px;
@@ -887,7 +887,7 @@ component FullView inherits Rectangle {
                 Text {
                     text: Video.title;
                     color: #ffffff;
-                    font-size: Theme.fs-md;
+                    font-size: Theme.fs-md * 1.35;
                     font-weight: 600;
                     overflow: elide;
                 }
@@ -953,6 +953,9 @@ component FullView inherits Rectangle {
             }
             HorizontalLayout {
                 height: 20px;
+                // Wcięcie jak ikona w przycisku pod spodem (32 px, ikona 18 px) – czasy równo z ikonami.
+                padding-left: 7px;
+                padding-right: 7px;
                 Text {
                     text: Fmt.time(Video.pos);
                     color: root.c2;

@@ -960,6 +960,9 @@ export component SettingsDialog inherits Dialog {
             }
             if Ui.settings-page == 3: Page {
                 heading: @tr("Playback");
+                SectionTitle {
+                    text: @tr("GENERAL");
+                }
                 SettingSwitch {
                     title: @tr("Resume on startup");
                     hint: @tr("The last track from where you left off");
@@ -988,29 +991,46 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: @tr("Crossfade");
-                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : @tr("Off – gapless playback");
+                    title: @tr("Watched and played after");
+                    hint: @tr("{}% of the length – only then does a play count, and a movie is marked watched", round(Prefs.played-pct));
                     HSlider {
                         width: 180px;
-                        minimum: 0;
-                        maximum: 12;
-                        step: 0.5;
-                        value: Prefs.crossfade;
+                        minimum: 10;
+                        maximum: 100;
+                        step: 5;
+                        value: Prefs.played-pct;
                         moved(v) => {
-                            Prefs.crossfade = v;
-                            Prefs.changed("crossfade");
+                            Prefs.played-pct = v;
+                            Prefs.changed("played-pct");
+                        }
+                        reset => {
+                            Prefs.played-pct = 80;
+                            Prefs.changed("played-pct");
                         }
                     }
                 }
-                SettingSwitch {
-                    title: @tr("Smooth pause");
-                    hint: @tr("A short fade on pause and resume");
-                    checked <=> Prefs.soft-pause;
-                    toggled => { Prefs.changed("soft-pause"); }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("SCROBBLING");
+                }
+                SettingRow {
+                    title: @tr("ListenBrainz token");
+                    hint: @tr("Scrobbling of played tracks – a token from listenbrainz.org/settings; empty turns it off");
+                    LineEdit {
+                        width: 220px;
+                        input-type: password;
+                        text <=> Prefs.lb-token;
+                        edited => { Prefs.changed("lb-token"); }
+                    }
                 }
             }
             if Ui.settings-page == 4: Page {
                 heading: @tr("Audio");
+                SectionTitle {
+                    text: @tr("OUTPUT");
+                }
                 SettingRow {
                     title: @tr("Output device");
                     ComboBox {
@@ -1037,6 +1057,12 @@ export component SettingsDialog inherits Dialog {
                         selected <=> Prefs.resample-quality;
                         changed => { Prefs.changed("resample-quality"); }
                     }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("VOLUME AND SOUND");
                 }
                 SettingRow {
                     title: @tr("ReplayGain");
@@ -1080,6 +1106,33 @@ export component SettingsDialog inherits Dialog {
                             Ui.equalizer = true;
                         }
                     }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("TRANSITIONS");
+                }
+                SettingRow {
+                    title: @tr("Crossfade");
+                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : @tr("Off – gapless playback");
+                    HSlider {
+                        width: 180px;
+                        minimum: 0;
+                        maximum: 12;
+                        step: 0.5;
+                        value: Prefs.crossfade;
+                        moved(v) => {
+                            Prefs.crossfade = v;
+                            Prefs.changed("crossfade");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: @tr("Smooth pause");
+                    hint: @tr("A short fade on pause and resume");
+                    checked <=> Prefs.soft-pause;
+                    toggled => { Prefs.changed("soft-pause"); }
                 }
             }
             if Ui.settings-page == 5: Page {
@@ -1127,41 +1180,51 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
-                SettingRow {
-                    title: @tr("Ambient glow");
-                    hint: @tr("Soft light in the movie's colors around the picture and in the side bars");
-                    Segmented {
-                        options: [@tr("glow" => "Off"), @tr("Subtle"), @tr("glow" => "Strong")];
-                        selected: Prefs.ambient;
-                        changed(i) => {
-                            Prefs.ambient = i;
-                            Prefs.changed("ambient");
-                        }
-                    }
-                }
-                SettingSwitch {
-                    title: @tr("Accent color from picture");
-                    hint: @tr("The program's accent smoothly follows the movie's colors");
-                    checked <=> Prefs.video-tint;
-                    toggled => { Prefs.changed("video-tint"); }
-                }
-                if Prefs.video-tint: SettingRow {
-                    title: @tr("How often to sample the picture's color");
-                    hint: @tr("More often – the color keeps up with the scene faster; less often – calmer and lighter on the graphics card");
-                    Segmented {
-                        options: [@tr("0.5 s"), @tr("1.2 s"), "3 s", "8 s"];
-                        selected: Prefs.tint-rate;
-                        changed(i) => {
-                            Prefs.tint-rate = i;
-                            Prefs.changed("tint-rate");
-                        }
-                    }
-                }
                 SettingSwitch {
                     title: @tr("Frame preview above the seek bar");
                     hint: @tr("A thumbnail of the spot under the cursor (local files)");
                     checked <=> Prefs.seek-preview;
                     toggled => { Prefs.changed("seek-preview"); }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("MOVIE PLAYBACK");
+                }
+                SettingSwitch {
+                    title: @tr("Resume movies");
+                    hint: @tr("A movie starts where you stopped it");
+                    checked <=> Prefs.video-resume;
+                    toggled => { Prefs.changed("video-resume"); }
+                }
+                SettingSwitch {
+                    title: @tr("After a movie, play the next file from the list");
+                    checked <=> Prefs.video-autonext;
+                    toggled => { Prefs.changed("video-autonext"); }
+                }
+                SettingRow {
+                    title: @tr("Mouse wheel over the picture");
+                    hint: @tr("With Ctrl – zoom the picture");
+                    Segmented {
+                        options: [@tr("Volume"), @tr("Seeking")];
+                        selected: Prefs.wheel-action;
+                        changed(i) => {
+                            Prefs.wheel-action = i;
+                            Prefs.changed("wheel-action");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: @tr("Double-click near the edge seeks 10 s");
+                    hint: @tr("Left quarter – back, right – forward; in the middle – full screen");
+                    checked <=> Prefs.dblclick-seek;
+                    toggled => { Prefs.changed("dblclick-seek"); }
+                }
+                SettingSwitch {
+                    title: @tr("Keep the computer awake during movies");
+                    checked <=> Prefs.prevent-sleep;
+                    toggled => { Prefs.changed("prevent-sleep"); }
                 }
                 Rectangle {
                     height: 10px;
@@ -1228,55 +1291,37 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: @tr("CONTROLS");
+                    text: @tr("COLORS AND GLOW");
                 }
                 SettingRow {
-                    title: @tr("Mouse wheel over the picture");
-                    hint: @tr("With Ctrl – zoom the picture");
+                    title: @tr("Ambient glow");
+                    hint: @tr("Soft light in the movie's colors around the picture and in the side bars");
                     Segmented {
-                        options: [@tr("Volume"), @tr("Seeking")];
-                        selected: Prefs.wheel-action;
+                        options: [@tr("glow" => "Off"), @tr("Subtle"), @tr("glow" => "Strong")];
+                        selected: Prefs.ambient;
                         changed(i) => {
-                            Prefs.wheel-action = i;
-                            Prefs.changed("wheel-action");
+                            Prefs.ambient = i;
+                            Prefs.changed("ambient");
                         }
                     }
                 }
                 SettingSwitch {
-                    title: @tr("Double-click near the edge seeks 10 s");
-                    hint: @tr("Left quarter – back, right – forward; in the middle – full screen");
-                    checked <=> Prefs.dblclick-seek;
-                    toggled => { Prefs.changed("dblclick-seek"); }
+                    title: @tr("Accent color from picture");
+                    hint: @tr("The program's accent smoothly follows the movie's colors");
+                    checked <=> Prefs.video-tint;
+                    toggled => { Prefs.changed("video-tint"); }
                 }
-                SettingSwitch {
-                    title: @tr("Resume movies");
-                    hint: @tr("A movie starts where you stopped it");
-                    checked <=> Prefs.video-resume;
-                    toggled => { Prefs.changed("video-resume"); }
-                }
-                SettingRow {
-                    title: @tr("Watched and played after");
-                    hint: @tr("{}% of the length – only then does a play count, and a movie is marked watched", round(Prefs.played-pct));
-                    HSlider {
-                        width: 180px;
-                        minimum: 10;
-                        maximum: 100;
-                        step: 5;
-                        value: Prefs.played-pct;
-                        moved(v) => {
-                            Prefs.played-pct = v;
-                            Prefs.changed("played-pct");
-                        }
-                        reset => {
-                            Prefs.played-pct = 80;
-                            Prefs.changed("played-pct");
+                if Prefs.video-tint: SettingRow {
+                    title: @tr("How often to sample the picture's color");
+                    hint: @tr("More often – the color keeps up with the scene faster; less often – calmer and lighter on the graphics card");
+                    Segmented {
+                        options: [@tr("0.5 s"), @tr("1.2 s"), "3 s", "8 s"];
+                        selected: Prefs.tint-rate;
+                        changed(i) => {
+                            Prefs.tint-rate = i;
+                            Prefs.changed("tint-rate");
                         }
                     }
-                }
-                SettingSwitch {
-                    title: @tr("After a movie, play the next file from the list");
-                    checked <=> Prefs.video-autonext;
-                    toggled => { Prefs.changed("video-autonext"); }
                 }
                 Rectangle {
                     height: 10px;
@@ -1366,13 +1411,8 @@ export component SettingsDialog inherits Dialog {
                 Rectangle {
                     height: 10px;
                 }
-                SettingRow {
-                    title: @tr("Screenshot folder");
-                    hint: Prefs.screenshot-dir;
-                    Btn {
-                        text: @tr("Change…");
-                        clicked => { Prefs.pick-screenshot-dir(); }
-                    }
+                SectionTitle {
+                    text: @tr("ENGINE AND FILES");
                 }
                 SettingRow {
                     title: @tr("Video engine");
@@ -1381,6 +1421,14 @@ export component SettingsDialog inherits Dialog {
                         text: Prefs.mpv-ok ? @tr("ready") : @tr("unavailable");
                         color: Prefs.mpv-ok ? Theme.ok : Theme.danger;
                         font-size: Theme.fs;
+                    }
+                }
+                SettingRow {
+                    title: @tr("Screenshot folder");
+                    hint: Prefs.screenshot-dir;
+                    Btn {
+                        text: @tr("Change…");
+                        clicked => { Prefs.pick-screenshot-dir(); }
                     }
                 }
             }
@@ -1537,7 +1585,7 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: @tr("INTERNET");
+                    text: @tr("MUSIC ONLINE");
                 }
                 SettingSwitch {
                     title: @tr("Download missing lyrics from LRCLIB");
@@ -1550,6 +1598,12 @@ export component SettingsDialog inherits Dialog {
                     hint: @tr("From MusicBrainz and Cover Art Archive – sends only the artist and album");
                     checked <=> Prefs.online-covers;
                     toggled => { Prefs.changed("online-covers"); }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("MOVIES ONLINE");
                 }
                 SettingRow {
                     title: @tr("TMDB API key");
@@ -1569,16 +1623,6 @@ export component SettingsDialog inherits Dialog {
                         input-type: password;
                         text <=> Prefs.os-key;
                         edited => { Prefs.changed("os-key"); }
-                    }
-                }
-                SettingRow {
-                    title: @tr("ListenBrainz token");
-                    hint: @tr("Scrobbling of played tracks – a token from listenbrainz.org/settings; empty turns it off");
-                    LineEdit {
-                        width: 220px;
-                        input-type: password;
-                        text <=> Prefs.lb-token;
-                        edited => { Prefs.changed("lb-token"); }
                     }
                 }
             }
@@ -1645,6 +1689,9 @@ export component SettingsDialog inherits Dialog {
             }
             if Ui.settings-page == 9: Page {
                 heading: @tr("System");
+                SectionTitle {
+                    text: @tr("WINDOWS");
+                }
                 SettingSwitch {
                     title: @tr("Single program window");
                     hint: @tr("Opened files go to the running OpenMP");
@@ -1669,10 +1716,19 @@ export component SettingsDialog inherits Dialog {
                     checked <=> Prefs.global-hotkeys;
                     toggled => { Prefs.changed("global-hotkeys"); }
                 }
-                SettingSwitch {
-                    title: @tr("Keep the computer awake during movies");
-                    checked <=> Prefs.prevent-sleep;
-                    toggled => { Prefs.changed("prevent-sleep"); }
+                SettingRow {
+                    title: @tr("File associations");
+                    hint: @tr("Set OpenMP as the default player in Windows settings");
+                    Btn {
+                        text: @tr("Default apps…");
+                        clicked => { Prefs.associate(); }
+                    }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("DATA");
                 }
                 SettingRow {
                     title: @tr("Backup");
@@ -1689,13 +1745,11 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
-                SettingRow {
-                    title: @tr("File associations");
-                    hint: @tr("Set OpenMP as the default player in Windows settings");
-                    Btn {
-                        text: @tr("Default apps…");
-                        clicked => { Prefs.associate(); }
-                    }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("UPDATES");
                 }
                 SettingSwitch {
                     title: @tr("Check for updates automatically");

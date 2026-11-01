@@ -622,6 +622,33 @@ pub fn toggle_fullscreen(app: &mut App) {
     }
 }
 
+/// Ten sam język niezależnie od zapisu: pl / pol / Polish.
+fn lang_key(l: &str) -> String {
+    let l = l.trim().to_lowercase();
+    match l.as_str() {
+        "pl" | "pol" | "polish" | "polski" => "pl".into(),
+        "en" | "eng" | "english" => "en".into(),
+        "de" | "ger" | "deu" | "german" => "de".into(),
+        "fr" | "fre" | "fra" | "french" => "fr".into(),
+        _ => l,
+    }
+}
+
+/// Napisy domyślnie: przy dźwięku w pierwszym języku z listy (zwykle polskim) żadne,
+/// inaczej pierwsze pasujące w kolejności listy (polskie, potem angielskie).
+fn auto_subs(m: &Mpv, sub_lang: &str) {
+    let langs: Vec<String> = sub_lang.split(',').map(lang_key).filter(|l| !l.is_empty()).collect();
+    let Some(own) = langs.first() else { return };
+    let tracks = m.tracks();
+    let audio = tracks.iter().find(|t| t.kind == "audio" && t.selected);
+    if audio.is_some_and(|a| lang_key(&a.lang) == *own) {
+        m.set("sid", "no");
+        return;
+    }
+    let pick = langs.iter().find_map(|l| tracks.iter().find(|t| t.kind == "sub" && lang_key(&t.lang) == *l));
+    m.set("sid", &pick.map_or("no".to_string(), |t| t.id.to_string()));
+}
+
 /// Plik wczytany: ścieżki, napisy, rozdziały, opis, odświeżenie podglądu.
 pub fn on_loaded(app: &mut App) {
     let Some(m) = app.mpv.clone() else { return };
@@ -638,6 +665,9 @@ pub fn on_loaded(app: &mut App) {
         if !st.sid.is_empty() {
             m.set("sid", &st.sid);
         }
+    }
+    if app.cur.as_ref().is_some_and(|c| c.video) && saved.as_ref().map_or(true, |st| st.sid.is_empty()) {
+        auto_subs(&m, &app.s.sub_lang);
     }
     let tracks = m.tracks();
     let has_video = tracks.iter().any(|t| t.kind == "video" && !t.title.contains("cover"));

@@ -502,16 +502,18 @@ fn load_sub_panel(app: &mut App) {
         m.set("secondary-sub-visibility", "no");
         m.set("secondary-sid", &t.id.to_string());
     }
-    // Napisy z pliku Matroska – całe w tle; do tego czasu kwestie dopisują się na bieżąco.
+    // Napisy z pliku Matroska albo MP4 – całe w tle; do tego czasu kwestie dopisują się na bieżąco.
     let gen = SUB_GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let Some(path) = app.cur.as_ref().map(|c| c.info.path.clone()).filter(|p| !meta::is_url(p)) else { return };
-    if t.src_id < 0 {
+    if t.src_id < 0 && t.codec != "mov_text" {
         return;
     }
     let (id, src) = (t.id, t.src_id as u64);
+    let mp4 = t.codec == "mov_text";
     std::thread::spawn(move || {
         let stop = || SUB_GEN.load(Ordering::SeqCst) != gen;
-        let Some(lines) = openmp_core::mkvsubs::subtitles(Path::new(&path), src, &stop) else { return };
+        let read = if mp4 { openmp_core::mp4subs::subtitles } else { openmp_core::mkvsubs::subtitles };
+        let Some(lines) = read(Path::new(&path), src, &stop) else { return };
         if lines.is_empty() {
             return;
         }

@@ -157,6 +157,8 @@ export global Lib {
     in-out property <string> subtitle;
     in-out property <bool> grid;
     in-out property <bool> show-tiles;
+    // Strona serialu: odcinki zawsze listą z nagłówkami sezonów.
+    in-out property <bool> seasons;
     in-out property <[Tile]> tiles;
     in-out property <[TrackRow]> rows;
     in-out property <bool> can-back;
@@ -415,6 +417,8 @@ export global Prefs {
     in-out property <bool> resume-on-start: true;
     in-out property <bool> follow-playing: true;
     in-out property <float> seek-step: 5;
+    // Wysokość górnego panelu w px (0 – automatyczna).
+    in-out property <float> hero-h: 0;
     in-out property <bool> video-resume: true;
     in-out property <int> autohide-ms: 2200;
     in-out property <int> sub-size: 46;
