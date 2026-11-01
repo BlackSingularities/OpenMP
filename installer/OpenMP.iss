@@ -38,6 +38,7 @@ VersionInfoDescription=OpenMP – odtwarzacz muzyki i wideo
 
 [Languages]
 Name: "pl"; MessagesFile: "compiler:Languages\Polish.isl"
+Name: "en"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Skrót na pulpicie"; GroupDescription: "Skróty:"

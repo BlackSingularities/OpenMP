@@ -20,10 +20,10 @@ pub fn command(app: &mut App, id: &str) {
     }
     crate::player::refresh_next(app);
     let msg = match &app.sleep {
-        Some(SleepMode::At(_)) => format!("Wyłącznik: za {} min", id.trim_start_matches("sleep-")),
-        Some(SleepMode::EndOfTrack) => "Wyłącznik: po bieżącym utworze".into(),
-        Some(SleepMode::EndOfList) => "Wyłącznik: po zakończeniu listy".into(),
-        None => "Wyłącznik wyłączony".into(),
+        Some(SleepMode::At(_)) => tr!("Sleep timer: in {} min", id.trim_start_matches("sleep-")),
+        Some(SleepMode::EndOfTrack) => tr!("Sleep timer: after the current track").into(),
+        Some(SleepMode::EndOfList) => tr!("Sleep timer: when the list ends").into(),
+        None => tr!("Sleep timer off").into(),
     };
     app.toast(msg);
     tick(app);
@@ -38,7 +38,7 @@ pub fn fire(app: &mut App) {
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_sleep_text(ss(""));
     }
-    app.toast("Wyłącznik czasowy zatrzymał odtwarzanie");
+    app.toast(tr!("The sleep timer stopped playback"));
 }
 
 pub fn tick(app: &mut App) {
@@ -56,8 +56,8 @@ pub fn tick(app: &mut App) {
             let s = left.ceil() as u64;
             format!("{}:{:02}", s / 60, s % 60)
         }
-        Some(SleepMode::EndOfTrack) => "utwór".into(),
-        Some(SleepMode::EndOfList) => "lista".into(),
+        Some(SleepMode::EndOfTrack) => trc!("sleep timer", "track").into(),
+        Some(SleepMode::EndOfList) => trc!("sleep timer", "list").into(),
         None => String::new(),
     };
     if let Some(ui) = app.ui() {

@@ -51,7 +51,7 @@ export component Dialog inherits Rectangle {
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.close;
-                tip: "Zamknij";
+                tip: @tr("Close");
                 clicked => { root.close(); }
             }
         }
@@ -60,7 +60,7 @@ export component Dialog inherits Rectangle {
 }
 
 export component EqualizerDialog inherits Dialog {
-    title: "Korektor i efekty dźwięku";
+    title: @tr("Equalizer and sound effects");
     card-width: 860px;
     close => { Ui.equalizer = false; }
     VerticalLayout {
@@ -75,7 +75,7 @@ export component EqualizerDialog inherits Dialog {
                 toggled => { Prefs.changed("eq-on"); }
             }
             Text {
-                text: Prefs.eq-on ? "Korektor włączony" : "Korektor wyłączony";
+                text: Prefs.eq-on ? @tr("Equalizer on") : @tr("Equalizer off");
                 color: Theme.text;
                 font-size: Theme.fs;
                 vertical-alignment: center;
@@ -89,7 +89,7 @@ export component EqualizerDialog inherits Dialog {
                 toggled => { Prefs.changed("auto-eq"); }
             }
             Text {
-                text: "Dopasuj do gatunku";
+                text: @tr("Match genre");
                 color: Prefs.auto-eq ? Theme.text : Theme.text2;
                 font-size: Theme.fs;
                 vertical-alignment: center;
@@ -104,12 +104,12 @@ export component EqualizerDialog inherits Dialog {
                 selected => { Prefs.eq-preset(self.current-index); }
             }
             Btn {
-                text: "Zapisz jako…";
+                text: @tr("Save as…");
                 icon: Icons.add;
                 clicked => { Prefs.eq-save-preset(); }
             }
             Btn {
-                text: "Wyzeruj";
+                text: @tr("Reset");
                 clicked => { Prefs.eq-reset(); }
             }
         }
@@ -122,7 +122,7 @@ export component EqualizerDialog inherits Dialog {
                 padding: 12px;
                 spacing: 6px;
                 VSlider {
-                    label: "Wzm.";
+                    label: @tr("Gain");
                     range: 20;
                     value: Prefs.preamp;
                     moved(v) => {
@@ -148,10 +148,10 @@ export component EqualizerDialog inherits Dialog {
                 horizontal-stretch: 1;
                 spacing: 2px;
                 SectionTitle {
-                    text: "PRZESTRZEŃ";
+                    text: @tr("SPACE");
                 }
                 SettingRow {
-                    title: "Balans";
+                    title: @tr("Balance");
                     HSlider {
                         width: 150px;
                         minimum: -1;
@@ -169,7 +169,7 @@ export component EqualizerDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Szerokość stereo";
+                    title: @tr("Stereo width");
                     hint: round(Prefs.width * 100) + "%";
                     HSlider {
                         width: 150px;
@@ -188,18 +188,18 @@ export component EqualizerDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Mono";
+                    title: @tr("Mono");
                     checked <=> Prefs.mono;
                     toggled => { Prefs.changed("mono"); }
                 }
                 SettingSwitch {
-                    title: "Zamiana kanałów";
+                    title: @tr("Swap channels");
                     checked <=> Prefs.swap;
                     toggled => { Prefs.changed("swap"); }
                 }
                 SettingSwitch {
-                    title: "Przesłuch słuchawkowy";
-                    hint: "Naturalniejsza scena w słuchawkach";
+                    title: @tr("Headphone crossfeed");
+                    hint: @tr("A more natural stage in headphones");
                     checked <=> Prefs.crossfeed;
                     toggled => { Prefs.changed("crossfeed"); }
                 }
@@ -208,11 +208,11 @@ export component EqualizerDialog inherits Dialog {
                 horizontal-stretch: 1;
                 spacing: 2px;
                 SectionTitle {
-                    text: "ODTWARZANIE";
+                    text: @tr("PLAYBACK");
                 }
                 SettingRow {
-                    title: "Przenikanie utworów";
-                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : "Wyłączone – przejścia bez przerwy";
+                    title: @tr("Crossfade");
+                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : @tr("Off – gapless transitions");
                     HSlider {
                         width: 150px;
                         minimum: 0;
@@ -226,8 +226,8 @@ export component EqualizerDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Prędkość";
-                    hint: round(Prefs.speed * 100) / 100 + "× (z tonacją, jak gramofon)";
+                    title: @tr("Speed");
+                    hint: @tr("{}× (with pitch, like a turntable)", round(Prefs.speed * 100) / 100);
                     HSlider {
                         width: 150px;
                         minimum: 0.5;
@@ -245,39 +245,39 @@ export component EqualizerDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "ReplayGain";
-                    hint: "Wyrównanie głośności z tagów";
+                    title: @tr("ReplayGain");
+                    hint: @tr("Volume levelling from tags");
                     Segmented {
                         small: true;
-                        options: ["Wył.", "Utwór", "Album"];
+                        options: [@tr("short" => "Off"), @tr("Track"), @tr("Album")];
                         selected <=> Prefs.replaygain;
                         changed => { Prefs.changed("replaygain"); }
                     }
                 }
                 SettingSwitch {
-                    title: "Ogranicznik";
-                    hint: "Chroni przed przesterowaniem przy podbiciu";
+                    title: @tr("Limiter");
+                    hint: @tr("Prevents clipping when boosting");
                     checked <=> Prefs.limiter;
                     toggled => { Prefs.changed("limiter"); }
                 }
                 SettingSwitch {
-                    title: "Korektor parametryczny";
-                    hint: Prefs.peq-name != "" ? "Profil: " + Prefs.peq-name : "Profil słuchawek z AutoEQ – wczytaj plik ParametricEQ.txt";
+                    title: @tr("Parametric equalizer");
+                    hint: Prefs.peq-name != "" ? @tr("Profile: {}", Prefs.peq-name) : @tr("Headphone profile from AutoEQ – load a ParametricEQ.txt file");
                     checked <=> Prefs.peq-on;
                     toggled => { Prefs.changed("peq-on"); }
                 }
                 HorizontalLayout {
                     alignment: start;
                     Btn {
-                        text: "Wczytaj profil AutoEQ…";
+                        text: @tr("Load AutoEQ profile…");
                         icon: Icons.file;
                         compact: true;
                         clicked => { Prefs.changed("peq-load"); }
                     }
                 }
                 SettingSwitch {
-                    title: "Płynna pauza";
-                    hint: "Wyciszanie przy pauzie i wznowieniu";
+                    title: @tr("Smooth pause");
+                    hint: @tr("Fade on pause and resume");
                     checked <=> Prefs.soft-pause;
                     toggled => { Prefs.changed("soft-pause"); }
                 }
@@ -326,7 +326,7 @@ export component AuthorCard inherits Rectangle {
                 wrap: word-wrap;
             }
             Text {
-                text: "OpenMP jest darmowy. Jeśli ci się przydaje, możesz wesprzeć dalszy rozwój.";
+                text: @tr("OpenMP is free. If you find it useful, you can support further development.");
                 color: Theme.text3;
                 font-size: Theme.fs-sm;
                 wrap: word-wrap;
@@ -341,7 +341,7 @@ export component AuthorCard inherits Rectangle {
                 clicked => { Prefs.open-url("https://redzikowski.com"); }
             }
             Btn {
-                text: "Postaw kawę";
+                text: @tr("Buy me a coffee");
                 icon: Icons.coffee;
                 primary: true;
                 clicked => { Prefs.open-url("https://buycoffee.to/adamredzikowski"); }
@@ -366,7 +366,7 @@ component FolderList inherits VerticalLayout {
         wrap: word-wrap;
     }
     if root.folders.length == 0: Text {
-        text: "Brak folderów.";
+        text: @tr("No folders.");
         color: Theme.text3;
         font-size: Theme.fs;
     }
@@ -397,7 +397,7 @@ component FolderList inherits VerticalLayout {
                 icon: Icons.delete;
                 size: 28px;
                 icon-size: 15px;
-                tip: "Usuń folder z biblioteki";
+                tip: @tr("Remove folder from library");
                 clicked => { Prefs.remove-folder(root.kind, i); }
             }
         }
@@ -406,13 +406,13 @@ component FolderList inherits VerticalLayout {
         alignment: start;
         spacing: 8px;
         Btn {
-            text: "Dodaj folder…";
+            text: @tr("Add folder…");
             icon: Icons.add;
             compact: true;
             clicked => { Prefs.add-folder(root.kind); }
         }
         Btn {
-            text: "Dodaj ścieżkę sieciową…";
+            text: @tr("Add network path…");
             icon: Icons.link;
             compact: true;
             clicked => { Prefs.add-network-folder(root.kind); }
@@ -421,7 +421,7 @@ component FolderList inherits VerticalLayout {
 }
 
 export component SettingsDialog inherits Dialog {
-    title: "Ustawienia";
+    title: @tr("Settings");
     card-width: 900px;
     card-height: 640px;
     close => { Ui.settings = false; }
@@ -434,7 +434,7 @@ export component SettingsDialog inherits Dialog {
             // Szukanie ustawienia po nazwie i opisie – klik przenosi na stronę i podświetla wiersz.
             Field {
                 icon: Icons.search;
-                placeholder: "Szukaj ustawienia";
+                placeholder: @tr("Search settings");
                 text <=> Ui.settings-query;
                 edited(t) => { Ui.settings-search(t); }
                 escape => {
@@ -446,7 +446,7 @@ export component SettingsDialog inherits Dialog {
                 height: 6px;
             }
             if Ui.settings-query != "" && Ui.settings-results.length == 0: Text {
-                text: "Nic nie znaleziono";
+                text: @tr("Nothing found");
                 color: Theme.text3;
                 font-size: Theme.fs-sm;
                 horizontal-alignment: center;
@@ -482,17 +482,17 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             for p[i] in [
-                { icon: Icons.palette, l: "Wygląd" },
-                { icon: Icons.queue, l: "Układ" },
-                { icon: Icons.equalizer, l: "Wizualizacja" },
-                { icon: Icons.play, l: "Odtwarzanie" },
-                { icon: Icons.volume, l: "Dźwięk" },
-                { icon: Icons.movie, l: "Wideo" },
-                { icon: Icons.subtitles, l: "Napisy" },
-                { icon: Icons.library, l: "Biblioteka" },
-                { icon: Icons.keyboard, l: "Skróty klawiszowe" },
-                { icon: Icons.system, l: "System" },
-                { icon: Icons.info, l: "O programie" },
+                { icon: Icons.palette, l: @tr("Appearance") },
+                { icon: Icons.queue, l: @tr("Layout") },
+                { icon: Icons.equalizer, l: @tr("Visualization") },
+                { icon: Icons.play, l: @tr("Playback") },
+                { icon: Icons.volume, l: @tr("Audio") },
+                { icon: Icons.movie, l: @tr("Video") },
+                { icon: Icons.subtitles, l: @tr("Subtitles") },
+                { icon: Icons.library, l: @tr("Library") },
+                { icon: Icons.keyboard, l: @tr("Keyboard shortcuts") },
+                { icon: Icons.system, l: @tr("System") },
+                { icon: Icons.info, l: @tr("About") },
             ]: Rectangle {
                 // Podczas szukania zamiast stron są wyniki.
                 height: Ui.settings-query == "" ? 34px : 0px;
@@ -530,11 +530,24 @@ export component SettingsDialog inherits Dialog {
         Rectangle {
             horizontal-stretch: 1;
             if Ui.settings-page == 0: Page {
-                heading: "Wygląd";
+                heading: @tr("Appearance");
                 SettingRow {
-                    title: "Motyw";
+                    title: @tr("Language");
+                    hint: @tr("“System” uses the Windows language");
+                    ComboBox {
+                        width: 240px;
+                        model: Prefs.languages;
+                        current-index: Prefs.language;
+                        selected => {
+                            Prefs.language = self.current-index;
+                            Prefs.changed("language");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Theme");
                     Segmented {
-                        options: ["Ciemny", "Jasny"];
+                        options: [@tr("Dark"), @tr("Light")];
                         selected: Prefs.dark ? 0 : 1;
                         changed(i) => {
                             Prefs.dark = i == 0;
@@ -543,11 +556,11 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SectionTitle {
-                    text: "KOLOR PRZEWODNI";
+                    text: @tr("ACCENT COLOR");
                 }
                 SettingRow {
-                    title: "Kolor akcentu";
-                    hint: "Gdy okładka nie ma wyraźnej barwy – albo zawsze, gdy kolor z okładki jest wyłączony";
+                    title: @tr("Accent color");
+                    hint: @tr("When the cover has no distinct color – or always, when the cover color is off");
                     HorizontalLayout {
                         spacing: 6px;
                         for c in [{ h: "#4f8cff", c: #4f8cff }, { h: "#8b5cf6", c: #8b5cf6 }, { h: "#c026d3", c: #c026d3 }, { h: "#ec4899", c: #ec4899 }, { h: "#ef4444", c: #ef4444 }, { h: "#f97316", c: #f97316 }, { h: "#f59e0b", c: #f59e0b }, { h: "#84cc16", c: #84cc16 }, { h: "#22c55e", c: #22c55e }, { h: "#14b8a6", c: #14b8a6 }, { h: "#06b6d4", c: #06b6d4 }, { h: "#e2e8f0", c: #e2e8f0 }]: Rectangle {
@@ -568,8 +581,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Własny kolor";
-                    hint: "Zapis szesnastkowy, np. #ff6a3d";
+                    title: @tr("Custom color");
+                    hint: @tr("Hex notation, e.g. #ff6a3d");
                     LineEdit {
                         width: 110px;
                         text <=> Prefs.accent;
@@ -577,16 +590,16 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Kolor przewodni z okładki";
-                    hint: "Cały program przyjmuje barwę albumu (przy filmie – barwę obrazu, gdy włączone w ustawieniach wideo)";
+                    title: @tr("Accent color from cover");
+                    hint: @tr("The whole program takes on the album's color (for movies – the picture's color, when enabled in video settings)");
                     checked <=> Prefs.accent-from-cover;
                     toggled => { Prefs.changed("accent-from-cover"); }
                 }
                 SettingRow {
-                    title: "Zasięg koloru przewodniego";
-                    hint: Prefs.accent-scope == 0 ? "Tylko akcenty: zaznaczenia, fala, przycisk odtwarzania" : Prefs.accent-scope == 1 ? "Także ikony odtwarzania, gałki suwaków, znaczniki i sterowanie filmu – zamiast bieli" : "Cały interfejs: również tła, linie, tytuły i drugorzędny tekst";
+                    title: @tr("Accent color scope");
+                    hint: Prefs.accent-scope == 0 ? @tr("Accents only: selections, waveform, play button") : Prefs.accent-scope == 1 ? @tr("Also playback icons, slider knobs, markers and movie controls – instead of white") : @tr("Whole interface: also backgrounds, lines, titles and secondary text");
                     Segmented {
-                        options: ["Akcenty", "Elementy", "Całość"];
+                        options: [@tr("Accents"), @tr("Elements"), @tr("Everything")];
                         selected: Prefs.accent-scope;
                         changed(i) => {
                             Prefs.accent-scope = i;
@@ -595,8 +608,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Siła poświaty";
-                    hint: round(Prefs.glow * 100) + "% – za okładką, przyciskiem odtwarzania i u góry okna";
+                    title: @tr("Glow strength");
+                    hint: @tr("{}% – behind the cover, the play button and at the top of the window", round(Prefs.glow * 100));
                     HSlider {
                         width: 180px;
                         minimum: 0;
@@ -617,13 +630,13 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "TŁO OKNA";
+                    text: @tr("WINDOW BACKGROUND");
                 }
                 SettingRow {
-                    title: "Tło z okładki";
-                    hint: "Subtelna nakładka pod całym oknem; przy filmie – poświata z obrazu";
+                    title: @tr("Background from cover");
+                    hint: @tr("A subtle layer under the whole window; for movies – glow from the picture");
                     Segmented {
-                        options: ["Brak", "Rozmyta okładka", "Gradient barw"];
+                        options: [@tr("None"), @tr("Blurred cover"), @tr("Color gradient")];
                         selected: Prefs.backdrop;
                         changed(i) => {
                             Prefs.backdrop = i;
@@ -632,7 +645,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 if Prefs.backdrop > 0: SettingRow {
-                    title: "Krycie tła";
+                    title: @tr("Background opacity");
                     hint: round(Prefs.backdrop-opacity * 100) + "%";
                     HSlider {
                         width: 180px;
@@ -651,8 +664,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 if Prefs.backdrop > 0: SettingSwitch {
-                    title: "Ruch tła";
-                    hint: "Powoli krążące plamy światła w barwach okładki – okno odświeża się bez przerwy (więcej prądu)";
+                    title: @tr("Background motion");
+                    hint: @tr("Slowly drifting spots of light in the cover's colors – the window redraws constantly (more power)");
                     checked <=> Prefs.backdrop-motion;
                     toggled => { Prefs.changed("backdrop-motion"); }
                 }
@@ -660,8 +673,8 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SettingRow {
-                    title: "Szkło: przezroczystość";
-                    hint: round(Prefs.panel-glass * 100) + "% – wszystkie okna, menu, panele i paski boczne prześwitują rozmytą okładką albo filmem";
+                    title: @tr("Glass: transparency");
+                    hint: @tr("{}% – all windows, menus, panels and sidebars show the blurred cover or movie through", round(Prefs.panel-glass * 100));
                     HSlider {
                         width: 180px;
                         minimum: 0;
@@ -679,10 +692,10 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Szkło: barwa";
-                    hint: "Kolor tła wszystkich okien, menu i paneli";
+                    title: @tr("Glass: tint");
+                    hint: @tr("Background color of all windows, menus and panels");
                     Segmented {
-                        options: ["Neutralna", "Z akcentu", "Czerń"];
+                        options: [@tr("Neutral"), @tr("From accent"), @tr("Black")];
                         selected: Prefs.glass-tint;
                         changed(i) => {
                             Prefs.glass-tint = i;
@@ -694,12 +707,12 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "KSZTAŁT I TEKST";
+                    text: @tr("SHAPE AND TEXT");
                 }
                 SettingRow {
-                    title: "Zaokrąglenia";
+                    title: @tr("Corner rounding");
                     Segmented {
-                        options: ["Ostre", "Zwykłe", "Mocne"];
+                        options: [@tr("Sharp"), @tr("Normal"), @tr("Strong")];
                         selected: Prefs.corners;
                         changed(i) => {
                             Prefs.corners = i;
@@ -708,7 +721,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Wielkość tekstu";
+                    title: @tr("Text size");
                     Segmented {
                         options: ["90%", "100%", "110%", "125%"];
                         selected: Prefs.text-scale < 0.95 ? 0 : Prefs.text-scale < 1.05 ? 1 : Prefs.text-scale < 1.15 ? 2 : 3;
@@ -719,15 +732,15 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Kompaktowy interfejs";
-                    hint: "Niższe wiersze list i panelu nawigacji, mniejsze odstępy i okładka – więcej utworów na ekranie";
+                    title: @tr("Compact interface");
+                    hint: @tr("Shorter list and navigation rows, smaller spacing and cover – more tracks on screen");
                     checked <=> Prefs.compact-ui;
                     toggled => { Prefs.changed("compact-ui"); }
                 }
                 SettingRow {
-                    title: "Czcionka tytułów";
+                    title: @tr("Title font");
                     Segmented {
-                        options: ["Szeryfowa", "Bezszeryfowa", "Techniczna"];
+                        options: [@tr("Serif"), @tr("Sans-serif"), @tr("Technical")];
                         selected: Prefs.title-font;
                         changed(i) => {
                             Prefs.title-font = i;
@@ -737,12 +750,12 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             if Ui.settings-page == 1: Page {
-                heading: "Układ";
+                heading: @tr("Layout");
                 SectionTitle {
-                    text: "PANEL NAWIGACJI";
+                    text: @tr("NAVIGATION PANEL");
                 }
                 SettingRow {
-                    title: "Wielkość tekstu panelu";
+                    title: @tr("Panel text size");
                     Segmented {
                         options: ["90%", "100%", "115%", "130%"];
                         selected: Prefs.nav-text < 0.95 ? 0 : Prefs.nav-text < 1.07 ? 1 : Prefs.nav-text < 1.22 ? 2 : 3;
@@ -753,37 +766,37 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Panel nawigacji";
+                    title: @tr("Navigation panel");
                     checked <=> Prefs.show-sidebar;
                     toggled => { Prefs.changed("show-sidebar"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: listy odtwarzania";
+                    title: @tr("Panel: playlists");
                     checked <=> Prefs.nav-playlist;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: muzyka";
+                    title: @tr("Panel: music");
                     checked <=> Prefs.nav-music;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: wideo";
+                    title: @tr("Panel: video");
                     checked <=> Prefs.nav-video;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: zbiory";
+                    title: @tr("Panel: collections");
                     checked <=> Prefs.nav-sets;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: inteligentne listy";
+                    title: @tr("Panel: smart playlists");
                     checked <=> Prefs.nav-smart;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: "Panel: foldery";
+                    title: @tr("Panel: folders");
                     checked <=> Prefs.nav-folders;
                     toggled => { Prefs.changed("nav-sections"); }
                 }
@@ -791,11 +804,11 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "LISTY UTWORÓW";
+                    text: @tr("TRACK LISTS");
                 }
                 SettingRow {
-                    title: "Widok utworów";
-                    hint: Prefs.track-grid ? "Okładki " + round(Prefs.grid-size) + " px – ten sam suwak jest nad listą" : "Lista – przesuń w prawo, by pokazać okładki";
+                    title: @tr("Track view");
+                    hint: Prefs.track-grid ? @tr("Covers {} px – the same slider is above the list", round(Prefs.grid-size)) : @tr("List – slide right to show covers");
                     HSlider {
                         width: 180px;
                         minimum: 90;
@@ -807,29 +820,35 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Grupuj listę według albumów";
-                    hint: "Nagłówki z okładką nad każdym albumem";
+                    title: @tr("Captions on covers");
+                    hint: @tr("Title and subtitle at the bottom of the cover instead of below it – more covers fit on screen");
+                    checked <=> Prefs.caption-overlay;
+                    toggled => { Prefs.changed("caption-overlay"); }
+                }
+                SettingSwitch {
+                    title: @tr("Group list by album");
+                    hint: @tr("A header with cover above each album");
                     checked <=> Prefs.group-albums;
                     toggled => { Prefs.changed("group-albums"); }
                 }
                 SettingSwitch {
-                    title: "Przewijaj długie tytuły";
+                    title: @tr("Scroll long titles");
                     checked <=> Prefs.scroll-title;
                     toggled => { Prefs.changed("scroll-title"); }
                 }
                 SettingSwitch {
-                    title: "Pokazuj czas pozostały";
+                    title: @tr("Show remaining time");
                     checked <=> Prefs.remaining;
                     toggled => { Prefs.changed("remaining"); }
                 }
             }
             if Ui.settings-page == 2: Page {
-                heading: "Wizualizacja";
+                heading: @tr("Visualization");
                 SectionTitle {
-                    text: "ANALIZATOR";
+                    text: @tr("ANALYZER");
                 }
                 SettingRow {
-                    title: "Liczba słupków analizatora";
+                    title: @tr("Analyzer bar count");
                     hint: Prefs.viz-bands + "";
                     HSlider {
                         width: 180px;
@@ -844,7 +863,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Czułość analizatora";
+                    title: @tr("Analyzer sensitivity");
                     HSlider {
                         width: 180px;
                         minimum: -12;
@@ -862,18 +881,18 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "TAŚMA UTWORU";
+                    text: @tr("TRACK STRIP");
                 }
                 SettingSwitch {
-                    title: "Fala utworu na pasku przewijania";
+                    title: @tr("Track waveform on the seek bar");
                     checked <=> Prefs.show-waveform;
                     toggled => { Prefs.changed("show-waveform"); }
                 }
                 if Prefs.show-waveform: SettingRow {
-                    title: "Styl taśmy utworu";
+                    title: @tr("Track strip style");
                     ComboBox {
                         width: 200px;
-                        model: ["Fala", "Słupki", "Od dołu", "Kontur", "Gęste słupki", "Lustro", "Diody", "Słupki 3D", "Fala 3D", "Linia", "Kropki"];
+                        model: [@tr("Wave"), @tr("Bars"), @tr("From bottom"), @tr("Contour"), @tr("Dense bars"), @tr("Mirror"), @tr("LEDs"), @tr("3D bars"), @tr("3D wave"), @tr("Line"), @tr("Dots")];
                         current-index: Prefs.wave-style;
                         selected => {
                             Prefs.wave-style = self.current-index;
@@ -882,11 +901,11 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 if Prefs.show-waveform: SettingRow {
-                    title: "Efekt przy znaczniku";
-                    hint: "Część taśmy wokół miejsca odtwarzania porusza się z muzyką";
+                    title: @tr("Effect at the playhead");
+                    hint: @tr("The part of the strip around the playhead moves with the music");
                     ComboBox {
                         width: 200px;
-                        model: ["Wyłączony", "Puls taśmy", "Słupki widma", "Fala widma", "Kropki szczytów", "Obwiednia", "Fala uderzeniowa"];
+                        model: [@tr("effect" => "Off"), @tr("Strip pulse"), @tr("Spectrum bars"), @tr("Spectrum wave"), @tr("Peak dots"), @tr("Envelope"), @tr("Shockwave")];
                         current-index: Prefs.live-style;
                         selected => {
                             Prefs.live-style = self.current-index;
@@ -895,9 +914,9 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 if Prefs.show-waveform && Prefs.live-style > 0: SettingRow {
-                    title: "Zasięg efektu";
+                    title: @tr("Effect range");
                     Segmented {
-                        options: ["Wąski", "Średni", "Szeroki"];
+                        options: [@tr("Narrow"), @tr("Medium"), @tr("Wide")];
                         selected: Prefs.live-span;
                         changed(i) => {
                             Prefs.live-span = i;
@@ -906,27 +925,27 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 if Prefs.show-waveform: SettingSwitch {
-                    title: "Poświata przy znaczniku";
+                    title: @tr("Glow at the playhead");
                     checked <=> Prefs.live-glow;
                     toggled => { Prefs.changed("live-glow"); }
                 }
             }
             if Ui.settings-page == 3: Page {
-                heading: "Odtwarzanie";
+                heading: @tr("Playback");
                 SettingSwitch {
-                    title: "Wznów po uruchomieniu";
-                    hint: "Ostatni utwór od miejsca, w którym skończyłeś";
+                    title: @tr("Resume on startup");
+                    hint: @tr("The last track from where you left off");
                     checked <=> Prefs.resume-on-start;
                     toggled => { Prefs.changed("resume-on-start"); }
                 }
                 SettingSwitch {
-                    title: "Podążaj za odtwarzanym utworem";
-                    hint: "Lista przewija się do bieżącego utworu";
+                    title: @tr("Follow the playing track");
+                    hint: @tr("The list scrolls to the current track");
                     checked <=> Prefs.follow-playing;
                     toggled => { Prefs.changed("follow-playing"); }
                 }
                 SettingRow {
-                    title: "Krok przewijania strzałkami";
+                    title: @tr("Arrow key seek step");
                     hint: round(Prefs.seek-step) + " s";
                     HSlider {
                         width: 180px;
@@ -941,8 +960,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Przenikanie utworów";
-                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : "Wyłączone – przejścia bez przerwy (gapless)";
+                    title: @tr("Crossfade");
+                    hint: Prefs.crossfade > 0 ? round(Prefs.crossfade * 10) / 10 + " s" : @tr("Off – gapless playback");
                     HSlider {
                         width: 180px;
                         minimum: 0;
@@ -956,16 +975,16 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Płynna pauza";
-                    hint: "Krótkie wyciszanie przy pauzie i wznowieniu";
+                    title: @tr("Smooth pause");
+                    hint: @tr("A short fade on pause and resume");
                     checked <=> Prefs.soft-pause;
                     toggled => { Prefs.changed("soft-pause"); }
                 }
             }
             if Ui.settings-page == 4: Page {
-                heading: "Dźwięk";
+                heading: @tr("Audio");
                 SettingRow {
-                    title: "Urządzenie wyjściowe";
+                    title: @tr("Output device");
                     ComboBox {
                         width: 280px;
                         model: Prefs.devices;
@@ -977,31 +996,31 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Tryb wyłączny (WASAPI Exclusive)";
-                    hint: "Karta gra w częstotliwości pliku, z pominięciem miksera Windows – inne programy nie zagrają w tym czasie";
+                    title: @tr("Exclusive mode (WASAPI Exclusive)");
+                    hint: @tr("The sound card plays at the file's sample rate, bypassing the Windows mixer – other programs cannot play meanwhile");
                     checked <=> Prefs.exclusive;
                     toggled => { Prefs.changed("exclusive"); }
                 }
                 SettingRow {
-                    title: "Jakość przepróbkowania";
-                    hint: "Gdy plik ma inną częstotliwość niż karta (od następnego utworu)";
+                    title: @tr("Resampling quality");
+                    hint: @tr("When the file's sample rate differs from the card (from the next track)");
                     Segmented {
-                        options: ["Szybka", "Dobra", "Najlepsza"];
+                        options: [@tr("Fast"), @tr("Good"), @tr("Best")];
                         selected <=> Prefs.resample-quality;
                         changed => { Prefs.changed("resample-quality"); }
                     }
                 }
                 SettingRow {
-                    title: "ReplayGain";
-                    hint: "Wyrównuje głośność utworów – z tagów, a pliki bez tagów mierzy sam (EBU R128)";
+                    title: @tr("ReplayGain");
+                    hint: @tr("Levels track volume – from tags, and measures untagged files itself (EBU R128)");
                     Segmented {
-                        options: ["Wyłączone", "Utwór", "Album"];
+                        options: [@tr("Off"), @tr("Track"), @tr("Album")];
                         selected <=> Prefs.replaygain;
                         changed => { Prefs.changed("replaygain"); }
                     }
                 }
                 SettingRow {
-                    title: "Wzmocnienie ReplayGain";
+                    title: @tr("ReplayGain preamp");
                     hint: (Prefs.rg-preamp > 0 ? "+" : "") + round(Prefs.rg-preamp) + " dB";
                     HSlider {
                         width: 180px;
@@ -1017,16 +1036,16 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Ogranicznik";
-                    hint: "Zapobiega przesterowaniu przy podbitym korektorze";
+                    title: @tr("Limiter");
+                    hint: @tr("Prevents clipping with a boosted equalizer");
                     checked <=> Prefs.limiter;
                     toggled => { Prefs.changed("limiter"); }
                 }
                 SettingRow {
-                    title: "Korektor i efekty";
-                    hint: "18 pasm, gotowe ustawienia, balans, szerokość stereo, przesłuch";
+                    title: @tr("Equalizer and effects");
+                    hint: @tr("18 bands, presets, balance, stereo width, crossfeed");
                     Btn {
-                        text: "Otwórz korektor";
+                        text: @tr("Open equalizer");
                         icon: Icons.equalizer;
                         clicked => {
                             Ui.settings = false;
@@ -1036,22 +1055,22 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             if Ui.settings-page == 5: Page {
-                heading: "Wideo";
+                heading: @tr("Video");
                 SectionTitle {
-                    text: "WIDOK FILMU";
+                    text: @tr("MOVIE VIEW");
                 }
                 SettingSwitch {
-                    title: "Otwieraj filmy na pełnym ekranie";
-                    hint: "Wyłączone – film gra w oknie, w miejscu okładki obok opisu; pełny ekran otwiera kliknięcie obrazu albo F";
+                    title: @tr("Open movies in full screen");
+                    hint: @tr("Off – the movie plays in the window, in place of the cover next to the description; click the picture or press F for full screen");
                     checked <=> Prefs.video-open-view;
                     toggled => { Prefs.changed("video-open-view"); }
                 }
                 SettingRow {
-                    title: "Przycisk „Biblioteka” na filmie";
-                    hint: "Co dzieje się z filmem, gdy wracasz nim do biblioteki (Esc wraca do okna, film gra dalej)";
+                    title: @tr("The “Library” button during a movie");
+                    hint: @tr("What happens to the movie when you go back to the library with it (Esc returns to the window, the movie keeps playing)");
                     ComboBox {
                         width: 240px;
-                        model: ["Obraz gra dalej w oknie", "Gra tylko dźwięk", "Pauza"];
+                        model: [@tr("Picture keeps playing in the window"), @tr("Audio only"), @tr("Pause")];
                         current-index: Prefs.video-leave;
                         selected => {
                             Prefs.video-leave = self.current-index;
@@ -1060,14 +1079,14 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Chowaj sterowanie także w oknie";
-                    hint: "Na pełnym ekranie sterowanie i kursor znikają zawsze";
+                    title: @tr("Hide controls in the window too");
+                    hint: @tr("In full screen, controls and the cursor always hide");
                     checked <=> Prefs.autohide-window;
                     toggled => { Prefs.changed("autohide-window"); }
                 }
                 SettingRow {
-                    title: "Ukrywanie sterowania";
-                    hint: "Po " + round(Prefs.autohide-ms / 100) / 10 + " s bez ruchu myszy";
+                    title: @tr("Hide controls");
+                    hint: @tr("After {} s without mouse movement", round(Prefs.autohide-ms / 100) / 10);
                     HSlider {
                         width: 180px;
                         minimum: 1000;
@@ -1081,10 +1100,10 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Poświata z obrazu";
-                    hint: "Miękkie światło w barwach filmu wokół obrazu i w pasach po bokach";
+                    title: @tr("Ambient glow");
+                    hint: @tr("Soft light in the movie's colors around the picture and in the side bars");
                     Segmented {
-                        options: ["Wyłączona", "Delikatna", "Mocna"];
+                        options: [@tr("glow" => "Off"), @tr("Subtle"), @tr("glow" => "Strong")];
                         selected: Prefs.ambient;
                         changed(i) => {
                             Prefs.ambient = i;
@@ -1093,16 +1112,16 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Kolor przewodni z obrazu";
-                    hint: "Akcent programu płynnie podąża za barwami filmu";
+                    title: @tr("Accent color from picture");
+                    hint: @tr("The program's accent smoothly follows the movie's colors");
                     checked <=> Prefs.video-tint;
                     toggled => { Prefs.changed("video-tint"); }
                 }
                 if Prefs.video-tint: SettingRow {
-                    title: "Jak często brać kolor z obrazu";
-                    hint: "Częściej – kolor szybciej nadąża za sceną, rzadziej – spokojniej i lżej dla karty";
+                    title: @tr("How often to sample the picture's color");
+                    hint: @tr("More often – the color keeps up with the scene faster; less often – calmer and lighter on the graphics card");
                     Segmented {
-                        options: ["0,5 s", "1,2 s", "3 s", "8 s"];
+                        options: [@tr("0.5 s"), @tr("1.2 s"), "3 s", "8 s"];
                         selected: Prefs.tint-rate;
                         changed(i) => {
                             Prefs.tint-rate = i;
@@ -1111,8 +1130,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Podgląd klatek nad paskiem przewijania";
-                    hint: "Miniatura miejsca pod kursorem (pliki na dysku)";
+                    title: @tr("Frame preview above the seek bar");
+                    hint: @tr("A thumbnail of the spot under the cursor (local files)");
                     checked <=> Prefs.seek-preview;
                     toggled => { Prefs.changed("seek-preview"); }
                 }
@@ -1120,13 +1139,13 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "OBRAZ";
+                    text: @tr("PICTURE");
                 }
                 SettingRow {
-                    title: "Jakość obrazu";
-                    hint: ["Skalowanie dwuliniowe – najlżejsze dla słabych komputerów", "Spline36 i poprawne zmniejszanie – dobry obraz bez obciążenia", "EWA Lanczos i pomiar jasności HDR – ostrzejszy obraz", "Najostrzejsze skalowanie – dla mocnych kart graficznych"][Prefs.video-quality];
+                    title: @tr("Picture quality");
+                    hint: [@tr("Bilinear scaling – lightest, for slow computers"), @tr("Spline36 and correct downscaling – a good picture without load"), @tr("EWA Lanczos and HDR peak detection – a sharper picture"), @tr("The sharpest scaling – for powerful graphics cards")][Prefs.video-quality];
                     Segmented {
-                        options: ["Szybka", "Zrównoważona", "Wysoka", "Najwyższa"];
+                        options: [@tr("Fast"), @tr("Balanced"), @tr("High"), @tr("Highest")];
                         selected: Prefs.video-quality;
                         changed(i) => {
                             Prefs.video-quality = i;
@@ -1135,11 +1154,11 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Dekodowanie sprzętowe";
-                    hint: "Karta graficzna dekoduje obraz – mniej obciążenia procesora";
+                    title: @tr("Hardware decoding");
+                    hint: @tr("The graphics card decodes video – less CPU load");
                     ComboBox {
                         width: 240px;
-                        model: ["Wyłączone", "Automatyczne (zalecane)", "Automatyczne z kopiowaniem", "D3D11 (kopiowanie)", "NVIDIA NVDEC (kopiowanie)", "DXVA2 (kopiowanie)"];
+                        model: [@tr("Off"), @tr("Automatic (recommended)"), @tr("Automatic with copy-back"), @tr("D3D11 (copy-back)"), @tr("NVIDIA NVDEC (copy-back)"), @tr("DXVA2 (copy-back)")];
                         current-index: Prefs.hwdec-mode;
                         selected => {
                             Prefs.hwdec-mode = self.current-index;
@@ -1148,23 +1167,23 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Płynny ruch (interpolacja klatek)";
-                    hint: "Dopasowuje film do odświeżania ekranu – bez szarpania przy 24 kl./s na 60 Hz";
+                    title: @tr("Smooth motion (frame interpolation)");
+                    hint: @tr("Matches the movie to the display refresh rate – no judder with 24 fps on 60 Hz");
                     checked <=> Prefs.interpolation;
                     toggled => { Prefs.changed("interpolation"); }
                 }
                 SettingSwitch {
-                    title: "Usuwanie pasm";
-                    hint: "Gładkie gradienty nieba i cieni w mocno skompresowanych plikach";
+                    title: @tr("Debanding");
+                    hint: @tr("Smooth sky and shadow gradients in heavily compressed files");
                     checked <=> Prefs.deband;
                     toggled => { Prefs.changed("deband"); }
                 }
                 SettingRow {
-                    title: "Mapowanie tonów HDR";
-                    hint: "Jak filmy HDR trafiają na zwykły ekran";
+                    title: @tr("HDR tone mapping");
+                    hint: @tr("How HDR movies are shown on a regular display");
                     ComboBox {
                         width: 200px;
-                        model: ["Automatyczne", "BT.2390", "Hable (filmowe)", "Mobius", "Reinhard", "Obcięcie"];
+                        model: [@tr("Automatic"), "BT.2390", @tr("Hable (filmic)"), "Mobius", "Reinhard", @tr("Clip")];
                         current-index: Prefs.tone-mapping;
                         selected => {
                             Prefs.tone-mapping = self.current-index;
@@ -1173,7 +1192,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Usuwanie przeplotu";
+                    title: @tr("Deinterlacing");
                     checked <=> Prefs.deinterlace;
                     toggled => { Prefs.changed("deinterlace"); }
                 }
@@ -1181,13 +1200,13 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "STEROWANIE";
+                    text: @tr("CONTROLS");
                 }
                 SettingRow {
-                    title: "Kółko myszy nad obrazem";
-                    hint: "Z Ctrl – powiększenie obrazu";
+                    title: @tr("Mouse wheel over the picture");
+                    hint: @tr("With Ctrl – zoom the picture");
                     Segmented {
-                        options: ["Głośność", "Przewijanie"];
+                        options: [@tr("Volume"), @tr("Seeking")];
                         selected: Prefs.wheel-action;
                         changed(i) => {
                             Prefs.wheel-action = i;
@@ -1196,20 +1215,20 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Dwuklik przy krawędzi przewija o 10 s";
-                    hint: "Lewa ćwiartka – wstecz, prawa – naprzód; na środku – pełny ekran";
+                    title: @tr("Double-click near the edge seeks 10 s");
+                    hint: @tr("Left quarter – back, right – forward; in the middle – full screen");
                     checked <=> Prefs.dblclick-seek;
                     toggled => { Prefs.changed("dblclick-seek"); }
                 }
                 SettingSwitch {
-                    title: "Wznawiaj filmy";
-                    hint: "Film zaczyna się tam, gdzie go przerwałeś";
+                    title: @tr("Resume movies");
+                    hint: @tr("A movie starts where you stopped it");
                     checked <=> Prefs.video-resume;
                     toggled => { Prefs.changed("video-resume"); }
                 }
                 SettingRow {
-                    title: "Obejrzany i odsłuchany od";
-                    hint: round(Prefs.played-pct) + "% długości – dopiero wtedy liczy się odtworzenie, a film jest obejrzany";
+                    title: @tr("Watched and played after");
+                    hint: @tr("{}% of the length – only then does a play count, and a movie is marked watched", round(Prefs.played-pct));
                     HSlider {
                         width: 180px;
                         minimum: 10;
@@ -1227,7 +1246,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Po filmie następny plik z listy";
+                    title: @tr("After a movie, play the next file from the list");
                     checked <=> Prefs.video-autonext;
                     toggled => { Prefs.changed("video-autonext"); }
                 }
@@ -1235,11 +1254,11 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "DŹWIĘK FILMÓW";
+                    text: @tr("MOVIE AUDIO");
                 }
                 SettingRow {
-                    title: "Wzmocnienie głośności";
-                    hint: round(Prefs.volume-boost) + "% przy pełnej głośności – dla cichych filmów";
+                    title: @tr("Volume boost");
+                    hint: @tr("{}% at full volume – for quiet movies", round(Prefs.volume-boost));
                     HSlider {
                         width: 180px;
                         minimum: 100;
@@ -1257,20 +1276,20 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Tryb nocny";
-                    hint: "Wyrównana dynamika: słychać dialogi, wybuchy nie budzą domowników";
+                    title: @tr("Night mode");
+                    hint: @tr("Compressed dynamics: dialogue is audible, explosions don't wake the household");
                     checked <=> Prefs.night-mode;
                     toggled => { Prefs.changed("night-mode"); }
                 }
                 SettingSwitch {
-                    title: "Miks dźwięku przestrzennego do stereo";
-                    hint: "Dla słuchawek i głośników stereo – dialogi z kanału centralnego nie giną";
+                    title: @tr("Downmix surround sound to stereo");
+                    hint: @tr("For headphones and stereo speakers – dialogue from the center channel isn't lost");
                     checked <=> Prefs.downmix;
                     toggled => { Prefs.changed("downmix"); }
                 }
                 SettingRow {
-                    title: "Preferowane języki dźwięku";
-                    hint: "Kody oddzielone przecinkami, np. pol,eng";
+                    title: @tr("Preferred audio languages");
+                    hint: @tr("Comma-separated codes, e.g. eng,pol");
                     LineEdit {
                         width: 180px;
                         text <=> Prefs.audio-lang;
@@ -1281,19 +1300,19 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "SIEĆ";
+                    text: @tr("NETWORK");
                 }
                 SettingSwitch {
-                    title: "Filmy z serwisów wideo (yt-dlp)";
-                    hint: "Linki do YouTube i innych serwisów – program sam pobiera i odświeża yt-dlp";
+                    title: @tr("Videos from streaming sites (yt-dlp)");
+                    hint: @tr("Links to YouTube and other sites – the program downloads and updates yt-dlp itself");
                     checked <=> Prefs.ytdl;
                     toggled => { Prefs.changed("ytdl"); }
                 }
                 SettingRow {
-                    title: "Jakość filmów z sieci";
+                    title: @tr("Online video quality");
                     ComboBox {
                         width: 180px;
-                        model: ["Najlepsza", "Do 1080p", "Do 720p", "Do 480p"];
+                        model: [@tr("Best"), @tr("Up to 1080p"), @tr("Up to 720p"), @tr("Up to 480p")];
                         current-index: Prefs.ytdl-format;
                         selected => {
                             Prefs.ytdl-format = self.current-index;
@@ -1302,8 +1321,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Bufor strumieni";
-                    hint: Prefs.cache-mb + " MB pamięci na zapas filmu z sieci";
+                    title: @tr("Stream buffer");
+                    hint: @tr("{} MB of memory to buffer online video", Prefs.cache-mb);
                     HSlider {
                         width: 180px;
                         minimum: 32;
@@ -1320,27 +1339,27 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SettingRow {
-                    title: "Folder zrzutów ekranu";
+                    title: @tr("Screenshot folder");
                     hint: Prefs.screenshot-dir;
                     Btn {
-                        text: "Zmień…";
+                        text: @tr("Change…");
                         clicked => { Prefs.pick-screenshot-dir(); }
                     }
                 }
                 SettingRow {
-                    title: "Silnik wideo";
+                    title: @tr("Video engine");
                     hint: Prefs.mpv-info;
                     Text {
-                        text: Prefs.mpv-ok ? "gotowy" : "niedostępny";
+                        text: Prefs.mpv-ok ? @tr("ready") : @tr("unavailable");
                         color: Prefs.mpv-ok ? Theme.ok : Theme.danger;
                         font-size: Theme.fs;
                     }
                 }
             }
             if Ui.settings-page == 6: Page {
-                heading: "Napisy";
+                heading: @tr("Subtitles");
                 SettingRow {
-                    title: "Wielkość napisów";
+                    title: @tr("Subtitle size");
                     hint: Prefs.sub-size + "";
                     HSlider {
                         width: 180px;
@@ -1355,8 +1374,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Czcionka";
-                    hint: "Nazwa czcionki zainstalowanej w Windows";
+                    title: @tr("Font");
+                    hint: @tr("The name of a font installed in Windows");
                     LineEdit {
                         width: 200px;
                         text <=> Prefs.sub-font;
@@ -1364,7 +1383,7 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Kolor";
+                    title: @tr("Color");
                     HorizontalLayout {
                         spacing: 6px;
                         for c[i] in [#ffffff, #ffe14d, #86e1ff, #a6ffa0]: Rectangle {
@@ -1385,10 +1404,10 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Styl";
-                    hint: ["Czarny obrys – czytelne na każdym tle", "Miękki cień", "Półprzezroczyste pole pod tekstem"][Prefs.sub-style];
+                    title: @tr("Style");
+                    hint: [@tr("Black outline – readable on any background"), @tr("Soft shadow"), @tr("A semi-transparent box under the text")][Prefs.sub-style];
                     Segmented {
-                        options: ["Obrys", "Cień", "Pole"];
+                        options: [@tr("Outline"), @tr("Shadow"), @tr("Box")];
                         selected: Prefs.sub-style;
                         changed(i) => {
                             Prefs.sub-style = i;
@@ -1397,8 +1416,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Położenie";
-                    hint: Prefs.sub-pos >= 100 ? "Przy dolnej krawędzi obrazu" : "Wyżej o " + (100 - Prefs.sub-pos) + "% wysokości";
+                    title: @tr("Position");
+                    hint: Prefs.sub-pos >= 100 ? @tr("At the bottom edge of the picture") : @tr("{}% of the height higher", 100 - Prefs.sub-pos);
                     HSlider {
                         width: 180px;
                         minimum: 40;
@@ -1416,22 +1435,22 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingSwitch {
-                    title: "Pogrubione";
+                    title: @tr("Bold");
                     checked <=> Prefs.sub-bold;
                     toggled => { Prefs.changed("sub-bold"); }
                 }
                 SettingSwitch {
-                    title: "Własny styl także dla napisów ASS";
-                    hint: "Napisy ze stylami (anime, karaoke) dostają czcionkę i kolor z ustawień";
+                    title: @tr("Custom style for ASS subtitles too");
+                    hint: @tr("Styled subtitles (anime, karaoke) get the font and color from settings");
                     checked <=> Prefs.sub-override;
                     toggled => { Prefs.changed("sub-override"); }
                 }
                 SettingRow {
-                    title: "Napisy z folderu filmu";
-                    hint: "Które pliki napisów obok filmu wczytywać same";
+                    title: @tr("Subtitles from the movie's folder");
+                    hint: @tr("Which subtitle files next to the movie to load automatically");
                     ComboBox {
                         width: 200px;
-                        model: ["Nie wczytuj", "Ta sama nazwa", "Podobna nazwa", "Wszystkie z folderu"];
+                        model: [@tr("Don't load"), @tr("Same name"), @tr("Similar name"), @tr("All in the folder")];
                         current-index: Prefs.sub-auto;
                         selected => {
                             Prefs.sub-auto = self.current-index;
@@ -1440,8 +1459,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Preferowane języki napisów";
-                    hint: "Kody oddzielone przecinkami, np. pol,eng";
+                    title: @tr("Preferred subtitle languages");
+                    hint: @tr("Comma-separated codes, e.g. eng,pol");
                     LineEdit {
                         width: 180px;
                         text <=> Prefs.sub-lang;
@@ -1450,11 +1469,11 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             if Ui.settings-page == 7: Page {
-                heading: "Biblioteka";
+                heading: @tr("Library");
                 FolderList {
                     kind: 0;
-                    title: "MUZYKA";
-                    hint: "Foldery z muzyką – wykonawcy, albumy, gatunki, lata i foldery.";
+                    title: @tr("MUSIC");
+                    hint: @tr("Music folders – artists, albums, genres, years and folders.");
                     folders: Prefs.folders;
                 }
                 Rectangle {
@@ -1462,15 +1481,15 @@ export component SettingsDialog inherits Dialog {
                 }
                 FolderList {
                     kind: 1;
-                    title: "WIDEO";
-                    hint: "Foldery z filmami i serialami – wszystkie filmy, foldery, kontynuowanie oglądania.";
+                    title: @tr("VIDEO");
+                    hint: @tr("Movie and TV show folders – all videos, folders, continue watching.");
                     folders: Prefs.video-folders;
                 }
                 Rectangle {
                     height: 18px;
                 }
                 Text {
-                    text: "Dyski sieciowe: dodaj folder na dysku zmapowanym (np. Z:\\Muzyka) albo ścieżkę udziału (\\\\NAS\\Muzyka). Gdy serwer jest wyłączony, biblioteka zachowuje jego pliki i odświeży je przy następnym skanowaniu.";
+                    text: @tr("Network drives: add a folder on a mapped drive (e.g. Z:\\Music) or a share path (\\\\NAS\\Music). When the server is off, the library keeps its files and refreshes them on the next scan.");
                     color: Theme.text3;
                     font-size: Theme.fs-sm;
                     wrap: word-wrap;
@@ -1481,7 +1500,7 @@ export component SettingsDialog inherits Dialog {
                 HorizontalLayout {
                     alignment: start;
                     Btn {
-                        text: "Skanuj bibliotekę teraz";
+                        text: @tr("Scan library now");
                         icon: Icons.refresh;
                         clicked => { Prefs.changed("rescan"); }
                     }
@@ -1490,23 +1509,23 @@ export component SettingsDialog inherits Dialog {
                     height: 10px;
                 }
                 SectionTitle {
-                    text: "INTERNET";
+                    text: @tr("INTERNET");
                 }
                 SettingSwitch {
-                    title: "Pobieraj brakujące teksty z LRCLIB";
-                    hint: "Wysyła tylko wykonawcę, tytuł, album i czas trwania";
+                    title: @tr("Download missing lyrics from LRCLIB");
+                    hint: @tr("Sends only the artist, title, album and duration");
                     checked <=> Prefs.online-lyrics;
                     toggled => { Prefs.changed("online-lyrics"); }
                 }
                 SettingSwitch {
-                    title: "Pobieraj brakujące okładki";
-                    hint: "Z MusicBrainz i Cover Art Archive – wysyła tylko wykonawcę i album";
+                    title: @tr("Download missing covers");
+                    hint: @tr("From MusicBrainz and Cover Art Archive – sends only the artist and album");
                     checked <=> Prefs.online-covers;
                     toggled => { Prefs.changed("online-covers"); }
                 }
                 SettingRow {
-                    title: "Klucz API TMDB";
-                    hint: "Polskie plakaty, opisy, gatunki i oceny filmów – darmowy klucz z themoviedb.org (Ustawienia → API)";
+                    title: @tr("TMDB API key");
+                    hint: @tr("Movie posters, descriptions, genres and ratings in your language – a free key from themoviedb.org (Settings → API)");
                     LineEdit {
                         width: 220px;
                         input-type: password;
@@ -1515,8 +1534,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Klucz API OpenSubtitles";
-                    hint: "Pobieranie polskich napisów jednym kliknięciem – klucz z opensubtitles.com (Konto → API)";
+                    title: @tr("OpenSubtitles API key");
+                    hint: @tr("One-click subtitle download in your language – a key from opensubtitles.com (Account → API)");
                     LineEdit {
                         width: 220px;
                         input-type: password;
@@ -1525,8 +1544,8 @@ export component SettingsDialog inherits Dialog {
                     }
                 }
                 SettingRow {
-                    title: "Token ListenBrainz";
-                    hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";
+                    title: @tr("ListenBrainz token");
+                    hint: @tr("Scrobbling of played tracks – a token from listenbrainz.org/settings; empty turns it off");
                     LineEdit {
                         width: 220px;
                         input-type: password;
@@ -1536,7 +1555,7 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             if Ui.settings-page == 8: Page {
-                heading: "Skróty klawiszowe";
+                heading: @tr("Keyboard shortcuts");
                 for k in Prefs.keys: HorizontalLayout {
                     height: 30px;
                     spacing: 12px;
@@ -1570,55 +1589,55 @@ export component SettingsDialog inherits Dialog {
                 }
             }
             if Ui.settings-page == 9: Page {
-                heading: "System";
+                heading: @tr("System");
                 SettingSwitch {
-                    title: "Jedno okno programu";
-                    hint: "Otwierane pliki trafiają do działającego OpenMP";
+                    title: @tr("Single program window");
+                    hint: @tr("Opened files go to the running OpenMP");
                     checked <=> Prefs.single-instance;
                     toggled => { Prefs.changed("single-instance"); }
                 }
                 SettingSwitch {
-                    title: "Klawisze multimedialne i panel Windows";
-                    hint: "Sterowanie z klawiatury, słuchawek i nakładki głośności";
+                    title: @tr("Media keys and the Windows panel");
+                    hint: @tr("Control from the keyboard, headphones and the volume overlay");
                     checked <=> Prefs.media-keys;
                     toggled => { Prefs.changed("media-keys"); }
                 }
                 SettingSwitch {
-                    title: "Globalne skróty klawiszowe";
-                    hint: "Ctrl+Alt+Spacja – odtwórz/pauza, Ctrl+Alt+←/→ – utwór, Ctrl+Alt+↑/↓ – głośność; także gdy okno jest w tle";
+                    title: @tr("Global keyboard shortcuts");
+                    hint: @tr("Ctrl+Alt+Space – play/pause, Ctrl+Alt+←/→ – track, Ctrl+Alt+↑/↓ – volume; also when the window is in the background");
                     checked <=> Prefs.global-hotkeys;
                     toggled => { Prefs.changed("global-hotkeys"); }
                 }
                 SettingSwitch {
-                    title: "Nie usypiaj komputera podczas filmu";
+                    title: @tr("Keep the computer awake during movies");
                     checked <=> Prefs.prevent-sleep;
                     toggled => { Prefs.changed("prevent-sleep"); }
                 }
                 SettingRow {
-                    title: "Skojarzenia plików";
-                    hint: "Ustaw OpenMP jako domyślny odtwarzacz w ustawieniach Windows";
+                    title: @tr("File associations");
+                    hint: @tr("Set OpenMP as the default player in Windows settings");
                     Btn {
-                        text: "Aplikacje domyślne…";
+                        text: @tr("Default apps…");
                         clicked => { Prefs.associate(); }
                     }
                 }
                 SettingSwitch {
-                    title: "Sprawdzaj aktualizacje";
-                    hint: "Przy uruchomieniu, przez redzikowski.com";
+                    title: @tr("Check for updates automatically");
+                    hint: @tr("On startup, via redzikowski.com");
                     checked <=> Prefs.check-updates;
                     toggled => { Prefs.changed("check-updates"); }
                 }
                 SettingRow {
-                    title: "Wersja " + Prefs.version;
+                    title: @tr("Version {}", Prefs.version);
                     Btn {
-                        text: "Sprawdź teraz";
+                        text: @tr("Check now");
                         icon: Icons.refresh;
                         clicked => { Prefs.check-update(); }
                     }
                 }
             }
             if Ui.settings-page == 10: Page {
-                heading: "O programie";
+                heading: @tr("About");
                 HorizontalLayout {
                     spacing: 16px;
                     alignment: start;
@@ -1637,7 +1656,7 @@ export component SettingsDialog inherits Dialog {
                             font-weight: 700;
                         }
                         Text {
-                            text: "Open Media Player · wersja " + Prefs.version;
+                            text: @tr("Open Media Player · version {}", Prefs.version);
                             color: Theme.text3;
                             font-size: Theme.fs;
                         }
@@ -1647,7 +1666,7 @@ export component SettingsDialog inherits Dialog {
                     height: 14px;
                 }
                 Text {
-                    text: "Odtwarzacz muzyki i wideo dla Windows: własny silnik dźwięku z przejściami bez przerwy, przenikaniem, 18-pasmowym korektorem i ReplayGain, biblioteka muzyki, radio internetowe, teksty piosenek oraz odtwarzanie filmów z napisami i dekodowaniem sprzętowym (mpv).";
+                    text: @tr("A music and video player for Windows: its own audio engine with gapless playback, crossfade, an 18-band equalizer and ReplayGain, a music library, internet radio, song lyrics, and movie playback with subtitles and hardware decoding (mpv).");
                     color: Theme.text2;
                     font-size: Theme.fs;
                     wrap: word-wrap;
@@ -1660,7 +1679,7 @@ export component SettingsDialog inherits Dialog {
                     height: 16px;
                 }
                 Text {
-                    text: "Wykorzystuje: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv i FFmpeg.";
+                    text: @tr("Built with: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv and FFmpeg.");
                     color: Theme.text3;
                     font-size: Theme.fs-sm;
                     wrap: word-wrap;
@@ -1671,7 +1690,7 @@ export component SettingsDialog inherits Dialog {
 }
 
 export component AboutDialog inherits Dialog {
-    title: "O programie";
+    title: @tr("About");
     card-width: 520px;
     close => { Ui.about = false; }
     VerticalLayout {
@@ -1696,14 +1715,14 @@ export component AboutDialog inherits Dialog {
                     font-weight: 700;
                 }
                 Text {
-                    text: "Open Media Player · wersja " + Prefs.version;
+                    text: @tr("Open Media Player · version {}", Prefs.version);
                     color: Theme.text3;
                     font-size: Theme.fs;
                 }
             }
         }
         Text {
-            text: "Odtwarzacz muzyki i wideo dla Windows – rozbudowany wyświetlacz w trybie muzyki i minimalistyczny, chowający się interfejs w trybie wideo.";
+            text: @tr("A music and video player for Windows – a rich display in music mode and a minimal, auto-hiding interface in video mode.");
             color: Theme.text2;
             font-size: Theme.fs;
             wrap: word-wrap;
@@ -1713,7 +1732,7 @@ export component AboutDialog inherits Dialog {
 }
 
 export component UrlDialog inherits Dialog {
-    title: "Otwórz adres";
+    title: @tr("Open URL");
     card-width: 560px;
     close => { Ui.url-dialog = false; }
     VerticalLayout {
@@ -1721,7 +1740,7 @@ export component UrlDialog inherits Dialog {
         padding-top: 4px;
         spacing: 12px;
         Text {
-            text: "Strumień radia, plik w sieci albo lista odtwarzania (http, https, rtsp, m3u8). Działają też linki do YouTube i innych serwisów wideo.";
+            text: @tr("A radio stream, a file on the web or a playlist (http, https, rtsp, m3u8). Links to YouTube and other video sites work too.");
             color: Theme.text3;
             font-size: Theme.fs-sm;
             wrap: word-wrap;
@@ -1738,11 +1757,11 @@ export component UrlDialog inherits Dialog {
             alignment: end;
             spacing: 8px;
             Btn {
-                text: "Anuluj";
+                text: @tr("Cancel");
                 clicked => { Ui.url-dialog = false; }
             }
             Btn {
-                text: "Odtwórz";
+                text: @tr("Play");
                 primary: true;
                 enabled: Ui.url-text != "";
                 clicked => { Ui.url-accepted(Ui.url-text); }
@@ -1770,11 +1789,11 @@ export component RenameDialog inherits Dialog {
             alignment: end;
             spacing: 8px;
             Btn {
-                text: "Anuluj";
+                text: @tr("Cancel");
                 clicked => { Ui.rename-dialog = false; }
             }
             Btn {
-                text: "Zapisz";
+                text: @tr("Save");
                 primary: true;
                 enabled: Ui.rename-text != "";
                 clicked => { Ui.rename-accepted(Ui.rename-text); }
@@ -1784,7 +1803,7 @@ export component RenameDialog inherits Dialog {
 }
 
 export component TagEditor inherits Dialog {
-    title: "Edycja tagów";
+    title: @tr("Tag editing");
     card-width: 680px;
     close => { Ui.tag-editor = false; }
     in-out property <[string]> v: Ui.tag-values;
@@ -1810,7 +1829,7 @@ export component TagEditor inherits Dialog {
                     has: Ui.tag-has-cover;
                 }
                 Btn {
-                    text: "Zmień okładkę…";
+                    text: @tr("Change cover…");
                     compact: true;
                     clicked => { Ui.tag-pick-cover(); }
                 }
@@ -1818,7 +1837,7 @@ export component TagEditor inherits Dialog {
             VerticalLayout {
                 horizontal-stretch: 1;
                 spacing: 6px;
-                for f[i] in ["Tytuł", "Wykonawca", "Album", "Wykonawca albumu", "Gatunek", "Rok", "Nr utworu", "Nr płyty", "Kompozytor", "Komentarz"]: HorizontalLayout {
+                for f[i] in [@tr("Title"), @tr("Artist"), @tr("Album"), @tr("Album artist"), @tr("Genre"), @tr("Year"), @tr("Track no."), @tr("Disc no."), @tr("Composer"), @tr("Comment")]: HorizontalLayout {
                     spacing: 10px;
                     Text {
                         width: 130px;
@@ -1831,7 +1850,7 @@ export component TagEditor inherits Dialog {
                         horizontal-stretch: 1;
                         height: 30px;
                         text: root.v[i];
-                        placeholder-text: Ui.tag-mixed[i] ? "(różne wartości – bez zmian)" : "";
+                        placeholder-text: Ui.tag-mixed[i] ? @tr("(multiple values – unchanged)") : "";
                         edited(t) => { root.v[i] = t; }
                     }
                 }
@@ -1841,11 +1860,11 @@ export component TagEditor inherits Dialog {
             alignment: end;
             spacing: 8px;
             Btn {
-                text: "Anuluj";
+                text: @tr("Cancel");
                 clicked => { Ui.tag-editor = false; }
             }
             Btn {
-                text: Ui.tag-busy ? "Zapisywanie…" : "Zapisz";
+                text: Ui.tag-busy ? @tr("Saving…") : @tr("Save");
                 primary: true;
                 enabled: !Ui.tag-busy;
                 clicked => { Ui.tag-save(root.v); }
@@ -1855,7 +1874,7 @@ export component TagEditor inherits Dialog {
 }
 
 export component UpdateDialog inherits Dialog {
-    title: "Dostępna aktualizacja";
+    title: @tr("Update available");
     card-width: 520px;
     close => { Ui.update-dialog = false; }
     VerticalLayout {
@@ -1863,7 +1882,7 @@ export component UpdateDialog inherits Dialog {
         padding-top: 4px;
         spacing: 12px;
         Text {
-            text: "OpenMP " + Ui.update-version + " jest gotowy do pobrania (masz " + Prefs.version + ").";
+            text: @tr("OpenMP {} is ready to download (you have {}).", Ui.update-version, Prefs.version);
             color: Theme.text;
             font-size: Theme.fs;
             wrap: word-wrap;
@@ -1904,11 +1923,11 @@ export component UpdateDialog inherits Dialog {
             alignment: end;
             spacing: 8px;
             Btn {
-                text: "Pomiń tę wersję";
+                text: @tr("Skip this version");
                 clicked => { Ui.update-skip(); }
             }
             Btn {
-                text: Ui.update-portable ? "Otwórz stronę pobierania" : "Zainstaluj i uruchom ponownie";
+                text: Ui.update-portable ? @tr("Open download page") : @tr("Install and restart");
                 primary: true;
                 enabled: Ui.update-progress < 0;
                 clicked => { Ui.update-install(); }

@@ -124,26 +124,26 @@ pub fn device_menu(app: &mut App, x: f32, y: f32) {
 pub fn main_menu(app: &mut App, x: f32, y: f32) {
     let full = app.ui().map(|u| u.global::<Ui>().get_fullscreen()).unwrap_or(false);
     let items = vec![
-        item("open-files", "Otwórz pliki…", "file", "Ctrl+O"),
-        item("open-folder", "Otwórz folder…", "folder-open", "Ctrl+Shift+O"),
-        item("open-url", "Otwórz adres (strumień, radio)…", "link", "Ctrl+U"),
+        item("open-files", tr!("Open files…"), "file", "Ctrl+O"),
+        item("open-folder", tr!("Open folder…"), "folder-open", "Ctrl+Shift+O"),
+        item("open-url", tr!("Open URL (stream, radio)…"), "link", "Ctrl+U"),
         sep(),
-        item("new-list", "Nowa lista", "playlist", "Ctrl+N"),
-        item("import-list", "Importuj listę (M3U, PLS, XSPF, CUE)…", "download", ""),
-        item("export-list", "Zapisz listę jako M3U8…", "download", "Ctrl+S"),
+        item("new-list", tr!("New list"), "playlist", "Ctrl+N"),
+        item("import-list", tr!("Import playlist (M3U, PLS, XSPF, CUE)…"), "download", ""),
+        item("export-list", tr!("Save list as M3U8…"), "download", "Ctrl+S"),
         sep(),
-        item("equalizer", "Korektor i efekty", "equalizer", "E"),
-        item("sleep", "Wyłącznik czasowy…", "timer", ""),
-        check("full", "Pełny ekran", full, "F11"),
-        item("mini", "Miniodtwarzacz", "pip", "Ctrl+M"),
-        check("ontop", "Zawsze na wierzchu", app.s.always_on_top, "Ctrl+T"),
+        item("equalizer", tr!("Equalizer and effects"), "equalizer", "E"),
+        item("sleep", tr!("Sleep timer…"), "timer", ""),
+        check("full", tr!("Full screen"), full, "F11"),
+        item("mini", tr!("Mini player"), "pip", "Ctrl+M"),
+        check("ontop", tr!("Always on top"), app.s.always_on_top, "Ctrl+T"),
         sep(),
-        item("settings", "Ustawienia", "settings", "Ctrl+,"),
-        item("update", "Sprawdź aktualizacje", "refresh", ""),
-        item("about", "O programie", "info", "F1"),
-        item("coffee", "Postaw kawę autorowi", "coffee", ""),
+        item("settings", tr!("Settings"), "settings", "Ctrl+,"),
+        item("update", tr!("Check for updates"), "refresh", ""),
+        item("about", tr!("About"), "info", "F1"),
+        item("coffee", tr!("Buy the author a coffee"), "coffee", ""),
         sep(),
-        item("quit", "Zakończ", "close", "Ctrl+Q"),
+        item("quit", tr!("Quit"), "close", "Ctrl+Q"),
     ];
     open(app, MenuCtx::Main, items, x, y);
 }
@@ -154,33 +154,33 @@ pub fn video_menu(app: &mut App, x: f32, y: f32, above: bool) {
     let aspect = app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0);
     let playing = crate::player::is_playing(app);
     let mut items = vec![
-        item("v-pause", if playing { "Pauza" } else { "Odtwórz" }, if playing { "pause" } else { "play" }, "Spacja"),
-        check("v-full", "Pełny ekran", fs, "F"),
-        check("v-ontop", "Zawsze na wierzchu", ontop, "T"),
-        item("v-mini", "Obraz w obrazie", "pip", "P"),
+        item("v-pause", if playing { tr!("Pause") } else { tr!("Play") }, if playing { "pause" } else { "play" }, tr!("Space")),
+        check("v-full", tr!("Full screen"), fs, "F"),
+        check("v-ontop", tr!("Always on top"), ontop, "T"),
+        item("v-mini", tr!("Picture in picture"), "pip", "P"),
         sep(),
-        item("v-audio", "Ścieżki dźwiękowe i prędkość…", "audiotrack", "A"),
-        item("v-subs", "Napisy…", "subtitles", "V"),
-        item("v-image", "Obraz: barwy, powiększenie…", "tune", ""),
-        item("v-chapters", "Rozdziały…", "bookmark", ""),
-        item("v-info", "Szczegóły odtwarzania", "info", "I"),
+        item("v-audio", tr!("Audio tracks and speed…"), "audiotrack", "A"),
+        item("v-subs", tr!("Subtitles…"), "subtitles", "V"),
+        item("v-image", tr!("Picture: colors, zoom…"), "tune", ""),
+        item("v-chapters", tr!("Chapters…"), "bookmark", ""),
+        item("v-info", tr!("Playback details"), "info", "I"),
         sep(),
     ];
-    let an = ["automatyczne", "16:9", "4:3", "21:9", "rozciągnięte", "wypełnij ekran"];
-    items.push(item("v-aspect-next", &format!("Proporcje: {}", an[aspect.clamp(0, 5) as usize]), "aspect", "C"));
+    let an = crate::video::aspect_names();
+    items.push(item("v-aspect-next", &tr!("Aspect ratio: {}", an[aspect.clamp(0, 5) as usize]), "aspect", "C"));
     items.extend([
-        item("v-rotate", "Obróć o 90°", "refresh", "Ctrl+R"),
-        item("v-reset", "Obraz jak w pliku", "aspect", "0"),
-        check("v-deband", "Usuwanie pasm", app.s.deband, "B"),
-        check("v-ambient", "Poświata z obrazu", app.s.ambient > 0, "G"),
+        item("v-rotate", tr!("Rotate by 90°"), "refresh", "Ctrl+R"),
+        item("v-reset", tr!("Picture as in file"), "aspect", "0"),
+        check("v-deband", tr!("Debanding"), app.s.deband, "B"),
+        check("v-ambient", tr!("Ambient glow"), app.s.ambient > 0, "G"),
         sep(),
-        item("v-shot", "Zrzut ekranu", "camera", "S"),
-        item("v-shot-clean", "Zrzut ekranu bez napisów", "camera", "Shift+S"),
-        item("v-ab", "Pętla A-B", "repeat", "L"),
+        item("v-shot", tr!("Screenshot"), "camera", "S"),
+        item("v-shot-clean", tr!("Screenshot without subtitles"), "camera", "Shift+S"),
+        item("v-ab", tr!("A-B loop"), "repeat", "L"),
         sep(),
-        item("open-files", "Otwórz plik…", "file", "Ctrl+O"),
-        item("v-audio-only", "Tylko dźwięk (obraz w tle wyłączony)", "audiotrack", ""),
-        item("v-back", "Biblioteka (film gra dalej)", "back", "Esc"),
+        item("open-files", tr!("Open file…"), "file", "Ctrl+O"),
+        item("v-audio-only", tr!("Audio only (picture off in the background)"), "audiotrack", ""),
+        item("v-back", tr!("Library (the movie keeps playing)"), "back", "Esc"),
     ]);
     // Przy kursorze (prawy klik) albo nad przyciskiem „Więcej”.
     open_at(app, MenuCtx::Video, items, x, y, above);
@@ -189,14 +189,14 @@ pub fn video_menu(app: &mut App, x: f32, y: f32, above: bool) {
 pub fn sleep_menu(app: &mut App, x: f32, y: f32) {
     let mut items = vec![];
     for m in [15, 30, 45, 60, 90, 120] {
-        items.push(item(&format!("sleep-{m}"), &format!("Za {m} min"), "timer", ""));
+        items.push(item(&format!("sleep-{m}"), &tr!("In {} min", m), "timer", ""));
     }
     items.push(sep());
-    items.push(item("sleep-track", "Po bieżącym utworze", "note", ""));
-    items.push(item("sleep-list", "Po zakończeniu listy", "playlist", ""));
+    items.push(item("sleep-track", tr!("After the current track"), "note", ""));
+    items.push(item("sleep-list", tr!("When the list ends"), "playlist", ""));
     if app.sleep.is_some() {
         items.push(sep());
-        items.push(item("sleep-off", "Wyłącz wyłącznik", "close", ""));
+        items.push(item("sleep-off", tr!("Turn off the sleep timer"), "close", ""));
     }
     open_above(app, MenuCtx::Sleep, items, x, y);
 }

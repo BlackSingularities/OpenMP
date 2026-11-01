@@ -14,9 +14,9 @@ use crate::*;
 fn hm(secs: f64) -> String {
     let m = (secs / 60.0).round() as u64;
     if m >= 60 {
-        format!("{} h {:02} min", m / 60, m % 60)
+        tr!("{} h {} min", m / 60, format!("{:02}", m % 60))
     } else {
-        format!("{m} min")
+        tr!("{} min", m)
     }
 }
 
@@ -36,10 +36,10 @@ fn date(day: u32) -> (u32, u32) {
 fn ago(t: u64) -> String {
     let d = now().saturating_sub(t);
     match d {
-        0..=59 => "przed chwilą".into(),
-        60..=3599 => format!("{} min temu", d / 60),
-        3600..=86_399 => format!("{} h temu", d / 3600),
-        _ => format!("{} dni temu", d / 86_400),
+        0..=59 => tr!("just now").into(),
+        60..=3599 => tr!("{} min ago", d / 60),
+        3600..=86_399 => tr!("{} h ago", d / 3600),
+        _ => trn!("{n} day ago", "{n} days ago", d / 86_400),
     }
 }
 
@@ -82,10 +82,10 @@ pub fn show(app: &mut App) {
     let plays_v: u64 = st.map.iter().filter(|(k, _)| is_video(k)).map(|(_, s)| s.plays as u64).sum();
     let watched = st.map.iter().filter(|(k, s)| is_video(k) && s.watched).count();
     let cards = vec![
-        StatCard { label: ss("Muzyka"), value: ss(hm(music)), sub: ss(format!("{plays_m} odtworzeń")) },
-        StatCard { label: ss("Filmy"), value: ss(hm(video)), sub: ss(format!("{plays_v} odtworzeń · {watched} obejrzanych")) },
-        StatCard { label: ss("Dziś"), value: ss(hm(t.music + t.video)), sub: ss(format!("muzyka {} · filmy {}", hm(t.music), hm(t.video))) },
-        StatCard { label: ss("Ostatnie 7 dni"), value: ss(hm(week)), sub: ss(format!("średnio {} dziennie", hm(week / 7.0))) },
+        StatCard { label: ss(tr!("Music")), value: ss(hm(music)), sub: ss(trn!("{n} play", "{n} plays", plays_m)) },
+        StatCard { label: ss(tr!("Movies")), value: ss(hm(video)), sub: ss(format!("{} · {}", trn!("{n} play", "{n} plays", plays_v), trn!("{n} watched", "{n} watched", watched))) },
+        StatCard { label: ss(tr!("Today")), value: ss(hm(t.music + t.video)), sub: ss(tr!("music {} · movies {}", hm(t.music), hm(t.video))) },
+        StatCard { label: ss(tr!("Last 7 days")), value: ss(hm(week)), sub: ss(tr!("{} a day on average", hm(week / 7.0))) },
     ];
 
     // Ostatnie 14 dni.
@@ -100,7 +100,7 @@ pub fn show(app: &mut App) {
                 label: ss(format!("{dd}.{mm:02}")),
                 music: (x.music / max) as f32,
                 video: (x.video / max) as f32,
-                tip: ss(format!("{dd}.{mm:02}: muzyka {}, filmy {}", hm(x.music), hm(x.video))),
+                tip: ss(format!("{dd}.{mm:02}: {}", tr!("music {}, movies {}", hm(x.music), hm(x.video)))),
             }
         })
         .collect();
@@ -134,7 +134,7 @@ pub fn show(app: &mut App) {
             .filter(|(k, s)| is_video(k) && (s.plays > 0 || s.listened > 0.0))
             .map(|(k, s)| {
                 let (a, _) = name(k);
-                let sub = format!("{}{}", if s.watched { "obejrzany · " } else { "" }, if s.last > 0 { ago(s.last) } else { String::new() });
+                let sub = format!("{}{}", if s.watched { tr!("watched · ") } else { "" }, if s.last > 0 { ago(s.last) } else { String::new() });
                 let t = spent(k, s);
                 (a, sub, t.max(s.plays as f64), hm(t))
             })

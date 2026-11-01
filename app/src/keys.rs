@@ -25,53 +25,53 @@ const DEL: char = '\u{7f}';
 pub fn help() -> Vec<KeyHelp> {
     let k = |a: &str, b: &str| KeyHelp { keys: ss(a), action: ss(b) };
     vec![
-        k("Spacja", "Odtwarzanie / pauza"),
-        k("Ctrl + ← / →", "Poprzedni / następny utwór"),
-        k("← / →", "Przewiń o krok (ustawienia), z Shift – 1 s, z Alt – 60 s"),
-        k("↑ / ↓", "Głośność (w wideo); na liście – wybór utworu"),
-        k("Ctrl + ↑ / ↓", "Głośność"),
-        k("Enter", "Odtwórz zaznaczony"),
-        k("M", "Wycisz"),
-        k("S", "Losowo; w wideo – zrzut ekranu"),
-        k("R", "Powtarzanie: wył. / lista / utwór"),
-        k("E", "Korektor i efekty"),
-        k("L", "Tekst piosenki; w wideo – pętla A-B"),
-        k("Q", "Dodaj zaznaczone do kolejki"),
-        k("Del", "Usuń zaznaczone z listy"),
-        k("Alt + ↑ / ↓", "Przesuń zaznaczone na liście"),
-        k("Ctrl + A", "Zaznacz wszystko"),
-        k("Ctrl + Alt + Spacja / ← / → / ↑ / ↓", "Globalnie: odtwórz/pauza, utwór, głośność"),
-        k("Ctrl + D", "Ulubione"),
-        k("Ctrl + 1…5 / Ctrl + 0", "Oceń zaznaczone (5 = ulubione) / usuń ocenę"),
-        k("F2", "Edytuj tagi"),
-        k("Ctrl + F", "Szukaj na liście"),
-        k("Ctrl + O / Ctrl + Shift + O", "Otwórz pliki / folder"),
-        k("Ctrl + U", "Otwórz adres (strumień)"),
-        k("Ctrl + N / Ctrl + W", "Nowa lista / zamknij kartę"),
-        k("Ctrl + Tab", "Następna karta listy"),
-        k("Ctrl + S", "Zapisz listę jako M3U8"),
-        k("F11 / Ctrl + M", "Pełny ekran / miniodtwarzacz"),
-        k("Ctrl + B", "Panel nawigacji"),
-        k("Ctrl + T", "Zawsze na wierzchu"),
-        k("Ctrl + J", "Pokaż bieżący utwór na liście"),
-        k("V / Shift + V", "Wideo: przełącz napisy / ścieżkę dźwiękową"),
-        k("F, dwuklik, kliknięcie obrazu", "Wideo: pełny ekran filmu (Esc – z powrotem do okna)"),
-        k("Esc", "Wideo: wyjście z pełnego ekranu; w oknie – do biblioteki (film gra dalej)"),
-        k("P", "Wideo: obraz w obrazie (miniodtwarzacz)"),
-        k("+ / − / 0", "Wideo: powiększ / pomniejsz / obraz jak w pliku"),
-        k("Ctrl + Shift + strzałki", "Wideo: przesuń powiększony obraz"),
-        k("Ctrl + R", "Wideo: obróć o 90°"),
-        k("C", "Wideo: proporcje obrazu"),
-        k("B / G", "Wideo: usuwanie pasm / poświata z obrazu"),
-        k("I", "Wideo: szczegóły odtwarzania"),
-        k("Shift + S", "Wideo: zrzut ekranu bez napisów"),
-        k("[ / ] / Backspace", "Wideo: wolniej / szybciej / normalnie"),
-        k(", / .", "Wideo: klatka wstecz / naprzód"),
-        k("PgUp / PgDn", "Wideo: poprzedni / następny rozdział"),
-        k("Z / X", "Wideo: opóźnienie napisów −/+ 100 ms"),
-        k("T", "Wideo: zawsze na wierzchu"),
-        k("Ctrl + ,", "Ustawienia"),
-        k("Ctrl + Q", "Zakończ"),
+        k(tr!("Space"), trc!("shortcut", "Play / pause")),
+        k("Ctrl + ← / →", tr!("Previous / next track")),
+        k("← / →", tr!("Seek by one step (settings), with Shift – 1 s, with Alt – 60 s")),
+        k("↑ / ↓", tr!("Volume (in video); in a list – select a track")),
+        k("Ctrl + ↑ / ↓", tr!("Volume")),
+        k("Enter", tr!("Play selected")),
+        k("M", tr!("Mute")),
+        k("S", tr!("Shuffle; in video – screenshot")),
+        k("R", tr!("Repeat: off / list / track")),
+        k("E", tr!("Equalizer and effects")),
+        k("L", tr!("Song lyrics; in video – A-B loop")),
+        k("Q", tr!("Add selected to the queue")),
+        k("Del", tr!("Remove selected from the list")),
+        k("Alt + ↑ / ↓", tr!("Move selected in the list")),
+        k("Ctrl + A", tr!("Select all")),
+        k(tr!("Ctrl + Alt + Space / ← / → / ↑ / ↓"), tr!("Global: play/pause, track, volume")),
+        k("Ctrl + D", tr!("Favorites")),
+        k("Ctrl + 1…5 / Ctrl + 0", tr!("Rate selected (5 = favorite) / remove rating")),
+        k("F2", tr!("Edit tags")),
+        k("Ctrl + F", tr!("Search the list")),
+        k("Ctrl + O / Ctrl + Shift + O", tr!("Open files / folder")),
+        k("Ctrl + U", tr!("Open URL (stream)")),
+        k("Ctrl + N / Ctrl + W", tr!("New list / close tab")),
+        k("Ctrl + Tab", tr!("Next list tab")),
+        k("Ctrl + S", tr!("Save list as M3U8")),
+        k("F11 / Ctrl + M", tr!("Full screen / mini player")),
+        k("Ctrl + B", tr!("Navigation panel")),
+        k("Ctrl + T", tr!("Always on top")),
+        k("Ctrl + J", tr!("Show the current track in the list")),
+        k("V / Shift + V", tr!("Video: switch subtitles / audio track")),
+        k(tr!("F, double-click, click on picture"), tr!("Video: movie full screen (Esc – back to the window)")),
+        k("Esc", tr!("Video: exit full screen; in the window – to the library (the movie keeps playing)")),
+        k("P", tr!("Video: picture in picture (mini player)")),
+        k("+ / − / 0", tr!("Video: zoom in / zoom out / picture as in file")),
+        k(tr!("Ctrl + Shift + arrows"), tr!("Video: pan the zoomed picture")),
+        k("Ctrl + R", tr!("Video: rotate by 90°")),
+        k("C", tr!("Video: aspect ratio")),
+        k("B / G", tr!("Video: debanding / ambient glow")),
+        k("I", tr!("Video: playback details")),
+        k("Shift + S", tr!("Video: screenshot without subtitles")),
+        k("[ / ] / Backspace", tr!("Video: slower / faster / normal")),
+        k(", / .", tr!("Video: frame back / forward")),
+        k("PgUp / PgDn", tr!("Video: previous / next chapter")),
+        k("Z / X", tr!("Video: subtitle delay −/+ 100 ms")),
+        k("T", tr!("Video: always on top")),
+        k("Ctrl + ,", tr!("Settings")),
+        k("Ctrl + Q", tr!("Quit")),
     ]
 }
 
@@ -215,7 +215,7 @@ pub fn action(app: &mut App, id: &str) {
         }
         "new-list" => {
             let n = app.store.lists.len() + 1;
-            crate::lists::create_list(app, &format!("Lista {n}"));
+            crate::lists::create_list(app, &tr!("List {}", n));
             if let Some(ui) = app.ui() {
                 ui.global::<Lib>().set_view(0);
             }
@@ -264,7 +264,7 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
             let p = ui.global::<Player>();
             p.set_stop_after(!p.get_stop_after());
             let on = p.get_stop_after();
-            app.toast(if on { "Zatrzymanie po bieżącym utworze" } else { "Odtwarzanie ciągłe" });
+            app.toast(if on { tr!("Stop after the current track") } else { tr!("Continuous playback") });
         }
         crate::player::refresh_next(app);
         return;
@@ -480,7 +480,7 @@ pub fn toggle_shuffle(app: &mut App) {
     }
     app.pending = None;
     crate::player::refresh_next(app);
-    app.toast(if app.s.shuffle { "Losowo: włączone" } else { "Losowo: wyłączone" });
+    app.toast(if app.s.shuffle { tr!("Shuffle: on") } else { tr!("Shuffle: off") });
     app.s.save();
 }
 
@@ -491,7 +491,7 @@ pub fn cycle_repeat(app: &mut App) {
     }
     app.pending = None;
     crate::player::refresh_next(app);
-    app.toast(["Powtarzanie wyłączone", "Powtarzaj listę", "Powtarzaj utwór"][app.s.repeat as usize]);
+    app.toast([tr!("Repeat off"), tr!("Repeat list"), tr!("Repeat track")][app.s.repeat as usize]);
     app.s.save();
 }
 
@@ -509,7 +509,7 @@ fn paste(app: &mut App) {
     }
     let paths: Vec<String> = text.lines().map(|l| l.trim().trim_matches('"').to_string()).filter(|l| std::path::Path::new(l).exists()).collect();
     if paths.is_empty() {
-        app.toast("W schowku nie ma linku ani ścieżki do pliku");
+        app.toast(tr!("The clipboard has no link or file path"));
     } else {
         crate::player::open_paths(app, paths, true, None);
     }

@@ -1,5 +1,12 @@
 # Zmiany
 
+## 1.6.0
+
+- **Wersja angielska:** cały interfejs po angielsku i po polsku; domyślnie język Windows, zmiana w Ustawieniach → Wygląd → Język.
+- **Łatwe dodawanie języków:** wszystkie teksty jednego języka w jednym pliku lang/<kod>/LC_MESSAGES/openmp.po (szablon lang/openmp.pot), wbudowywanym przy kompilacji – bez zmian w kodzie. Liczba mnoga i separator dziesiętny zgodnie z językiem.
+- **Podpisy na okładkach** (Ustawienia → Układ): tytuł i podtytuł na dole okładki zamiast pod nią – więcej okładek na ekranie.
+- Radio „Mój kraj” według ustawień regionalnych Windows; instalator także po angielsku.
+
 ## 1.5.5
 
 - **Okładka po prawej, tekst po lewej:** okładka, plakat albo obraz filmu stoi przy prawej krawędzi w prawdziwych proporcjach (pionowy plakat, kwadratowa płyta, szeroki kadr) – bez przycinania i bez zmiany układu tekstu.

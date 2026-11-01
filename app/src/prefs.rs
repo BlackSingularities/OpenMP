@@ -21,10 +21,10 @@ pub fn presets(app: &App) -> Vec<(String, Vec<f32>)> {
 
 pub fn publish_presets(app: &mut App) {
     let p = presets(app);
-    let mut names: Vec<String> = p.iter().map(|x| x.0.clone()).collect();
-    let mut idx = names.iter().position(|n| *n == app.s.eq_preset);
+    let mut names: Vec<String> = p.iter().map(|x| dsp::preset_label(&x.0)).collect();
+    let mut idx = p.iter().position(|x| x.0 == app.s.eq_preset);
     if idx.is_none() {
-        names.push("Własne".into());
+        names.push(tr!("Custom").into());
         idx = Some(names.len() - 1);
     }
     if let Some(ui) = app.ui() {
@@ -105,6 +105,7 @@ pub fn publish(app: &mut App) {
     p.set_compact_ui(s.compact_ui);
     p.set_track_grid(s.track_grid);
     p.set_grid_size(s.grid_size);
+    p.set_caption_overlay(s.caption_overlay);
     publish_theme(app);
     p.set_video_leave(s.video_leave);
     p.set_video_open_view(s.video_open_view);
@@ -158,14 +159,15 @@ pub fn publish(app: &mut App) {
     p.set_folders(crate::app::strings(&s.library_folders));
     p.set_video_folders(crate::app::strings(&s.video_folders));
     p.set_version(ss(openmp_core::version()));
-    p.set_author_line(ss(openmp_core::AUTHOR_LINE));
-    let mut devs = vec!["Domyślne urządzenie systemu".to_string()];
+    p.set_author_line(ss(tr!("Idea and development: {}", openmp_core::AUTHOR_LINE)));
+    publish_languages(app);
+    let mut devs = vec![tr!("System default device").to_string()];
     devs.extend(openmp_core::audio::engine::devices());
     let di = s.device.as_ref().and_then(|d| devs.iter().position(|x| x == d)).unwrap_or(0);
     p.set_devices(crate::app::strings(&devs));
     p.set_device(di as i32);
     p.set_mpv_ok(app.mpv.is_some());
-    p.set_mpv_info(ss(if app.mpv.is_some() { "libmpv – wideo, napisy, strumienie, dekodowanie sprzętowe".to_string() } else { app.mpv_err.clone() }));
+    p.set_mpv_info(ss(if app.mpv.is_some() { tr!("libmpv – video, subtitles, streams, hardware decoding").to_string() } else { app.mpv_err.clone() }));
     p.set_keys(ModelRc::new(VecModel::from(crate::keys::help())));
     let pl = ui.global::<Player>();
     pl.set_shuffle(s.shuffle);
@@ -206,7 +208,7 @@ fn speed_text(s: f64) -> String {
     if (s - 1.0).abs() < 0.001 {
         String::new()
     } else {
-        format!("{}×", format!("{s:.2}").trim_end_matches('0').trim_end_matches('.')).replace('.', ",")
+        openmp_core::i18n::decimal(format!("{}×", format!("{s:.2}").trim_end_matches('0').trim_end_matches('.')))
     }
 }
 
@@ -222,11 +224,36 @@ pub fn apply_audio(app: &mut App) {
     crate::player::apply_volume(app);
 }
 
+/// Lista języków w ustawieniach: „Systemowy”, potem każdy wbudowany katalog w swoim języku.
+fn publish_languages(app: &App) {
+    let Some(ui) = app.ui() else { return };
+    let langs = openmp_core::i18n::languages();
+    let mut names = vec![trc!("language", "System").to_string()];
+    names.extend(langs.iter().map(|(_, n)| n.to_string()));
+    let p = ui.global::<Prefs>();
+    p.set_languages(crate::app::strings(&names));
+    p.set_language(langs.iter().position(|(c, _)| *c == app.s.language).map(|i| i as i32 + 1).unwrap_or(0));
+}
+
 /// Zmiana ustawienia w interfejsie.
 pub fn changed(app: &mut App, key: &str) {
     let Some(ui) = app.ui() else { return };
     let p = ui.global::<Prefs>();
     match key {
+        "caption-overlay" => app.s.caption_overlay = p.get_caption_overlay(),
+        "language" => {
+            let i = p.get_language();
+            let langs = openmp_core::i18n::languages();
+            app.s.language = if i <= 0 { String::new() } else { langs.get(i as usize - 1).map(|l| l.0.to_string()).unwrap_or_default() };
+            crate::apply_language(&app.s.language);
+            // Teksty z kodu, które już są na ekranie.
+            publish_languages(app);
+            p.set_keys(ModelRc::new(VecModel::from(crate::keys::help())));
+            publish_presets(app);
+            crate::libview::rebuild_nav(app);
+            crate::lists::rebuild_tabs(app);
+            app.toast(tr!("Some texts will change language after restarting OpenMP"));
+        }
         "dark" => {
             app.s.theme = if p.get_dark() { "dark".into() } else { "light".into() };
             ui.global::<Theme>().set_dark(p.get_dark());
@@ -326,7 +353,7 @@ pub fn changed(app: &mut App, key: &str) {
         "replaygain" | "rg-preamp" => {
             app.s.replaygain = p.get_replaygain();
             app.s.rg_preamp = p.get_rg_preamp();
-            app.toast("ReplayGain zadziała od następnego utworu");
+            app.toast(tr!("ReplayGain will apply from the next track"));
         }
         "speed" => {
             app.s.speed = (p.get_speed() as f64 * 20.0).round() / 20.0;
@@ -467,7 +494,7 @@ pub fn changed(app: &mut App, key: &str) {
         "peq-load" => {
             crate::dialogs::ask(
                 app,
-                |d| d.set_title("Profil AutoEQ (ParametricEQ.txt)").add_filter("Profil AutoEQ", &["txt"]).pick_file(),
+                |d| d.set_title(tr!("AutoEQ profile (ParametricEQ.txt)")).add_filter(tr!("AutoEQ profile"), &["txt"]).pick_file(),
                 |app, f| {
                     let text = std::fs::read_to_string(&f).unwrap_or_default();
                     match openmp_core::audio::dsp::parse_autoeq(&text) {
@@ -486,9 +513,9 @@ pub fn changed(app: &mut App, key: &str) {
                                 ui.global::<Prefs>().set_peq_name(ss(&name));
                             }
                             app.dirty = true;
-                            app.toast(format!("Wczytano „{name}” – {n} filtrów, przedwzmocnienie {pre:.1} dB"));
+                            app.toast(tr!("Loaded “{}” – {}, preamp {} dB", name, trn!("{n} filter", "{n} filters", n), openmp_core::i18n::decimal(format!("{pre:.1}"))));
                         }
-                        None => app.toast("To nie jest profil AutoEQ (ParametricEQ.txt)"),
+                        None => app.toast(tr!("This is not an AutoEQ profile (ParametricEQ.txt)")),
                     }
                 },
             );
@@ -524,7 +551,7 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.global_hotkeys = p.get_global_hotkeys();
             let n = crate::win::hotkeys(app, app.s.global_hotkeys);
             if app.s.global_hotkeys && n < 5 {
-                app.toast(format!("Część skrótów zajmuje inny program ({n} z 5 działa)"));
+                app.toast(tr!("Another program is using some shortcuts ({} of 5 work)", n));
             }
         }
         "media-keys" => {
@@ -596,7 +623,7 @@ pub fn auto_eq(app: &mut App, announce: bool) {
     let Some(i) = presets(app).iter().position(|(n, _)| n == name) else { return };
     eq_preset(app, i);
     if announce {
-        app.toast(format!("Korektor: {name} (gatunek {})", app.cur.as_ref().map(|c| c.info.genre.clone()).unwrap_or_default()));
+        app.toast(tr!("Equalizer: {} (genre {})", dsp::preset_label(name), app.cur.as_ref().map(|c| c.info.genre.clone()).unwrap_or_default()));
     }
 }
 
@@ -616,14 +643,14 @@ pub fn eq_reset(app: &mut App) {
 
 /// Dodanie folderu biblioteki: 0 – muzyka, 1 – wideo.
 pub fn add_folder(app: &mut App, kind: i32) {
-    let title = if kind == 1 { "Folder z wideo" } else { "Folder z muzyką" };
+    let title = if kind == 1 { tr!("Video folder") } else { tr!("Music folder") };
     crate::dialogs::ask(app, move |d| d.set_title(title).pick_folder(), move |app, dir| {
         add_folder_path(app, kind, dir.to_string_lossy().into_owned());
     });
 }
 
 pub fn add_network_folder(app: &mut App, kind: i32) {
-    crate::dialogs::rename(app, RenameCtx::NetFolder(kind), "Ścieżka sieciowa (np. \\\\NAS\\Muzyka lub Z:\\Filmy)", "\\\\");
+    crate::dialogs::rename(app, RenameCtx::NetFolder(kind), tr!("Network path (e.g. \\\\NAS\\Music or Z:\\Movies)"), "\\\\");
 }
 
 pub fn add_folder_path(app: &mut App, kind: i32, path: String) {
@@ -632,7 +659,7 @@ pub fn add_folder_path(app: &mut App, kind: i32, path: String) {
         return;
     }
     if !openmp_core::library::reachable(&path) {
-        app.toast(format!("Folder „{path}” jest niedostępny – sprawdź ścieżkę i połączenie z siecią"));
+        app.toast(tr!("The folder “{}” is unavailable – check the path and network connection", path));
         return;
     }
     let list = if kind == 1 { &mut app.s.video_folders } else { &mut app.s.library_folders };
@@ -668,7 +695,7 @@ fn publish_folders(app: &mut App) {
 }
 
 pub fn pick_screenshot_dir(app: &mut App) {
-    crate::dialogs::ask(app, |d| d.set_title("Folder zrzutów ekranu").pick_folder(), |app, d| {
+    crate::dialogs::ask(app, |d| d.set_title(tr!("Screenshot folder")).pick_folder(), |app, d| {
         app.s.screenshot_dir = d.to_string_lossy().into_owned();
         if let Some(ui) = app.ui() {
             ui.global::<Prefs>().set_screenshot_dir(ss(&app.s.screenshot_dir));

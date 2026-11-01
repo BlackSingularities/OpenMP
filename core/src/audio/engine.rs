@@ -448,7 +448,7 @@ impl Worker {
             }
             Err(e) => {
                 self.want_excl = false;
-                let _ = self.etx.send(Event::Device(format!("Tryb wyłączny niedostępny ({e}) – gra przez mikser Windows")));
+                let _ = self.etx.send(Event::Device(crate::tr!("Exclusive mode unavailable ({}) – playing through the Windows mixer", e)));
                 false
             }
         }
@@ -469,7 +469,7 @@ impl Worker {
             .and_then(|n| host.output_devices().ok()?.find(|d| d.name().ok().as_deref() == Some(n)))
             .or_else(|| host.default_output_device());
         let Some(dev) = dev else {
-            let _ = self.etx.send(Event::Device("Brak urządzenia audio".into()));
+            let _ = self.etx.send(Event::Device(crate::tr!("No audio device").into()));
             return;
         };
         let Ok(cfg) = dev.default_output_config() else { return };
@@ -494,7 +494,7 @@ impl Worker {
                 self.set_rate(rate, true);
             }
             Err(e) => {
-                let _ = self.etx.send(Event::Device(format!("Nie udało się otworzyć wyjścia audio: {e}")));
+                let _ = self.etx.send(Event::Device(crate::tr!("Could not open the audio output: {}", e)));
             }
         }
         if self.want_loopback {

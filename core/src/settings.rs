@@ -9,6 +9,10 @@ use crate::audio::dsp::DspSettings;
 pub struct Settings {
     // Wygląd
     pub theme: String,
+    /// Język interfejsu (kod, np. "pl"); puste – język systemu.
+    pub language: String,
+    /// Tytuł i podtytuł na dole okładek w siatce zamiast pod nimi.
+    pub caption_overlay: bool,
     pub accent: String,
     pub accent_from_cover: bool,
     pub viz: i32,
@@ -181,6 +185,8 @@ impl Default for Settings {
         let pictures = dirs::picture_dir().map(|p| p.join("OpenMP").to_string_lossy().into_owned()).unwrap_or_default();
         Settings {
             theme: "dark".into(),
+            language: String::new(),
+            caption_overlay: false,
             accent: "#4f8cff".into(),
             accent_from_cover: true,
             viz: 0,
@@ -284,8 +290,8 @@ impl Default for Settings {
             nav_hidden: Vec::new(),
             sidebar_width: 236.0,
             smart_lists: vec![
-                ("Najlepiej oceniane".into(), "ocena>=4".into()),
-                ("Często słuchane".into(), "odtworzenia>=5".into()),
+                (crate::tr!("Top rated").into(), "rating>=4".into()),
+                (crate::tr!("Played often").into(), "plays>=5".into()),
             ],
             skip_version: String::new(),
             audio_rev: AUDIO_REV,

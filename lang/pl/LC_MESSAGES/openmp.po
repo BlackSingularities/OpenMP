@@ -1,0 +1,3584 @@
+# OpenMP – polski
+# Teksty źródłowe są po angielsku – w kodzie Slint (@tr) i Rust (tr!, trn!, trc!).
+# Nowy język: skopiuj lang/openmp.pot do lang/<kod>/LC_MESSAGES/openmp.po, uzupełnij nagłówek
+# (Language, X-Language-Name, Plural-Forms) i msgstr. Program wbudowuje go przy kompilacji.
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenMP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pl\n"
+"X-Language-Name: Polski\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: app/ui/dialogs.slint:54 app/ui/video.slint:1381 app/ui/video.slint:1480
+msgid "Close"
+msgstr "Zamknij"
+
+#: app/ui/dialogs.slint:63
+msgid "Equalizer and sound effects"
+msgstr "Korektor i efekty dźwięku"
+
+#: app/ui/dialogs.slint:78
+msgid "Equalizer on"
+msgstr "Korektor włączony"
+
+#: app/ui/dialogs.slint:78
+msgid "Equalizer off"
+msgstr "Korektor wyłączony"
+
+#: app/ui/dialogs.slint:92
+msgid "Match genre"
+msgstr "Dopasuj do gatunku"
+
+#: app/ui/dialogs.slint:107
+msgid "Save as…"
+msgstr "Zapisz jako…"
+
+#: app/ui/dialogs.slint:112
+msgid "Reset"
+msgstr "Wyzeruj"
+
+#: app/ui/dialogs.slint:125
+msgid "Gain"
+msgstr "Wzm."
+
+#: app/ui/dialogs.slint:151
+msgid "SPACE"
+msgstr "PRZESTRZEŃ"
+
+#: app/ui/dialogs.slint:154
+msgid "Balance"
+msgstr "Balans"
+
+#: app/ui/dialogs.slint:172
+msgid "Stereo width"
+msgstr "Szerokość stereo"
+
+#: app/ui/dialogs.slint:191 app/src/display.rs:83
+msgid "Mono"
+msgstr "Mono"
+
+#: app/ui/dialogs.slint:196
+msgid "Swap channels"
+msgstr "Zamiana kanałów"
+
+#: app/ui/dialogs.slint:201
+msgid "Headphone crossfeed"
+msgstr "Przesłuch słuchawkowy"
+
+#: app/ui/dialogs.slint:202
+msgid "A more natural stage in headphones"
+msgstr "Naturalniejsza scena w słuchawkach"
+
+#: app/ui/dialogs.slint:211
+msgid "PLAYBACK"
+msgstr "ODTWARZANIE"
+
+#: app/ui/dialogs.slint:214 app/ui/dialogs.slint:963
+msgid "Crossfade"
+msgstr "Przenikanie utworów"
+
+#: app/ui/dialogs.slint:215
+msgid "Off – gapless transitions"
+msgstr "Wyłączone – przejścia bez przerwy"
+
+#: app/ui/dialogs.slint:229
+msgid "Speed"
+msgstr "Prędkość"
+
+#: app/ui/dialogs.slint:230
+msgid "{}× (with pitch, like a turntable)"
+msgstr "{}× (z tonacją, jak gramofon)"
+
+#: app/ui/dialogs.slint:248 app/ui/dialogs.slint:1014 app/ui/nowplaying.slint:348 app/src/display.rs:723
+msgid "ReplayGain"
+msgstr "ReplayGain"
+
+#: app/ui/dialogs.slint:249
+msgid "Volume levelling from tags"
+msgstr "Wyrównanie głośności z tagów"
+
+#: app/ui/dialogs.slint:252
+msgctxt "short"
+msgid "Off"
+msgstr "Wył."
+
+#: app/ui/dialogs.slint:252 app/ui/dialogs.slint:1017 app/src/display.rs:719
+msgid "Track"
+msgstr "Utwór"
+
+#: app/ui/dialogs.slint:252 app/ui/dialogs.slint:1017 app/ui/dialogs.slint:1840 app/src/display.rs:715
+msgid "Album"
+msgstr "Album"
+
+#: app/ui/dialogs.slint:258 app/ui/dialogs.slint:1039
+msgid "Limiter"
+msgstr "Ogranicznik"
+
+#: app/ui/dialogs.slint:259
+msgid "Prevents clipping when boosting"
+msgstr "Chroni przed przesterowaniem przy podbiciu"
+
+#: app/ui/dialogs.slint:264
+msgid "Parametric equalizer"
+msgstr "Korektor parametryczny"
+
+#: app/ui/dialogs.slint:265
+msgid "Profile: {}"
+msgstr "Profil: {}"
+
+#: app/ui/dialogs.slint:265
+msgid "Headphone profile from AutoEQ – load a ParametricEQ.txt file"
+msgstr "Profil słuchawek z AutoEQ – wczytaj plik ParametricEQ.txt"
+
+#: app/ui/dialogs.slint:272
+msgid "Load AutoEQ profile…"
+msgstr "Wczytaj profil AutoEQ…"
+
+#: app/ui/dialogs.slint:279 app/ui/dialogs.slint:978
+msgid "Smooth pause"
+msgstr "Płynna pauza"
+
+#: app/ui/dialogs.slint:280
+msgid "Fade on pause and resume"
+msgstr "Wyciszanie przy pauzie i wznowieniu"
+
+#: app/ui/dialogs.slint:329
+msgid "OpenMP is free. If you find it useful, you can support further development."
+msgstr "OpenMP jest darmowy. Jeśli ci się przydaje, możesz wesprzeć dalszy rozwój."
+
+#: app/ui/dialogs.slint:344
+msgid "Buy me a coffee"
+msgstr "Postaw kawę"
+
+#: app/ui/dialogs.slint:369
+msgid "No folders."
+msgstr "Brak folderów."
+
+#: app/ui/dialogs.slint:400
+msgid "Remove folder from library"
+msgstr "Usuń folder z biblioteki"
+
+#: app/ui/dialogs.slint:409
+msgid "Add folder…"
+msgstr "Dodaj folder…"
+
+#: app/ui/dialogs.slint:415
+msgid "Add network path…"
+msgstr "Dodaj ścieżkę sieciową…"
+
+#: app/ui/dialogs.slint:424 app/src/keys.rs:73 app/src/menu.rs:141
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: app/ui/dialogs.slint:437
+msgid "Search settings"
+msgstr "Szukaj ustawienia"
+
+#: app/ui/dialogs.slint:449
+msgid "Nothing found"
+msgstr "Nic nie znaleziono"
+
+#: app/ui/dialogs.slint:485 app/ui/dialogs.slint:533
+msgid "Appearance"
+msgstr "Wygląd"
+
+#: app/ui/dialogs.slint:486 app/ui/dialogs.slint:753
+msgid "Layout"
+msgstr "Układ"
+
+#: app/ui/dialogs.slint:487 app/ui/dialogs.slint:846
+msgid "Visualization"
+msgstr "Wizualizacja"
+
+#: app/ui/dialogs.slint:488 app/ui/dialogs.slint:934
+msgid "Playback"
+msgstr "Odtwarzanie"
+
+#: app/ui/dialogs.slint:489 app/ui/dialogs.slint:985 app/ui/video.slint:193 app/src/video.rs:826
+msgid "Audio"
+msgstr "Dźwięk"
+
+#: app/ui/dialogs.slint:490 app/ui/dialogs.slint:1058 app/src/dialogs.rs:61
+msgid "Video"
+msgstr "Wideo"
+
+#: app/ui/dialogs.slint:491 app/ui/dialogs.slint:1360 app/ui/video.slint:166 app/ui/video.slint:193 app/ui/views.slint:1027 app/src/video.rs:1144
+msgid "Subtitles"
+msgstr "Napisy"
+
+#: app/ui/dialogs.slint:492 app/ui/dialogs.slint:1472 app/src/libview.rs:277
+msgid "Library"
+msgstr "Biblioteka"
+
+#: app/ui/dialogs.slint:493 app/ui/dialogs.slint:1558
+msgid "Keyboard shortcuts"
+msgstr "Skróty klawiszowe"
+
+#: app/ui/dialogs.slint:494 app/ui/dialogs.slint:1592
+msgid "System"
+msgstr "System"
+
+#: app/ui/dialogs.slint:495 app/ui/dialogs.slint:1640 app/ui/dialogs.slint:1693 app/src/menu.rs:143
+msgid "About"
+msgstr "O programie"
+
+#: app/ui/dialogs.slint:535
+msgid "Language"
+msgstr "Język"
+
+#: app/ui/dialogs.slint:536
+msgid "“System” uses the Windows language"
+msgstr "„Systemowy” – taki jak język Windows"
+
+#: app/ui/dialogs.slint:548
+msgid "Theme"
+msgstr "Motyw"
+
+#: app/ui/dialogs.slint:550
+msgid "Dark"
+msgstr "Ciemny"
+
+#: app/ui/dialogs.slint:550
+msgid "Light"
+msgstr "Jasny"
+
+#: app/ui/dialogs.slint:559
+msgid "ACCENT COLOR"
+msgstr "KOLOR PRZEWODNI"
+
+#: app/ui/dialogs.slint:562
+msgid "Accent color"
+msgstr "Kolor akcentu"
+
+#: app/ui/dialogs.slint:563
+msgid "When the cover has no distinct color – or always, when the cover color is off"
+msgstr "Gdy okładka nie ma wyraźnej barwy – albo zawsze, gdy kolor z okładki jest wyłączony"
+
+#: app/ui/dialogs.slint:584
+msgid "Custom color"
+msgstr "Własny kolor"
+
+#: app/ui/dialogs.slint:585
+msgid "Hex notation, e.g. #ff6a3d"
+msgstr "Zapis szesnastkowy, np. #ff6a3d"
+
+#: app/ui/dialogs.slint:593
+msgid "Accent color from cover"
+msgstr "Kolor przewodni z okładki"
+
+#: app/ui/dialogs.slint:594
+msgid "The whole program takes on the album's color (for movies – the picture's color, when enabled in video settings)"
+msgstr "Cały program przyjmuje barwę albumu (przy filmie – barwę obrazu, gdy włączone w ustawieniach wideo)"
+
+#: app/ui/dialogs.slint:599
+msgid "Accent color scope"
+msgstr "Zasięg koloru przewodniego"
+
+#: app/ui/dialogs.slint:600
+msgid "Accents only: selections, waveform, play button"
+msgstr "Tylko akcenty: zaznaczenia, fala, przycisk odtwarzania"
+
+#: app/ui/dialogs.slint:600
+msgid "Also playback icons, slider knobs, markers and movie controls – instead of white"
+msgstr "Także ikony odtwarzania, gałki suwaków, znaczniki i sterowanie filmu – zamiast bieli"
+
+#: app/ui/dialogs.slint:600
+msgid "Whole interface: also backgrounds, lines, titles and secondary text"
+msgstr "Cały interfejs: również tła, linie, tytuły i drugorzędny tekst"
+
+#: app/ui/dialogs.slint:602
+msgid "Accents"
+msgstr "Akcenty"
+
+#: app/ui/dialogs.slint:602
+msgid "Elements"
+msgstr "Elementy"
+
+#: app/ui/dialogs.slint:602
+msgid "Everything"
+msgstr "Całość"
+
+#: app/ui/dialogs.slint:611
+msgid "Glow strength"
+msgstr "Siła poświaty"
+
+#: app/ui/dialogs.slint:612
+msgid "{}% – behind the cover, the play button and at the top of the window"
+msgstr "{}% – za okładką, przyciskiem odtwarzania i u góry okna"
+
+#: app/ui/dialogs.slint:633
+msgid "WINDOW BACKGROUND"
+msgstr "TŁO OKNA"
+
+#: app/ui/dialogs.slint:636
+msgid "Background from cover"
+msgstr "Tło z okładki"
+
+#: app/ui/dialogs.slint:637
+msgid "A subtle layer under the whole window; for movies – glow from the picture"
+msgstr "Subtelna nakładka pod całym oknem; przy filmie – poświata z obrazu"
+
+#: app/ui/dialogs.slint:639
+msgid "None"
+msgstr "Brak"
+
+#: app/ui/dialogs.slint:639
+msgid "Blurred cover"
+msgstr "Rozmyta okładka"
+
+#: app/ui/dialogs.slint:639
+msgid "Color gradient"
+msgstr "Gradient barw"
+
+#: app/ui/dialogs.slint:648
+msgid "Background opacity"
+msgstr "Krycie tła"
+
+#: app/ui/dialogs.slint:667
+msgid "Background motion"
+msgstr "Ruch tła"
+
+#: app/ui/dialogs.slint:668
+msgid "Slowly drifting spots of light in the cover's colors – the window redraws constantly (more power)"
+msgstr "Powoli krążące plamy światła w barwach okładki – okno odświeża się bez przerwy (więcej prądu)"
+
+#: app/ui/dialogs.slint:676
+msgid "Glass: transparency"
+msgstr "Szkło: przezroczystość"
+
+#: app/ui/dialogs.slint:677
+msgid "{}% – all windows, menus, panels and sidebars show the blurred cover or movie through"
+msgstr "{}% – wszystkie okna, menu, panele i paski boczne prześwitują rozmytą okładką albo filmem"
+
+#: app/ui/dialogs.slint:695
+msgid "Glass: tint"
+msgstr "Szkło: barwa"
+
+#: app/ui/dialogs.slint:696
+msgid "Background color of all windows, menus and panels"
+msgstr "Kolor tła wszystkich okien, menu i paneli"
+
+#: app/ui/dialogs.slint:698
+msgid "Neutral"
+msgstr "Neutralna"
+
+#: app/ui/dialogs.slint:698
+msgid "From accent"
+msgstr "Z akcentu"
+
+#: app/ui/dialogs.slint:698
+msgid "Black"
+msgstr "Czerń"
+
+#: app/ui/dialogs.slint:710
+msgid "SHAPE AND TEXT"
+msgstr "KSZTAŁT I TEKST"
+
+#: app/ui/dialogs.slint:713
+msgid "Corner rounding"
+msgstr "Zaokrąglenia"
+
+#: app/ui/dialogs.slint:715
+msgid "Sharp"
+msgstr "Ostre"
+
+#: app/ui/dialogs.slint:715
+msgid "Normal"
+msgstr "Zwykłe"
+
+#: app/ui/dialogs.slint:715
+msgid "Strong"
+msgstr "Mocne"
+
+#: app/ui/dialogs.slint:724
+msgid "Text size"
+msgstr "Wielkość tekstu"
+
+#: app/ui/dialogs.slint:735
+msgid "Compact interface"
+msgstr "Kompaktowy interfejs"
+
+#: app/ui/dialogs.slint:736
+msgid "Shorter list and navigation rows, smaller spacing and cover – more tracks on screen"
+msgstr "Niższe wiersze list i panelu nawigacji, mniejsze odstępy i okładka – więcej utworów na ekranie"
+
+#: app/ui/dialogs.slint:741
+msgid "Title font"
+msgstr "Czcionka tytułów"
+
+#: app/ui/dialogs.slint:743
+msgid "Serif"
+msgstr "Szeryfowa"
+
+#: app/ui/dialogs.slint:743
+msgid "Sans-serif"
+msgstr "Bezszeryfowa"
+
+#: app/ui/dialogs.slint:743
+msgid "Technical"
+msgstr "Techniczna"
+
+#: app/ui/dialogs.slint:755
+msgid "NAVIGATION PANEL"
+msgstr "PANEL NAWIGACJI"
+
+#: app/ui/dialogs.slint:758
+msgid "Panel text size"
+msgstr "Wielkość tekstu panelu"
+
+#: app/ui/dialogs.slint:769 app/ui/nowplaying.slint:905 app/src/keys.rs:54
+msgid "Navigation panel"
+msgstr "Panel nawigacji"
+
+#: app/ui/dialogs.slint:774
+msgid "Panel: playlists"
+msgstr "Panel: listy odtwarzania"
+
+#: app/ui/dialogs.slint:779
+msgid "Panel: music"
+msgstr "Panel: muzyka"
+
+#: app/ui/dialogs.slint:784
+msgid "Panel: video"
+msgstr "Panel: wideo"
+
+#: app/ui/dialogs.slint:789
+msgid "Panel: collections"
+msgstr "Panel: zbiory"
+
+#: app/ui/dialogs.slint:794
+msgid "Panel: smart playlists"
+msgstr "Panel: inteligentne listy"
+
+#: app/ui/dialogs.slint:799
+msgid "Panel: folders"
+msgstr "Panel: foldery"
+
+#: app/ui/dialogs.slint:807
+msgid "TRACK LISTS"
+msgstr "LISTY UTWORÓW"
+
+#: app/ui/dialogs.slint:810
+msgid "Track view"
+msgstr "Widok utworów"
+
+#: app/ui/dialogs.slint:811
+msgid "Covers {} px – the same slider is above the list"
+msgstr "Okładki {} px – ten sam suwak jest nad listą"
+
+#: app/ui/dialogs.slint:811
+msgid "List – slide right to show covers"
+msgstr "Lista – przesuń w prawo, by pokazać okładki"
+
+#: app/ui/dialogs.slint:823
+msgid "Captions on covers"
+msgstr "Podpisy na okładkach"
+
+#: app/ui/dialogs.slint:824
+msgid "Title and subtitle at the bottom of the cover instead of below it – more covers fit on screen"
+msgstr "Tytuł i podtytuł na dole okładki zamiast pod nią – więcej okładek na ekranie"
+
+#: app/ui/dialogs.slint:829
+msgid "Group list by album"
+msgstr "Grupuj listę według albumów"
+
+#: app/ui/dialogs.slint:830
+msgid "A header with cover above each album"
+msgstr "Nagłówki z okładką nad każdym albumem"
+
+#: app/ui/dialogs.slint:835
+msgid "Scroll long titles"
+msgstr "Przewijaj długie tytuły"
+
+#: app/ui/dialogs.slint:840
+msgid "Show remaining time"
+msgstr "Pokazuj czas pozostały"
+
+#: app/ui/dialogs.slint:848
+msgid "ANALYZER"
+msgstr "ANALIZATOR"
+
+#: app/ui/dialogs.slint:851
+msgid "Analyzer bar count"
+msgstr "Liczba słupków analizatora"
+
+#: app/ui/dialogs.slint:866
+msgid "Analyzer sensitivity"
+msgstr "Czułość analizatora"
+
+#: app/ui/dialogs.slint:884
+msgid "TRACK STRIP"
+msgstr "TAŚMA UTWORU"
+
+#: app/ui/dialogs.slint:887
+msgid "Track waveform on the seek bar"
+msgstr "Fala utworu na pasku przewijania"
+
+#: app/ui/dialogs.slint:892
+msgid "Track strip style"
+msgstr "Styl taśmy utworu"
+
+#: app/ui/dialogs.slint:895
+msgid "Wave"
+msgstr "Fala"
+
+#: app/ui/dialogs.slint:895 app/ui/nowplaying.slint:13
+msgid "Bars"
+msgstr "Słupki"
+
+#: app/ui/dialogs.slint:895
+msgid "From bottom"
+msgstr "Od dołu"
+
+#: app/ui/dialogs.slint:895
+msgid "Contour"
+msgstr "Kontur"
+
+#: app/ui/dialogs.slint:895
+msgid "Dense bars"
+msgstr "Gęste słupki"
+
+#: app/ui/dialogs.slint:895 app/ui/nowplaying.slint:13
+msgid "Mirror"
+msgstr "Lustro"
+
+#: app/ui/dialogs.slint:895 app/ui/nowplaying.slint:13
+msgid "LEDs"
+msgstr "Diody"
+
+#: app/ui/dialogs.slint:895
+msgid "3D bars"
+msgstr "Słupki 3D"
+
+#: app/ui/dialogs.slint:895
+msgid "3D wave"
+msgstr "Fala 3D"
+
+#: app/ui/dialogs.slint:895
+msgid "Line"
+msgstr "Linia"
+
+#: app/ui/dialogs.slint:895 app/ui/nowplaying.slint:13
+msgid "Dots"
+msgstr "Kropki"
+
+#: app/ui/dialogs.slint:904
+msgid "Effect at the playhead"
+msgstr "Efekt przy znaczniku"
+
+#: app/ui/dialogs.slint:905
+msgid "The part of the strip around the playhead moves with the music"
+msgstr "Część taśmy wokół miejsca odtwarzania porusza się z muzyką"
+
+#: app/ui/dialogs.slint:908
+msgctxt "effect"
+msgid "Off"
+msgstr "Wyłączony"
+
+#: app/ui/dialogs.slint:908
+msgid "Strip pulse"
+msgstr "Puls taśmy"
+
+#: app/ui/dialogs.slint:908
+msgid "Spectrum bars"
+msgstr "Słupki widma"
+
+#: app/ui/dialogs.slint:908
+msgid "Spectrum wave"
+msgstr "Fala widma"
+
+#: app/ui/dialogs.slint:908
+msgid "Peak dots"
+msgstr "Kropki szczytów"
+
+#: app/ui/dialogs.slint:908
+msgid "Envelope"
+msgstr "Obwiednia"
+
+#: app/ui/dialogs.slint:908
+msgid "Shockwave"
+msgstr "Fala uderzeniowa"
+
+#: app/ui/dialogs.slint:917
+msgid "Effect range"
+msgstr "Zasięg efektu"
+
+#: app/ui/dialogs.slint:919
+msgid "Narrow"
+msgstr "Wąski"
+
+#: app/ui/dialogs.slint:919
+msgid "Medium"
+msgstr "Średni"
+
+#: app/ui/dialogs.slint:919
+msgid "Wide"
+msgstr "Szeroki"
+
+#: app/ui/dialogs.slint:928
+msgid "Glow at the playhead"
+msgstr "Poświata przy znaczniku"
+
+#: app/ui/dialogs.slint:936
+msgid "Resume on startup"
+msgstr "Wznów po uruchomieniu"
+
+#: app/ui/dialogs.slint:937
+msgid "The last track from where you left off"
+msgstr "Ostatni utwór od miejsca, w którym skończyłeś"
+
+#: app/ui/dialogs.slint:942
+msgid "Follow the playing track"
+msgstr "Podążaj za odtwarzanym utworem"
+
+#: app/ui/dialogs.slint:943
+msgid "The list scrolls to the current track"
+msgstr "Lista przewija się do bieżącego utworu"
+
+#: app/ui/dialogs.slint:948
+msgid "Arrow key seek step"
+msgstr "Krok przewijania strzałkami"
+
+#: app/ui/dialogs.slint:964
+msgid "Off – gapless playback"
+msgstr "Wyłączone – przejścia bez przerwy (gapless)"
+
+#: app/ui/dialogs.slint:979
+msgid "A short fade on pause and resume"
+msgstr "Krótkie wyciszanie przy pauzie i wznowieniu"
+
+#: app/ui/dialogs.slint:987
+msgid "Output device"
+msgstr "Urządzenie wyjściowe"
+
+#: app/ui/dialogs.slint:999
+msgid "Exclusive mode (WASAPI Exclusive)"
+msgstr "Tryb wyłączny (WASAPI Exclusive)"
+
+#: app/ui/dialogs.slint:1000
+msgid "The sound card plays at the file's sample rate, bypassing the Windows mixer – other programs cannot play meanwhile"
+msgstr "Karta gra w częstotliwości pliku, z pominięciem miksera Windows – inne programy nie zagrają w tym czasie"
+
+#: app/ui/dialogs.slint:1005
+msgid "Resampling quality"
+msgstr "Jakość przepróbkowania"
+
+#: app/ui/dialogs.slint:1006
+msgid "When the file's sample rate differs from the card (from the next track)"
+msgstr "Gdy plik ma inną częstotliwość niż karta (od następnego utworu)"
+
+#: app/ui/dialogs.slint:1008 app/ui/dialogs.slint:1148
+msgid "Fast"
+msgstr "Szybka"
+
+#: app/ui/dialogs.slint:1008
+msgid "Good"
+msgstr "Dobra"
+
+#: app/ui/dialogs.slint:1008 app/ui/dialogs.slint:1315 app/ui/video.slint:282
+msgid "Best"
+msgstr "Najlepsza"
+
+#: app/ui/dialogs.slint:1015
+msgid "Levels track volume – from tags, and measures untagged files itself (EBU R128)"
+msgstr "Wyrównuje głośność utworów – z tagów, a pliki bez tagów mierzy sam (EBU R128)"
+
+#: app/ui/dialogs.slint:1017 app/ui/dialogs.slint:1161 app/src/video.rs:703
+msgid "Off"
+msgstr "Wyłączone"
+
+#: app/ui/dialogs.slint:1023
+msgid "ReplayGain preamp"
+msgstr "Wzmocnienie ReplayGain"
+
+#: app/ui/dialogs.slint:1040
+msgid "Prevents clipping with a boosted equalizer"
+msgstr "Zapobiega przesterowaniu przy podbitym korektorze"
+
+#: app/ui/dialogs.slint:1045 app/src/keys.rs:37 app/src/menu.rs:135
+msgid "Equalizer and effects"
+msgstr "Korektor i efekty"
+
+#: app/ui/dialogs.slint:1046
+msgid "18 bands, presets, balance, stereo width, crossfeed"
+msgstr "18 pasm, gotowe ustawienia, balans, szerokość stereo, przesłuch"
+
+#: app/ui/dialogs.slint:1048
+msgid "Open equalizer"
+msgstr "Otwórz korektor"
+
+#: app/ui/dialogs.slint:1060
+msgid "MOVIE VIEW"
+msgstr "WIDOK FILMU"
+
+#: app/ui/dialogs.slint:1063
+msgid "Open movies in full screen"
+msgstr "Otwieraj filmy na pełnym ekranie"
+
+#: app/ui/dialogs.slint:1064
+msgid "Off – the movie plays in the window, in place of the cover next to the description; click the picture or press F for full screen"
+msgstr "Wyłączone – film gra w oknie, w miejscu okładki obok opisu; pełny ekran otwiera kliknięcie obrazu albo F"
+
+#: app/ui/dialogs.slint:1069
+msgid "The “Library” button during a movie"
+msgstr "Przycisk „Biblioteka” na filmie"
+
+#: app/ui/dialogs.slint:1070
+msgid "What happens to the movie when you go back to the library with it (Esc returns to the window, the movie keeps playing)"
+msgstr "Co dzieje się z filmem, gdy wracasz nim do biblioteki (Esc wraca do okna, film gra dalej)"
+
+#: app/ui/dialogs.slint:1073
+msgid "Picture keeps playing in the window"
+msgstr "Obraz gra dalej w oknie"
+
+#: app/ui/dialogs.slint:1073
+msgid "Audio only"
+msgstr "Gra tylko dźwięk"
+
+#: app/ui/dialogs.slint:1073 app/src/menu.rs:157 app/src/win.rs:326 app/src/win.rs:410
+msgid "Pause"
+msgstr "Pauza"
+
+#: app/ui/dialogs.slint:1082
+msgid "Hide controls in the window too"
+msgstr "Chowaj sterowanie także w oknie"
+
+#: app/ui/dialogs.slint:1083
+msgid "In full screen, controls and the cursor always hide"
+msgstr "Na pełnym ekranie sterowanie i kursor znikają zawsze"
+
+#: app/ui/dialogs.slint:1088
+msgid "Hide controls"
+msgstr "Ukrywanie sterowania"
+
+#: app/ui/dialogs.slint:1089
+msgid "After {} s without mouse movement"
+msgstr "Po {} s bez ruchu myszy"
+
+#: app/ui/dialogs.slint:1103 app/src/menu.rs:175
+msgid "Ambient glow"
+msgstr "Poświata z obrazu"
+
+#: app/ui/dialogs.slint:1104
+msgid "Soft light in the movie's colors around the picture and in the side bars"
+msgstr "Miękkie światło w barwach filmu wokół obrazu i w pasach po bokach"
+
+#: app/ui/dialogs.slint:1106 app/ui/nowplaying.slint:13 app/ui/video.slint:573
+msgctxt "glow"
+msgid "Off"
+msgstr "Wyłączona"
+
+#: app/ui/dialogs.slint:1106 app/ui/video.slint:573
+msgid "Subtle"
+msgstr "Delikatna"
+
+#: app/ui/dialogs.slint:1106 app/ui/video.slint:573
+msgctxt "glow"
+msgid "Strong"
+msgstr "Mocna"
+
+#: app/ui/dialogs.slint:1115 app/ui/video.slint:588
+msgid "Accent color from picture"
+msgstr "Kolor przewodni z obrazu"
+
+#: app/ui/dialogs.slint:1116
+msgid "The program's accent smoothly follows the movie's colors"
+msgstr "Akcent programu płynnie podąża za barwami filmu"
+
+#: app/ui/dialogs.slint:1121
+msgid "How often to sample the picture's color"
+msgstr "Jak często brać kolor z obrazu"
+
+#: app/ui/dialogs.slint:1122
+msgid "More often – the color keeps up with the scene faster; less often – calmer and lighter on the graphics card"
+msgstr "Częściej – kolor szybciej nadąża za sceną, rzadziej – spokojniej i lżej dla karty"
+
+#: app/ui/dialogs.slint:1124
+msgid "0.5 s"
+msgstr "0,5 s"
+
+#: app/ui/dialogs.slint:1124
+msgid "1.2 s"
+msgstr "1,2 s"
+
+#: app/ui/dialogs.slint:1133
+msgid "Frame preview above the seek bar"
+msgstr "Podgląd klatek nad paskiem przewijania"
+
+#: app/ui/dialogs.slint:1134
+msgid "A thumbnail of the spot under the cursor (local files)"
+msgstr "Miniatura miejsca pod kursorem (pliki na dysku)"
+
+#: app/ui/dialogs.slint:1142
+msgid "PICTURE"
+msgstr "OBRAZ"
+
+#: app/ui/dialogs.slint:1145
+msgid "Picture quality"
+msgstr "Jakość obrazu"
+
+#: app/ui/dialogs.slint:1146
+msgid "Bilinear scaling – lightest, for slow computers"
+msgstr "Skalowanie dwuliniowe – najlżejsze dla słabych komputerów"
+
+#: app/ui/dialogs.slint:1146
+msgid "Spline36 and correct downscaling – a good picture without load"
+msgstr "Spline36 i poprawne zmniejszanie – dobry obraz bez obciążenia"
+
+#: app/ui/dialogs.slint:1146
+msgid "EWA Lanczos and HDR peak detection – a sharper picture"
+msgstr "EWA Lanczos i pomiar jasności HDR – ostrzejszy obraz"
+
+#: app/ui/dialogs.slint:1146
+msgid "The sharpest scaling – for powerful graphics cards"
+msgstr "Najostrzejsze skalowanie – dla mocnych kart graficznych"
+
+#: app/ui/dialogs.slint:1148
+msgid "Balanced"
+msgstr "Zrównoważona"
+
+#: app/ui/dialogs.slint:1148
+msgid "High"
+msgstr "Wysoka"
+
+#: app/ui/dialogs.slint:1148
+msgid "Highest"
+msgstr "Najwyższa"
+
+#: app/ui/dialogs.slint:1157
+msgid "Hardware decoding"
+msgstr "Dekodowanie sprzętowe"
+
+#: app/ui/dialogs.slint:1158
+msgid "The graphics card decodes video – less CPU load"
+msgstr "Karta graficzna dekoduje obraz – mniej obciążenia procesora"
+
+#: app/ui/dialogs.slint:1161
+msgid "Automatic (recommended)"
+msgstr "Automatyczne (zalecane)"
+
+#: app/ui/dialogs.slint:1161
+msgid "Automatic with copy-back"
+msgstr "Automatyczne z kopiowaniem"
+
+#: app/ui/dialogs.slint:1161
+msgid "D3D11 (copy-back)"
+msgstr "D3D11 (kopiowanie)"
+
+#: app/ui/dialogs.slint:1161
+msgid "NVIDIA NVDEC (copy-back)"
+msgstr "NVIDIA NVDEC (kopiowanie)"
+
+#: app/ui/dialogs.slint:1161
+msgid "DXVA2 (copy-back)"
+msgstr "DXVA2 (kopiowanie)"
+
+#: app/ui/dialogs.slint:1170
+msgid "Smooth motion (frame interpolation)"
+msgstr "Płynny ruch (interpolacja klatek)"
+
+#: app/ui/dialogs.slint:1171
+msgid "Matches the movie to the display refresh rate – no judder with 24 fps on 60 Hz"
+msgstr "Dopasowuje film do odświeżania ekranu – bez szarpania przy 24 kl./s na 60 Hz"
+
+#: app/ui/dialogs.slint:1176 app/src/menu.rs:174
+msgid "Debanding"
+msgstr "Usuwanie pasm"
+
+#: app/ui/dialogs.slint:1177
+msgid "Smooth sky and shadow gradients in heavily compressed files"
+msgstr "Gładkie gradienty nieba i cieni w mocno skompresowanych plikach"
+
+#: app/ui/dialogs.slint:1182
+msgid "HDR tone mapping"
+msgstr "Mapowanie tonów HDR"
+
+#: app/ui/dialogs.slint:1183
+msgid "How HDR movies are shown on a regular display"
+msgstr "Jak filmy HDR trafiają na zwykły ekran"
+
+#: app/ui/dialogs.slint:1186
+msgid "Automatic"
+msgstr "Automatyczne"
+
+#: app/ui/dialogs.slint:1186
+msgid "Hable (filmic)"
+msgstr "Hable (filmowe)"
+
+#: app/ui/dialogs.slint:1186
+msgid "Clip"
+msgstr "Obcięcie"
+
+#: app/ui/dialogs.slint:1195
+msgid "Deinterlacing"
+msgstr "Usuwanie przeplotu"
+
+#: app/ui/dialogs.slint:1203
+msgid "CONTROLS"
+msgstr "STEROWANIE"
+
+#: app/ui/dialogs.slint:1206
+msgid "Mouse wheel over the picture"
+msgstr "Kółko myszy nad obrazem"
+
+#: app/ui/dialogs.slint:1207
+msgid "With Ctrl – zoom the picture"
+msgstr "Z Ctrl – powiększenie obrazu"
+
+#: app/ui/dialogs.slint:1209 app/src/keys.rs:32
+msgid "Volume"
+msgstr "Głośność"
+
+#: app/ui/dialogs.slint:1209
+msgid "Seeking"
+msgstr "Przewijanie"
+
+#: app/ui/dialogs.slint:1218
+msgid "Double-click near the edge seeks 10 s"
+msgstr "Dwuklik przy krawędzi przewija o 10 s"
+
+#: app/ui/dialogs.slint:1219
+msgid "Left quarter – back, right – forward; in the middle – full screen"
+msgstr "Lewa ćwiartka – wstecz, prawa – naprzód; na środku – pełny ekran"
+
+#: app/ui/dialogs.slint:1224
+msgid "Resume movies"
+msgstr "Wznawiaj filmy"
+
+#: app/ui/dialogs.slint:1225
+msgid "A movie starts where you stopped it"
+msgstr "Film zaczyna się tam, gdzie go przerwałeś"
+
+#: app/ui/dialogs.slint:1230
+msgid "Watched and played after"
+msgstr "Obejrzany i odsłuchany od"
+
+#: app/ui/dialogs.slint:1231
+msgid "{}% of the length – only then does a play count, and a movie is marked watched"
+msgstr "{}% długości – dopiero wtedy liczy się odtworzenie, a film jest obejrzany"
+
+#: app/ui/dialogs.slint:1249
+msgid "After a movie, play the next file from the list"
+msgstr "Po filmie następny plik z listy"
+
+#: app/ui/dialogs.slint:1257
+msgid "MOVIE AUDIO"
+msgstr "DŹWIĘK FILMÓW"
+
+#: app/ui/dialogs.slint:1260
+msgid "Volume boost"
+msgstr "Wzmocnienie głośności"
+
+#: app/ui/dialogs.slint:1261
+msgid "{}% at full volume – for quiet movies"
+msgstr "{}% przy pełnej głośności – dla cichych filmów"
+
+#: app/ui/dialogs.slint:1279
+msgid "Night mode"
+msgstr "Tryb nocny"
+
+#: app/ui/dialogs.slint:1280
+msgid "Compressed dynamics: dialogue is audible, explosions don't wake the household"
+msgstr "Wyrównana dynamika: słychać dialogi, wybuchy nie budzą domowników"
+
+#: app/ui/dialogs.slint:1285
+msgid "Downmix surround sound to stereo"
+msgstr "Miks dźwięku przestrzennego do stereo"
+
+#: app/ui/dialogs.slint:1286
+msgid "For headphones and stereo speakers – dialogue from the center channel isn't lost"
+msgstr "Dla słuchawek i głośników stereo – dialogi z kanału centralnego nie giną"
+
+#: app/ui/dialogs.slint:1291
+msgid "Preferred audio languages"
+msgstr "Preferowane języki dźwięku"
+
+#: app/ui/dialogs.slint:1292 app/ui/dialogs.slint:1463
+msgid "Comma-separated codes, e.g. eng,pol"
+msgstr "Kody oddzielone przecinkami, np. pol,eng"
+
+#: app/ui/dialogs.slint:1303
+msgid "NETWORK"
+msgstr "SIEĆ"
+
+#: app/ui/dialogs.slint:1306
+msgid "Videos from streaming sites (yt-dlp)"
+msgstr "Filmy z serwisów wideo (yt-dlp)"
+
+#: app/ui/dialogs.slint:1307
+msgid "Links to YouTube and other sites – the program downloads and updates yt-dlp itself"
+msgstr "Linki do YouTube i innych serwisów – program sam pobiera i odświeża yt-dlp"
+
+#: app/ui/dialogs.slint:1312
+msgid "Online video quality"
+msgstr "Jakość filmów z sieci"
+
+#: app/ui/dialogs.slint:1315
+msgid "Up to 1080p"
+msgstr "Do 1080p"
+
+#: app/ui/dialogs.slint:1315
+msgid "Up to 720p"
+msgstr "Do 720p"
+
+#: app/ui/dialogs.slint:1315
+msgid "Up to 480p"
+msgstr "Do 480p"
+
+#: app/ui/dialogs.slint:1324
+msgid "Stream buffer"
+msgstr "Bufor strumieni"
+
+#: app/ui/dialogs.slint:1325
+msgid "{} MB of memory to buffer online video"
+msgstr "{} MB pamięci na zapas filmu z sieci"
+
+#: app/ui/dialogs.slint:1342 app/src/prefs.rs:698
+msgid "Screenshot folder"
+msgstr "Folder zrzutów ekranu"
+
+#: app/ui/dialogs.slint:1345
+msgid "Change…"
+msgstr "Zmień…"
+
+#: app/ui/dialogs.slint:1350
+msgid "Video engine"
+msgstr "Silnik wideo"
+
+#: app/ui/dialogs.slint:1353
+msgid "ready"
+msgstr "gotowy"
+
+#: app/ui/dialogs.slint:1353
+msgid "unavailable"
+msgstr "niedostępny"
+
+#: app/ui/dialogs.slint:1362
+msgid "Subtitle size"
+msgstr "Wielkość napisów"
+
+#: app/ui/dialogs.slint:1377
+msgid "Font"
+msgstr "Czcionka"
+
+#: app/ui/dialogs.slint:1378
+msgid "The name of a font installed in Windows"
+msgstr "Nazwa czcionki zainstalowanej w Windows"
+
+#: app/ui/dialogs.slint:1386
+msgid "Color"
+msgstr "Kolor"
+
+#: app/ui/dialogs.slint:1407
+msgid "Style"
+msgstr "Styl"
+
+#: app/ui/dialogs.slint:1408
+msgid "Black outline – readable on any background"
+msgstr "Czarny obrys – czytelne na każdym tle"
+
+#: app/ui/dialogs.slint:1408
+msgid "Soft shadow"
+msgstr "Miękki cień"
+
+#: app/ui/dialogs.slint:1408
+msgid "A semi-transparent box under the text"
+msgstr "Półprzezroczyste pole pod tekstem"
+
+#: app/ui/dialogs.slint:1410 app/ui/video.slint:471
+msgid "Outline"
+msgstr "Obrys"
+
+#: app/ui/dialogs.slint:1410 app/ui/video.slint:471
+msgid "Shadow"
+msgstr "Cień"
+
+#: app/ui/dialogs.slint:1410 app/ui/video.slint:471
+msgid "Box"
+msgstr "Pole"
+
+#: app/ui/dialogs.slint:1419 app/ui/video.slint:444
+msgid "Position"
+msgstr "Położenie"
+
+#: app/ui/dialogs.slint:1420
+msgid "At the bottom edge of the picture"
+msgstr "Przy dolnej krawędzi obrazu"
+
+#: app/ui/dialogs.slint:1420
+msgid "{}% of the height higher"
+msgstr "Wyżej o {}% wysokości"
+
+#: app/ui/dialogs.slint:1438 app/ui/video.slint:502
+msgid "Bold"
+msgstr "Pogrubione"
+
+#: app/ui/dialogs.slint:1443 app/ui/video.slint:508
+msgid "Custom style for ASS subtitles too"
+msgstr "Własny styl także dla napisów ASS"
+
+#: app/ui/dialogs.slint:1444
+msgid "Styled subtitles (anime, karaoke) get the font and color from settings"
+msgstr "Napisy ze stylami (anime, karaoke) dostają czcionkę i kolor z ustawień"
+
+#: app/ui/dialogs.slint:1449
+msgid "Subtitles from the movie's folder"
+msgstr "Napisy z folderu filmu"
+
+#: app/ui/dialogs.slint:1450
+msgid "Which subtitle files next to the movie to load automatically"
+msgstr "Które pliki napisów obok filmu wczytywać same"
+
+#: app/ui/dialogs.slint:1453
+msgid "Don't load"
+msgstr "Nie wczytuj"
+
+#: app/ui/dialogs.slint:1453
+msgid "Same name"
+msgstr "Ta sama nazwa"
+
+#: app/ui/dialogs.slint:1453
+msgid "Similar name"
+msgstr "Podobna nazwa"
+
+#: app/ui/dialogs.slint:1453
+msgid "All in the folder"
+msgstr "Wszystkie z folderu"
+
+#: app/ui/dialogs.slint:1462
+msgid "Preferred subtitle languages"
+msgstr "Preferowane języki napisów"
+
+#: app/ui/dialogs.slint:1475 app/src/libview.rs:50
+msgid "MUSIC"
+msgstr "MUZYKA"
+
+#: app/ui/dialogs.slint:1476
+msgid "Music folders – artists, albums, genres, years and folders."
+msgstr "Foldery z muzyką – wykonawcy, albumy, gatunki, lata i foldery."
+
+#: app/ui/dialogs.slint:1484 app/src/libview.rs:56
+msgid "VIDEO"
+msgstr "WIDEO"
+
+#: app/ui/dialogs.slint:1485
+msgid "Movie and TV show folders – all videos, folders, continue watching."
+msgstr "Foldery z filmami i serialami – wszystkie filmy, foldery, kontynuowanie oglądania."
+
+#: app/ui/dialogs.slint:1492
+msgid "Network drives: add a folder on a mapped drive (e.g. Z:\\Music) or a share path (\\\\NAS\\Music). When the server is off, the library keeps its files and refreshes them on the next scan."
+msgstr "Dyski sieciowe: dodaj folder na dysku zmapowanym (np. Z:\\Muzyka) albo ścieżkę udziału (\\\\NAS\\Muzyka). Gdy serwer jest wyłączony, biblioteka zachowuje jego pliki i odświeży je przy następnym skanowaniu."
+
+#: app/ui/dialogs.slint:1503
+msgid "Scan library now"
+msgstr "Skanuj bibliotekę teraz"
+
+#: app/ui/dialogs.slint:1512
+msgid "INTERNET"
+msgstr "INTERNET"
+
+#: app/ui/dialogs.slint:1515
+msgid "Download missing lyrics from LRCLIB"
+msgstr "Pobieraj brakujące teksty z LRCLIB"
+
+#: app/ui/dialogs.slint:1516
+msgid "Sends only the artist, title, album and duration"
+msgstr "Wysyła tylko wykonawcę, tytuł, album i czas trwania"
+
+#: app/ui/dialogs.slint:1521
+msgid "Download missing covers"
+msgstr "Pobieraj brakujące okładki"
+
+#: app/ui/dialogs.slint:1522
+msgid "From MusicBrainz and Cover Art Archive – sends only the artist and album"
+msgstr "Z MusicBrainz i Cover Art Archive – wysyła tylko wykonawcę i album"
+
+#: app/ui/dialogs.slint:1527
+msgid "TMDB API key"
+msgstr "Klucz API TMDB"
+
+#: app/ui/dialogs.slint:1528
+msgid "Movie posters, descriptions, genres and ratings in your language – a free key from themoviedb.org (Settings → API)"
+msgstr "Polskie plakaty, opisy, gatunki i oceny filmów – darmowy klucz z themoviedb.org (Ustawienia → API)"
+
+#: app/ui/dialogs.slint:1537
+msgid "OpenSubtitles API key"
+msgstr "Klucz API OpenSubtitles"
+
+#: app/ui/dialogs.slint:1538
+msgid "One-click subtitle download in your language – a key from opensubtitles.com (Account → API)"
+msgstr "Pobieranie polskich napisów jednym kliknięciem – klucz z opensubtitles.com (Konto → API)"
+
+#: app/ui/dialogs.slint:1547
+msgid "ListenBrainz token"
+msgstr "Token ListenBrainz"
+
+#: app/ui/dialogs.slint:1548
+msgid "Scrobbling of played tracks – a token from listenbrainz.org/settings; empty turns it off"
+msgstr "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza"
+
+#: app/ui/dialogs.slint:1594
+msgid "Single program window"
+msgstr "Jedno okno programu"
+
+#: app/ui/dialogs.slint:1595
+msgid "Opened files go to the running OpenMP"
+msgstr "Otwierane pliki trafiają do działającego OpenMP"
+
+#: app/ui/dialogs.slint:1600
+msgid "Media keys and the Windows panel"
+msgstr "Klawisze multimedialne i panel Windows"
+
+#: app/ui/dialogs.slint:1601
+msgid "Control from the keyboard, headphones and the volume overlay"
+msgstr "Sterowanie z klawiatury, słuchawek i nakładki głośności"
+
+#: app/ui/dialogs.slint:1606
+msgid "Global keyboard shortcuts"
+msgstr "Globalne skróty klawiszowe"
+
+#: app/ui/dialogs.slint:1607
+msgid "Ctrl+Alt+Space – play/pause, Ctrl+Alt+←/→ – track, Ctrl+Alt+↑/↓ – volume; also when the window is in the background"
+msgstr "Ctrl+Alt+Spacja – odtwórz/pauza, Ctrl+Alt+←/→ – utwór, Ctrl+Alt+↑/↓ – głośność; także gdy okno jest w tle"
+
+#: app/ui/dialogs.slint:1612
+msgid "Keep the computer awake during movies"
+msgstr "Nie usypiaj komputera podczas filmu"
+
+#: app/ui/dialogs.slint:1617
+msgid "File associations"
+msgstr "Skojarzenia plików"
+
+#: app/ui/dialogs.slint:1618
+msgid "Set OpenMP as the default player in Windows settings"
+msgstr "Ustaw OpenMP jako domyślny odtwarzacz w ustawieniach Windows"
+
+#: app/ui/dialogs.slint:1620
+msgid "Default apps…"
+msgstr "Aplikacje domyślne…"
+
+#: app/ui/dialogs.slint:1625
+msgid "Check for updates automatically"
+msgstr "Sprawdzaj aktualizacje"
+
+#: app/ui/dialogs.slint:1626
+msgid "On startup, via redzikowski.com"
+msgstr "Przy uruchomieniu, przez redzikowski.com"
+
+#: app/ui/dialogs.slint:1631
+msgid "Version {}"
+msgstr "Wersja {}"
+
+#: app/ui/dialogs.slint:1633
+msgid "Check now"
+msgstr "Sprawdź teraz"
+
+#: app/ui/dialogs.slint:1659 app/ui/dialogs.slint:1718
+msgid "Open Media Player · version {}"
+msgstr "Open Media Player · wersja {}"
+
+#: app/ui/dialogs.slint:1669
+msgid "A music and video player for Windows: its own audio engine with gapless playback, crossfade, an 18-band equalizer and ReplayGain, a music library, internet radio, song lyrics, and movie playback with subtitles and hardware decoding (mpv)."
+msgstr "Odtwarzacz muzyki i wideo dla Windows: własny silnik dźwięku z przejściami bez przerwy, przenikaniem, 18-pasmowym korektorem i ReplayGain, biblioteka muzyki, radio internetowe, teksty piosenek oraz odtwarzanie filmów z napisami i dekodowaniem sprzętowym (mpv)."
+
+#: app/ui/dialogs.slint:1682
+msgid "Built with: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv and FFmpeg."
+msgstr "Wykorzystuje: Slint, Symphonia, cpal, rubato, RustFFT, lofty, libmpv i FFmpeg."
+
+#: app/ui/dialogs.slint:1725
+msgid "A music and video player for Windows – a rich display in music mode and a minimal, auto-hiding interface in video mode."
+msgstr "Odtwarzacz muzyki i wideo dla Windows – rozbudowany wyświetlacz w trybie muzyki i minimalistyczny, chowający się interfejs w trybie wideo."
+
+#: app/ui/dialogs.slint:1735
+msgid "Open URL"
+msgstr "Otwórz adres"
+
+#: app/ui/dialogs.slint:1743
+msgid "A radio stream, a file on the web or a playlist (http, https, rtsp, m3u8). Links to YouTube and other video sites work too."
+msgstr "Strumień radia, plik w sieci albo lista odtwarzania (http, https, rtsp, m3u8). Działają też linki do YouTube i innych serwisów wideo."
+
+#: app/ui/dialogs.slint:1760 app/ui/dialogs.slint:1792 app/ui/dialogs.slint:1863 app/ui/video.slint:1198
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: app/ui/dialogs.slint:1764 app/ui/views.slint:654 app/src/libview.rs:783 app/src/libview.rs:928 app/src/lists.rs:740 app/src/menu.rs:157
+msgid "Play"
+msgstr "Odtwórz"
+
+#: app/ui/dialogs.slint:1796 app/ui/dialogs.slint:1867
+msgid "Save"
+msgstr "Zapisz"
+
+#: app/ui/dialogs.slint:1806
+msgid "Tag editing"
+msgstr "Edycja tagów"
+
+#: app/ui/dialogs.slint:1832
+msgid "Change cover…"
+msgstr "Zmień okładkę…"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:713
+msgid "Title"
+msgstr "Tytuł"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:714
+msgid "Artist"
+msgstr "Wykonawca"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:716 app/src/display.rs:877
+msgid "Album artist"
+msgstr "Wykonawca albumu"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:718 app/src/display.rs:883
+msgid "Genre"
+msgstr "Gatunek"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:717
+msgid "Year"
+msgstr "Rok"
+
+#: app/ui/dialogs.slint:1840
+msgid "Track no."
+msgstr "Nr utworu"
+
+#: app/ui/dialogs.slint:1840
+msgid "Disc no."
+msgstr "Nr płyty"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:720
+msgid "Composer"
+msgstr "Kompozytor"
+
+#: app/ui/dialogs.slint:1840 app/src/display.rs:731
+msgid "Comment"
+msgstr "Komentarz"
+
+#: app/ui/dialogs.slint:1853
+msgid "(multiple values – unchanged)"
+msgstr "(różne wartości – bez zmian)"
+
+#: app/ui/dialogs.slint:1867
+msgid "Saving…"
+msgstr "Zapisywanie…"
+
+#: app/ui/dialogs.slint:1877
+msgid "Update available"
+msgstr "Dostępna aktualizacja"
+
+#: app/ui/dialogs.slint:1885
+msgid "OpenMP {} is ready to download (you have {})."
+msgstr "OpenMP {} jest gotowy do pobrania (masz {})."
+
+#: app/ui/dialogs.slint:1926
+msgid "Skip this version"
+msgstr "Pomiń tę wersję"
+
+#: app/ui/dialogs.slint:1930
+msgid "Open download page"
+msgstr "Otwórz stronę pobierania"
+
+#: app/ui/dialogs.slint:1930
+msgid "Install and restart"
+msgstr "Zainstaluj i uruchom ponownie"
+
+#: app/ui/dialogwin.slint:16
+msgid "Settings – OpenMP"
+msgstr "Ustawienia – OpenMP"
+
+#: app/ui/dialogwin.slint:16
+msgid "Equalizer – OpenMP"
+msgstr "Korektor – OpenMP"
+
+#: app/ui/dialogwin.slint:16
+msgid "Tag editor – OpenMP"
+msgstr "Edytor tagów – OpenMP"
+
+#: app/ui/display.slint:566 app/ui/nowplaying.slint:194
+msgid "Drop files or folders to start listening"
+msgstr "Upuść pliki albo foldery, by zacząć słuchać"
+
+#: app/ui/main.slint:141
+msgid "Drop to add to the list"
+msgstr "Upuść, by dodać do listy"
+
+#: app/ui/nowplaying.slint:13
+msgid "Spectrum"
+msgstr "Widmo"
+
+#: app/ui/nowplaying.slint:13
+msgid "Oscilloscope"
+msgstr "Oscyloskop"
+
+#: app/ui/nowplaying.slint:13
+msgid "VU meters"
+msgstr "Wskaźniki VU"
+
+#: app/ui/nowplaying.slint:13
+msgid "Circle"
+msgstr "Okrąg"
+
+#: app/ui/nowplaying.slint:13
+msgid "3D spectrum"
+msgstr "Widmo 3D"
+
+#: app/ui/nowplaying.slint:13 app/src/display.rs:84
+msgid "Stereo"
+msgstr "Stereo"
+
+#: app/ui/nowplaying.slint:168
+msgid "NOW PLAYING"
+msgstr "TERAZ ODTWARZANE"
+
+#: app/ui/nowplaying.slint:168
+msgid "PAUSED"
+msgstr "WSTRZYMANE"
+
+#: app/ui/nowplaying.slint:168 app/ui/nowplaying.slint:472
+msgid "  ·  MOVIE"
+msgstr "  ·  FILM"
+
+#: app/ui/nowplaying.slint:183 app/ui/video.slint:1463
+msgid "Nothing playing"
+msgstr "Nic nie gra"
+
+#: app/ui/nowplaying.slint:277
+msgid "Favorite"
+msgstr "Ulubiony"
+
+#: app/ui/nowplaying.slint:285
+msgid "Subtitles in the panel (L)"
+msgstr "Napisy w panelu (L)"
+
+#: app/ui/nowplaying.slint:285
+msgid "Lyrics (L)"
+msgstr "Tekst (L)"
+
+#: app/ui/nowplaying.slint:296 app/ui/views.slint:1000 app/ui/views.slint:1000
+msgid "Info"
+msgstr "Informacje"
+
+#: app/ui/nowplaying.slint:307
+msgid "Show the movie picture"
+msgstr "Pokaż obraz filmu"
+
+#: app/ui/nowplaying.slint:307 app/ui/video.slint:1361
+msgid "Movie view"
+msgstr "Widok filmu"
+
+#: app/ui/nowplaying.slint:314
+msgid "Show file in Explorer"
+msgstr "Pokaż plik w Eksploratorze"
+
+#: app/ui/nowplaying.slint:322 app/ui/views.slint:1000 app/ui/views.slint:1000 app/src/lists.rs:410
+msgid "Queue"
+msgstr "Kolejka"
+
+#: app/ui/nowplaying.slint:336
+msgid "Shuffle"
+msgstr "Losowo"
+
+#: app/ui/nowplaying.slint:340
+msgid "Equalizer"
+msgstr "Korektor"
+
+#: app/ui/nowplaying.slint:344
+msgctxt "badge"
+msgid "Crossfade"
+msgstr "Przenikanie"
+
+#: app/ui/nowplaying.slint:451
+msgid "Movie full screen (F)"
+msgstr "Pełny ekran filmu (F)"
+
+#: app/ui/nowplaying.slint:472
+msgid "SELECTION"
+msgstr "ZAZNACZENIE"
+
+#: app/ui/nowplaying.slint:673
+msgid "Close file"
+msgstr "Zamknij plik"
+
+#: app/ui/nowplaying.slint:777 app/ui/video.slint:998 app/ui/views.slint:236
+msgid "Mute (M)"
+msgstr "Wycisz (M)"
+
+#: app/ui/nowplaying.slint:827 app/ui/views.slint:196
+msgid "Shuffle (S)"
+msgstr "Losowo (S)"
+
+#: app/ui/nowplaying.slint:837 app/ui/video.slint:1038 app/ui/views.slint:145
+msgid "Previous (Ctrl+←)"
+msgstr "Poprzedni (Ctrl+←)"
+
+#: app/ui/nowplaying.slint:851 app/ui/video.slint:1095 app/ui/views.slint:172
+msgid "Next (Ctrl+→)"
+msgstr "Następny (Ctrl+→)"
+
+#: app/ui/nowplaying.slint:861 app/ui/views.slint:203
+msgid "Repeat off (R)"
+msgstr "Powtarzanie wyłączone (R)"
+
+#: app/ui/nowplaying.slint:861 app/ui/views.slint:203
+msgid "Repeat list (R)"
+msgstr "Powtarzaj listę (R)"
+
+#: app/ui/nowplaying.slint:861 app/ui/views.slint:203
+msgid "Repeat track (R)"
+msgstr "Powtarzaj utwór (R)"
+
+#: app/ui/nowplaying.slint:877 app/ui/views.slint:181
+msgid "Stop (right-click – after current)"
+msgstr "Zatrzymaj (prawy przycisk – po bieżącym)"
+
+#: app/ui/nowplaying.slint:887 app/ui/views.slint:210
+msgid "Equalizer and effects (E)"
+msgstr "Korektor i efekty (E)"
+
+#: app/ui/nowplaying.slint:896 app/ui/views.slint:217
+msgid "Sleep timer"
+msgstr "Wyłącznik czasowy"
+
+#: app/ui/nowplaying.slint:917 app/ui/views.slint:224
+msgid "Lyrics, info, queue (L)"
+msgstr "Tekst, informacje, kolejka (L)"
+
+#: app/ui/nowplaying.slint:929
+msgid "Mini player (Ctrl+M)"
+msgstr "Miniodtwarzacz (Ctrl+M)"
+
+#: app/ui/nowplaying.slint:938
+msgid "Exit full screen (F11)"
+msgstr "Wyjdź z pełnego ekranu (F11)"
+
+#: app/ui/nowplaying.slint:938
+msgid "Full screen (F11)"
+msgstr "Pełny ekran (F11)"
+
+#: app/ui/stats.slint:57
+msgid "Nothing here yet"
+msgstr "Jeszcze nic tu nie ma"
+
+#: app/ui/stats.slint:117 app/src/libview.rs:67
+msgid "Statistics"
+msgstr "Statystyki"
+
+#: app/ui/stats.slint:137
+msgid "LAST 14 DAYS"
+msgstr "OSTATNIE 14 DNI"
+
+#: app/ui/stats.slint:152
+msgid "music"
+msgstr "muzyka"
+
+#: app/ui/stats.slint:164
+msgid "movies"
+msgstr "filmy"
+
+#: app/ui/stats.slint:210
+msgid "MOST PLAYED"
+msgstr "NAJCZĘŚCIEJ SŁUCHANE"
+
+#: app/ui/stats.slint:215
+msgid "ARTISTS"
+msgstr "WYKONAWCY"
+
+#: app/ui/stats.slint:224
+msgid "MOVIES – WATCH TIME"
+msgstr "FILMY – CZAS OGLĄDANIA"
+
+#: app/ui/stats.slint:229
+msgid "RECENTLY PLAYED"
+msgstr "OSTATNIO ODTWARZANE"
+
+#: app/ui/surface.slint:97
+msgid "Loading…"
+msgstr "Wczytywanie…"
+
+#: app/ui/tracklist.slint:186
+msgid "Watched"
+msgstr "Obejrzany"
+
+#: app/ui/tracklist.slint:238
+msgid "Queued"
+msgstr "W kolejce"
+
+#: app/ui/video.slint:164 app/ui/video.slint:193 app/ui/views.slint:267 app/src/dialogs.rs:88 app/src/libview.rs:800
+msgid "List"
+msgstr "Lista"
+
+#: app/ui/video.slint:165
+msgid "Audio and speed"
+msgstr "Dźwięk i prędkość"
+
+#: app/ui/video.slint:167 app/ui/video.slint:193
+msgid "Picture"
+msgstr "Obraz"
+
+#: app/ui/video.slint:168 app/ui/video.slint:193
+msgid "Chapters"
+msgstr "Rozdziały"
+
+#: app/ui/video.slint:169 app/src/menu.rs:166
+msgid "Playback details"
+msgstr "Szczegóły odtwarzania"
+
+#: app/ui/video.slint:193
+msgid "Details"
+msgstr "Szczegóły"
+
+#: app/ui/video.slint:259
+msgid "AUDIO TRACK"
+msgstr "ŚCIEŻKA DŹWIĘKOWA"
+
+#: app/ui/video.slint:264
+msgid "No audio tracks"
+msgstr "Brak ścieżek dźwiękowych"
+
+#: app/ui/video.slint:269
+msgid "Equalizer and sound effects (on)"
+msgstr "Korektor i efekty dźwięku (włączony)"
+
+#: app/ui/video.slint:269
+msgid "Equalizer and sound effects…"
+msgstr "Korektor i efekty dźwięku…"
+
+#: app/ui/video.slint:279
+msgid "ONLINE VIDEO QUALITY"
+msgstr "JAKOŚĆ FILMU Z SIECI"
+
+#: app/ui/video.slint:291
+msgid "SPEED"
+msgstr "PRĘDKOŚĆ"
+
+#: app/ui/video.slint:315
+msgid "Fine"
+msgstr "Dokładnie"
+
+#: app/ui/video.slint:332
+msgid "Audio delay"
+msgstr "Opóźnienie dźwięku"
+
+#: app/ui/video.slint:350
+msgid "Boost"
+msgstr "Wzmocnienie"
+
+#: app/ui/video.slint:373
+msgid "Night mode (compressed dynamics)"
+msgstr "Tryb nocny (wyrównana dynamika)"
+
+#: app/ui/video.slint:379
+msgid "Stereo downmix"
+msgstr "Miks do stereo"
+
+#: app/ui/video.slint:389
+msgid "No subtitles"
+msgstr "Brak napisów"
+
+#: app/ui/video.slint:393
+msgid "Load subtitles from file…"
+msgstr "Wczytaj napisy z pliku…"
+
+#: app/ui/video.slint:399
+msgid "Download subtitles (OpenSubtitles)"
+msgstr "Pobierz polskie napisy (OpenSubtitles)"
+
+#: app/ui/video.slint:409
+msgid "Delay"
+msgstr "Opóźnienie"
+
+#: app/ui/video.slint:427
+msgctxt "subtitles"
+msgid "Size"
+msgstr "Wielkość"
+
+#: app/ui/video.slint:467
+msgid "STYLE"
+msgstr "STYL"
+
+#: app/ui/video.slint:516
+msgid "Brightness"
+msgstr "Jasność"
+
+#: app/ui/video.slint:517
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: app/ui/video.slint:518
+msgid "Saturation"
+msgstr "Nasycenie"
+
+#: app/ui/video.slint:519
+msgid "Gamma"
+msgstr "Gamma"
+
+#: app/ui/video.slint:520
+msgid "Hue"
+msgstr "Odcień"
+
+#: app/ui/video.slint:541
+msgid "Zoom"
+msgstr "Powiększenie"
+
+#: app/ui/video.slint:559
+msgid "ASPECT RATIO"
+msgstr "PROPORCJE"
+
+#: app/ui/video.slint:563
+msgid "Stretch"
+msgstr "Rozc."
+
+#: app/ui/video.slint:563
+msgid "Fill"
+msgstr "Wypełnij"
+
+#: app/ui/video.slint:569
+msgid "AMBIENT GLOW"
+msgstr "POŚWIATA Z OBRAZU"
+
+#: app/ui/video.slint:582
+msgid "Debanding (smooth gradients)"
+msgstr "Usuwanie pasm (gładkie gradienty)"
+
+#: app/ui/video.slint:596
+msgid "Rotate"
+msgstr "Obróć"
+
+#: app/ui/video.slint:602
+msgid "As in file"
+msgstr "Jak w pliku"
+
+#: app/ui/video.slint:611 app/src/menu.rs:177
+msgid "Screenshot"
+msgstr "Zrzut ekranu"
+
+#: app/ui/video.slint:617 app/src/menu.rs:179
+msgid "A-B loop"
+msgstr "Pętla A-B"
+
+#: app/ui/video.slint:627
+msgid "This file has no chapters"
+msgstr "Ten plik nie ma rozdziałów"
+
+#: app/ui/video.slint:633
+msgid "Details will appear once the file loads."
+msgstr "Szczegóły pojawią się po wczytaniu pliku."
+
+#: app/ui/video.slint:880
+msgid "To window – the movie keeps playing next to the description (Esc)"
+msgstr "Do okna – film gra dalej obok opisu (Esc)"
+
+#: app/ui/video.slint:907
+msgid "Picture in picture (P)"
+msgstr "Obraz w obrazie (P)"
+
+#: app/ui/video.slint:917
+msgid "Pinned on top – unpin (T)"
+msgstr "Przypięte na wierzchu – odepnij (T)"
+
+#: app/ui/video.slint:917
+msgid "Always on top (T)"
+msgstr "Zawsze na wierzchu (T)"
+
+#: app/ui/video.slint:967 app/src/display.rs:145
+msgid "live"
+msgstr "na żywo"
+
+#: app/ui/video.slint:998
+msgid "Unmute (M)"
+msgstr "Włącz dźwięk (M)"
+
+#: app/ui/video.slint:1113
+msgid "Subtitles (V)"
+msgstr "Napisy (V)"
+
+#: app/ui/video.slint:1126
+msgid "Audio, picture, speed, details"
+msgstr "Dźwięk, obraz, prędkość, szczegóły"
+
+#: app/ui/video.slint:1139
+msgid "More"
+msgstr "Więcej"
+
+#: app/ui/video.slint:1151
+msgid "Full screen (F)"
+msgstr "Pełny ekran (F)"
+
+#: app/ui/video.slint:1177
+msgid "Next in {} s"
+msgstr "Następny za {} s"
+
+#: app/ui/video.slint:1192
+msgid "Play now"
+msgstr "Odtwórz teraz"
+
+#: app/ui/video.slint:1271 app/ui/views.slint:1013
+msgid "Close panel"
+msgstr "Zamknij panel"
+
+#: app/ui/video.slint:1371 app/ui/video.slint:1475
+msgid "Full window"
+msgstr "Pełne okno"
+
+#: app/ui/video.slint:1399
+msgid "Play / pause"
+msgstr "Odtwórz / pauza"
+
+#: app/ui/video.slint:1502 app/src/win.rs:327
+msgid "Previous"
+msgstr "Poprzedni"
+
+#: app/ui/video.slint:1516 app/src/win.rs:327
+msgid "Next"
+msgstr "Następny"
+
+#: app/ui/views.slint:52 app/ui/views.slint:315
+msgid "Menu"
+msgstr "Menu"
+
+#: app/ui/views.slint:95
+msgid "Show navigation panel"
+msgstr "Pokaż panel nawigacji"
+
+#: app/ui/views.slint:116
+msgid "Pinned on top – unpin (Ctrl+T)"
+msgstr "Przypięte na wierzchu – odepnij (Ctrl+T)"
+
+#: app/ui/views.slint:116
+msgid "Always on top (Ctrl+T)"
+msgstr "Zawsze na wierzchu (Ctrl+T)"
+
+#: app/ui/views.slint:285
+msgid "Large covers"
+msgstr "Duże okładki"
+
+#: app/ui/views.slint:331
+msgid "Hide navigation panel"
+msgstr "Schowaj panel nawigacji"
+
+#: app/ui/views.slint:370
+msgid "Add music folder"
+msgstr "Dodaj folder z muzyką"
+
+#: app/ui/views.slint:541
+msgid "Close list"
+msgstr "Zamknij listę"
+
+#: app/ui/views.slint:553
+msgid "New list (Ctrl+N)"
+msgstr "Nowa lista (Ctrl+N)"
+
+#: app/ui/views.slint:565
+msgid "Search the list (Ctrl+F)"
+msgstr "Szukaj na liście (Ctrl+F)"
+
+#: app/ui/views.slint:586
+msgid "Nothing matches “{}”"
+msgstr "Nic nie pasuje do „{}”"
+
+#: app/ui/views.slint:586
+msgid "The list is empty.\nDrag files or folders here, or double-click to choose them."
+msgstr "Lista jest pusta.\nPrzeciągnij tu pliki lub foldery albo kliknij dwukrotnie, by je wybrać."
+
+#: app/ui/views.slint:627
+msgid "Back (Backspace)"
+msgstr "Wstecz (Backspace)"
+
+#: app/ui/views.slint:662 app/src/libview.rs:784
+msgid "Shuffle play"
+msgstr "Odtwórz losowo"
+
+#: app/ui/views.slint:668
+msgid "Add all to the list"
+msgstr "Dodaj wszystko do listy"
+
+#: app/ui/views.slint:679
+msgid "Search the library"
+msgstr "Szukaj w bibliotece"
+
+#: app/ui/views.slint:690 app/src/libview.rs:208
+msgid "Refresh library"
+msgstr "Odśwież bibliotekę"
+
+#: app/ui/views.slint:866 app/src/libview.rs:66
+msgid "Internet radio"
+msgstr "Radio internetowe"
+
+#: app/ui/views.slint:872
+msgid "The radio-browser.info directory – tens of thousands of stations from around the world"
+msgstr "Katalog radio-browser.info – dziesiątki tysięcy stacji z całego świata"
+
+#: app/ui/views.slint:882
+msgid "My country"
+msgstr "Mój kraj"
+
+#: app/ui/views.slint:882
+msgid "World"
+msgstr "Świat"
+
+#: app/ui/views.slint:882
+msgid "Saved"
+msgstr "Zapisane"
+
+#: app/ui/views.slint:890
+msgid "Search stations or genres"
+msgstr "Szukaj stacji lub gatunku"
+
+#: app/ui/views.slint:901
+msgid "Add station from URL"
+msgstr "Dodaj stację z adresu"
+
+#: app/ui/views.slint:908
+msgid "Loading stations…"
+msgstr "Wczytywanie stacji…"
+
+#: app/ui/views.slint:915
+msgid "No saved stations – click the star next to a station to save it."
+msgstr "Brak zapisanych stacji – kliknij gwiazdkę przy stacji, by ją zapisać."
+
+#: app/ui/views.slint:915
+msgid "No stations. Check your internet connection."
+msgstr "Brak stacji. Sprawdź połączenie z internetem."
+
+#: app/ui/views.slint:965
+msgid "Remove from saved"
+msgstr "Usuń z zapisanych"
+
+#: app/ui/views.slint:965
+msgid "Save station"
+msgstr "Zapisz stację"
+
+#: app/ui/views.slint:971
+msgid "Listen"
+msgstr "Słuchaj"
+
+#: app/ui/views.slint:1000
+msgid "Lyrics"
+msgstr "Tekst"
+
+#: app/ui/views.slint:1049
+msgid "Search subtitles"
+msgstr "Szukaj w napisach"
+
+#: app/ui/views.slint:1049
+msgid "Search lyrics"
+msgstr "Szukaj w tekście"
+
+#: app/ui/views.slint:1071
+msgid "Previous match"
+msgstr "Poprzednie"
+
+#: app/ui/views.slint:1080
+msgid "Next match (Enter)"
+msgstr "Następne (Enter)"
+
+#: app/ui/views.slint:1088
+msgid "No lyrics for this track.\nOpenMP reads .lrc files next to the track and lyrics stored in tags."
+msgstr "Brak tekstu dla tego utworu.\nOpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach."
+
+#: app/ui/views.slint:1089
+msgid "This movie has no text subtitles.\nLoad or download subtitles in the movie panel."
+msgstr "Ten film nie ma napisów tekstowych.\nWczytaj albo pobierz napisy w panelu filmu."
+
+#: app/ui/views.slint:1090
+msgid "Loading subtitles…"
+msgstr "Wczytywanie napisów…"
+
+#: app/ui/views.slint:1160
+msgid "LRCLIB · save next to the track"
+msgstr "LRCLIB · zapisz obok utworu"
+
+#: app/ui/views.slint:1206
+msgid "The queue is empty.\nRight-click a track → “Play next”."
+msgstr "Kolejka jest pusta.\nPrawy przycisk na utworze → „Odtwórz jako następny”."
+
+#: app/ui/views.slint:1246
+msgid "Remove from queue"
+msgstr "Usuń z kolejki"
+
+#: app/ui/views.slint:1258
+msgid "Clear queue"
+msgstr "Wyczyść kolejkę"
+
+#: app/ui/widgets.slint:543
+msgid "Clear"
+msgstr "Wyczyść"
+
+#: app/src/dialogs.rs:59
+msgid "Media and playlists"
+msgstr "Multimedia i listy"
+
+#: app/src/dialogs.rs:60 app/src/statsview.rs:85
+msgid "Music"
+msgstr "Muzyka"
+
+#: app/src/dialogs.rs:62 app/src/dialogs.rs:87 app/src/libview.rs:49
+msgid "Playlists"
+msgstr "Listy odtwarzania"
+
+#: app/src/dialogs.rs:63
+msgid "All files"
+msgstr "Wszystkie pliki"
+
+#: app/src/dialogs.rs:67
+msgid "Open files"
+msgstr "Otwórz pliki"
+
+#: app/src/dialogs.rs:74
+msgid "Add to list"
+msgstr "Dodaj do listy"
+
+#: app/src/dialogs.rs:81
+msgid "Open folder"
+msgstr "Otwórz folder"
+
+#: app/src/dialogs.rs:87
+msgid "Import playlist"
+msgstr "Importuj listę"
+
+#: app/src/dialogs.rs:96
+msgid "Save playlist"
+msgstr "Zapisz listę"
+
+#: app/src/dialogs.rs:96
+msgid "M3U8 playlist"
+msgstr "Lista M3U8"
+
+#: app/src/dialogs.rs:104
+msgid "Saved “{}”"
+msgstr "Zapisano „{}”"
+
+#: app/src/dialogs.rs:105
+msgid "Could not save: {}"
+msgstr "Nie udało się zapisać: {}"
+
+#: app/src/dialogs.rs:144
+msgid "Equalizer preset saved"
+msgstr "Zapisano ustawienie korektora"
+
+#: app/src/dialogs.rs:154
+msgid "Searching TMDB: “{}”"
+msgstr "Szukam w TMDB: „{}”"
+
+#: app/src/dialogs.rs:218
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} plik"
+msgstr[1] "{n} pliki"
+msgstr[2] "{n} plików"
+
+#: app/src/dialogs.rs:229
+msgid "Cover"
+msgstr "Okładka"
+
+#: app/src/dialogs.rs:229
+msgid "Images"
+msgstr "Obrazy"
+
+#: app/src/dialogs.rs:307
+msgid "Tags saved ({})"
+msgstr "Zapisano tagi ({})"
+
+#: app/src/dialogs.rs:309
+msgid "Save errors: {}"
+msgstr "Błędy zapisu: {}"
+
+#: app/src/dialogs.rs:337
+msgid "You have the latest version ({})"
+msgstr "Masz najnowszą wersję ({})"
+
+#: app/src/dialogs.rs:342
+msgid "Could not check for updates: {}"
+msgstr "Nie udało się sprawdzić aktualizacji: {}"
+
+#: app/src/dialogs.rs:354
+msgid "Downloading…"
+msgstr "Pobieranie…"
+
+#: app/src/dialogs.rs:371
+msgid "Installing – OpenMP will restart."
+msgstr "Instalowanie – OpenMP uruchomi się ponownie."
+
+#: app/src/dialogs.rs:375
+msgid "Could not start the installer: {}"
+msgstr "Nie udało się uruchomić instalatora: {}"
+
+#: app/src/dialogs.rs:381
+msgid "Error: {}"
+msgstr "Błąd: {}"
+
+#: app/src/display.rs:47 app/src/display.rs:86 app/src/video.rs:826
+msgid "{} ch."
+msgstr "{} kan."
+
+#: app/src/display.rs:49 app/src/display.rs:338
+msgid "Exclusive"
+msgstr "Wyłączny"
+
+#: app/src/display.rs:338
+msgid "Exclusive → {}"
+msgstr "Wyłączny → {}"
+
+#: app/src/display.rs:376 app/src/display.rs:687 app/src/display.rs:1037
+msgid "file / tags"
+msgstr "plik / tagi"
+
+#: app/src/display.rs:463 app/src/video.rs:705
+msgid "Track {}"
+msgstr "Ścieżka {}"
+
+#: app/src/display.rs:538
+msgid "subtitles"
+msgstr "napisy"
+
+#: app/src/display.rs:684
+msgid "Lyrics saved next to the track (.lrc)"
+msgstr "Zapisano tekst obok utworu (.lrc)"
+
+#: app/src/display.rs:684
+msgid "Could not save the .lrc file"
+msgstr "Nie udało się zapisać pliku .lrc"
+
+#: app/src/display.rs:719
+msgid "{} (disc {})"
+msgstr "{} (płyta {})"
+
+#: app/src/display.rs:721 app/src/display.rs:886
+msgid "Length"
+msgstr "Długość"
+
+#: app/src/display.rs:722
+msgid "Format"
+msgstr "Format"
+
+#: app/src/display.rs:724
+msgid "track {} dB, album {} dB"
+msgstr "utwór {} dB, album {} dB"
+
+#: app/src/display.rs:725
+msgid "track {} dB"
+msgstr "utwór {} dB"
+
+#: app/src/display.rs:726
+msgid "album {} dB"
+msgstr "album {} dB"
+
+#: app/src/display.rs:729 app/src/display.rs:889 app/src/display.rs:914
+msgid "Size"
+msgstr "Rozmiar"
+
+#: app/src/display.rs:730 app/src/display.rs:893
+msgid "Plays"
+msgstr "Odtworzenia"
+
+#: app/src/display.rs:732 app/src/display.rs:895 app/src/video.rs:791
+msgid "File"
+msgstr "Plik"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "bars"
+msgstr "słupki"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "spectrum"
+msgstr "widmo"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "oscilloscope"
+msgstr "oscyloskop"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "VU meters"
+msgstr "wskaźniki VU"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "mirror"
+msgstr "lustro"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "circle"
+msgstr "okrąg"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "3D spectrum"
+msgstr "widmo 3D"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "LEDs"
+msgstr "diody"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "stereo (Lissajous)"
+msgstr "stereo (Lissajous)"
+
+#: app/src/display.rs:835
+msgctxt "visualization"
+msgid "dots"
+msgstr "kropki"
+
+#: app/src/display.rs:837
+msgid "Visualization off"
+msgstr "Wizualizacja wyłączona"
+
+#: app/src/display.rs:837
+msgid "Visualization: {}"
+msgstr "Wizualizacja: {}"
+
+#: app/src/display.rs:880
+msgid "Number"
+msgstr "Numer"
+
+#: app/src/display.rs:893
+msgid "Views"
+msgstr "Obejrzane"
+
+#: app/src/display.rs:906
+msgid "{n} selected file"
+msgid_plural "{n} selected files"
+msgstr[0] "{n} zaznaczony plik"
+msgstr[1] "{n} zaznaczone pliki"
+msgstr[2] "{n} zaznaczonych plików"
+
+#: app/src/display.rs:907 app/src/libview.rs:311 app/src/libview.rs:355 app/src/libview.rs:409 app/src/libview.rs:429 app/src/libview.rs:437
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} pozycja"
+msgstr[1] "{n} pozycje"
+msgstr[2] "{n} pozycji"
+
+#: app/src/display.rs:911
+msgid "Total"
+msgstr "Łącznie"
+
+#: app/src/display.rs:920
+msgid " and {n} other"
+msgid_plural " and {n} others"
+msgstr[0] " i {n} inny"
+msgstr[1] " i {n} innych"
+msgstr[2] " i {n} innych"
+
+#: app/src/display.rs:921 app/src/libview.rs:51 app/src/libview.rs:262
+msgid "Artists"
+msgstr "Wykonawcy"
+
+#: app/src/display.rs:927
+msgid "Formats"
+msgstr "Formaty"
+
+#: app/src/display.rs:932 app/src/libview.rs:54 app/src/libview.rs:265
+msgid "Years"
+msgstr "Lata"
+
+#: app/src/display.rs:935
+msgid "Folder"
+msgstr "Folder"
+
+#: app/src/keys.rs:28
+msgctxt "shortcut"
+msgid "Play / pause"
+msgstr "Odtwarzanie / pauza"
+
+#: app/src/keys.rs:28 app/src/menu.rs:157
+msgid "Space"
+msgstr "Spacja"
+
+#: app/src/keys.rs:29
+msgid "Previous / next track"
+msgstr "Poprzedni / następny utwór"
+
+#: app/src/keys.rs:30
+msgid "Seek by one step (settings), with Shift – 1 s, with Alt – 60 s"
+msgstr "Przewiń o krok (ustawienia), z Shift – 1 s, z Alt – 60 s"
+
+#: app/src/keys.rs:31
+msgid "Volume (in video); in a list – select a track"
+msgstr "Głośność (w wideo); na liście – wybór utworu"
+
+#: app/src/keys.rs:33
+msgid "Play selected"
+msgstr "Odtwórz zaznaczony"
+
+#: app/src/keys.rs:34
+msgid "Mute"
+msgstr "Wycisz"
+
+#: app/src/keys.rs:35
+msgid "Shuffle; in video – screenshot"
+msgstr "Losowo; w wideo – zrzut ekranu"
+
+#: app/src/keys.rs:36
+msgid "Repeat: off / list / track"
+msgstr "Powtarzanie: wył. / lista / utwór"
+
+#: app/src/keys.rs:38
+msgid "Song lyrics; in video – A-B loop"
+msgstr "Tekst piosenki; w wideo – pętla A-B"
+
+#: app/src/keys.rs:39
+msgid "Add selected to the queue"
+msgstr "Dodaj zaznaczone do kolejki"
+
+#: app/src/keys.rs:40
+msgid "Remove selected from the list"
+msgstr "Usuń zaznaczone z listy"
+
+#: app/src/keys.rs:41
+msgid "Move selected in the list"
+msgstr "Przesuń zaznaczone na liście"
+
+#: app/src/keys.rs:42
+msgid "Select all"
+msgstr "Zaznacz wszystko"
+
+#: app/src/keys.rs:43
+msgid "Ctrl + Alt + Space / ← / → / ↑ / ↓"
+msgstr "Ctrl + Alt + Spacja / ← / → / ↑ / ↓"
+
+#: app/src/keys.rs:43
+msgid "Global: play/pause, track, volume"
+msgstr "Globalnie: odtwórz/pauza, utwór, głośność"
+
+#: app/src/keys.rs:44 app/src/libview.rs:61 app/src/libview.rs:268
+msgid "Favorites"
+msgstr "Ulubione"
+
+#: app/src/keys.rs:45
+msgid "Rate selected (5 = favorite) / remove rating"
+msgstr "Oceń zaznaczone (5 = ulubione) / usuń ocenę"
+
+#: app/src/keys.rs:46
+msgid "Edit tags"
+msgstr "Edytuj tagi"
+
+#: app/src/keys.rs:47
+msgid "Search the list"
+msgstr "Szukaj na liście"
+
+#: app/src/keys.rs:48
+msgid "Open files / folder"
+msgstr "Otwórz pliki / folder"
+
+#: app/src/keys.rs:49
+msgid "Open URL (stream)"
+msgstr "Otwórz adres (strumień)"
+
+#: app/src/keys.rs:50
+msgid "New list / close tab"
+msgstr "Nowa lista / zamknij kartę"
+
+#: app/src/keys.rs:51
+msgid "Next list tab"
+msgstr "Następna karta listy"
+
+#: app/src/keys.rs:52
+msgid "Save list as M3U8"
+msgstr "Zapisz listę jako M3U8"
+
+#: app/src/keys.rs:53
+msgid "Full screen / mini player"
+msgstr "Pełny ekran / miniodtwarzacz"
+
+#: app/src/keys.rs:55 app/src/menu.rs:139 app/src/menu.rs:159 app/src/video.rs:977
+msgid "Always on top"
+msgstr "Zawsze na wierzchu"
+
+#: app/src/keys.rs:56
+msgid "Show the current track in the list"
+msgstr "Pokaż bieżący utwór na liście"
+
+#: app/src/keys.rs:57
+msgid "Video: switch subtitles / audio track"
+msgstr "Wideo: przełącz napisy / ścieżkę dźwiękową"
+
+#: app/src/keys.rs:58
+msgid "F, double-click, click on picture"
+msgstr "F, dwuklik, kliknięcie obrazu"
+
+#: app/src/keys.rs:58
+msgid "Video: movie full screen (Esc – back to the window)"
+msgstr "Wideo: pełny ekran filmu (Esc – z powrotem do okna)"
+
+#: app/src/keys.rs:59
+msgid "Video: exit full screen; in the window – to the library (the movie keeps playing)"
+msgstr "Wideo: wyjście z pełnego ekranu; w oknie – do biblioteki (film gra dalej)"
+
+#: app/src/keys.rs:60
+msgid "Video: picture in picture (mini player)"
+msgstr "Wideo: obraz w obrazie (miniodtwarzacz)"
+
+#: app/src/keys.rs:61
+msgid "Video: zoom in / zoom out / picture as in file"
+msgstr "Wideo: powiększ / pomniejsz / obraz jak w pliku"
+
+#: app/src/keys.rs:62
+msgid "Ctrl + Shift + arrows"
+msgstr "Ctrl + Shift + strzałki"
+
+#: app/src/keys.rs:62
+msgid "Video: pan the zoomed picture"
+msgstr "Wideo: przesuń powiększony obraz"
+
+#: app/src/keys.rs:63
+msgid "Video: rotate by 90°"
+msgstr "Wideo: obróć o 90°"
+
+#: app/src/keys.rs:64
+msgid "Video: aspect ratio"
+msgstr "Wideo: proporcje obrazu"
+
+#: app/src/keys.rs:65
+msgid "Video: debanding / ambient glow"
+msgstr "Wideo: usuwanie pasm / poświata z obrazu"
+
+#: app/src/keys.rs:66
+msgid "Video: playback details"
+msgstr "Wideo: szczegóły odtwarzania"
+
+#: app/src/keys.rs:67
+msgid "Video: screenshot without subtitles"
+msgstr "Wideo: zrzut ekranu bez napisów"
+
+#: app/src/keys.rs:68
+msgid "Video: slower / faster / normal"
+msgstr "Wideo: wolniej / szybciej / normalnie"
+
+#: app/src/keys.rs:69
+msgid "Video: frame back / forward"
+msgstr "Wideo: klatka wstecz / naprzód"
+
+#: app/src/keys.rs:70
+msgid "Video: previous / next chapter"
+msgstr "Wideo: poprzedni / następny rozdział"
+
+#: app/src/keys.rs:71
+msgid "Video: subtitle delay −/+ 100 ms"
+msgstr "Wideo: opóźnienie napisów −/+ 100 ms"
+
+#: app/src/keys.rs:72
+msgid "Video: always on top"
+msgstr "Wideo: zawsze na wierzchu"
+
+#: app/src/keys.rs:74 app/src/menu.rs:146
+msgid "Quit"
+msgstr "Zakończ"
+
+#: app/src/keys.rs:218 app/src/libview.rs:957 app/src/lists.rs:719
+msgid "List {}"
+msgstr "Lista {}"
+
+#: app/src/keys.rs:267
+msgid "Stop after the current track"
+msgstr "Zatrzymanie po bieżącym utworze"
+
+#: app/src/keys.rs:267
+msgid "Continuous playback"
+msgstr "Odtwarzanie ciągłe"
+
+#: app/src/keys.rs:483
+msgid "Shuffle: on"
+msgstr "Losowo: włączone"
+
+#: app/src/keys.rs:483
+msgid "Shuffle: off"
+msgstr "Losowo: wyłączone"
+
+#: app/src/keys.rs:494
+msgid "Repeat off"
+msgstr "Powtarzanie wyłączone"
+
+#: app/src/keys.rs:494
+msgid "Repeat list"
+msgstr "Powtarzaj listę"
+
+#: app/src/keys.rs:494
+msgid "Repeat track"
+msgstr "Powtarzaj utwór"
+
+#: app/src/keys.rs:512
+msgid "The clipboard has no link or file path"
+msgstr "W schowku nie ma linku ani ścieżki do pliku"
+
+#: app/src/libview.rs:52 app/src/libview.rs:263
+msgid "Albums"
+msgstr "Albumy"
+
+#: app/src/libview.rs:53 app/src/libview.rs:264
+msgid "Genres"
+msgstr "Gatunki"
+
+#: app/src/libview.rs:55 app/src/libview.rs:267
+msgid "All tracks"
+msgstr "Wszystkie utwory"
+
+#: app/src/libview.rs:57 app/src/libview.rs:273
+msgid "All videos"
+msgstr "Wszystkie filmy"
+
+#: app/src/libview.rs:58 app/src/libview.rs:275
+msgid "Continue watching"
+msgstr "Kontynuuj oglądanie"
+
+#: app/src/libview.rs:59
+msgid "Recently added"
+msgstr "Ostatnio dodane"
+
+#: app/src/libview.rs:60
+msgid "COLLECTIONS"
+msgstr "ZBIORY"
+
+#: app/src/libview.rs:62 app/src/libview.rs:270
+msgid "Rated"
+msgstr "Ocenione"
+
+#: app/src/libview.rs:63 app/src/libview.rs:269
+msgid "Most played"
+msgstr "Najczęściej odtwarzane"
+
+#: app/src/libview.rs:64 app/src/libview.rs:271
+msgid "Recently added music"
+msgstr "Ostatnio dodana muzyka"
+
+#: app/src/libview.rs:65 app/src/libview.rs:272
+msgid "History"
+msgstr "Historia"
+
+#: app/src/libview.rs:70
+msgid "SMART PLAYLISTS"
+msgstr "INTELIGENTNE LISTY"
+
+#: app/src/libview.rs:76
+msgid "FOLDERS"
+msgstr "FOLDERY"
+
+#: app/src/libview.rs:199 app/src/lists.rs:773
+msgid "Rename…"
+msgstr "Zmień nazwę…"
+
+#: app/src/libview.rs:200
+msgid "Edit filters…"
+msgstr "Zmień filtry…"
+
+#: app/src/libview.rs:202
+msgid "Delete smart playlist"
+msgstr "Usuń inteligentną listę"
+
+#: app/src/libview.rs:209
+msgid "Library folders…"
+msgstr "Foldery biblioteki…"
+
+#: app/src/libview.rs:220
+msgid "Smart playlist name"
+msgstr "Nazwa inteligentnej listy"
+
+#: app/src/libview.rs:222
+msgid "Filters, e.g. rating>=4 year:1990-1999 genre:rock"
+msgstr "Filtry, np. ocena>=4 rok:1990-1999 gatunek:rock"
+
+#: app/src/libview.rs:266
+msgid "Folders"
+msgstr "Foldery"
+
+#: app/src/libview.rs:274
+msgid "Video folders"
+msgstr "Foldery wideo"
+
+#: app/src/libview.rs:276
+msgid "Recently added videos"
+msgstr "Ostatnio dodane filmy"
+
+#: app/src/libview.rs:302
+msgid "No videos in the library.\nAdd video folders (network drives work too) in Settings → Library."
+msgstr "Brak filmów w bibliotece.\nDodaj foldery z wideo (także na dysku sieciowym) w Ustawieniach → Biblioteka."
+
+#: app/src/libview.rs:304
+msgid "The library is empty.\nAdd music folders (network drives work too) in Settings → Library."
+msgstr "Biblioteka jest pusta.\nDodaj foldery z muzyką (także na dysku sieciowym) w Ustawieniach → Biblioteka."
+
+#: app/src/libview.rs:310
+msgid "Results: “{}”"
+msgstr "Wyniki: „{}”"
+
+#: app/src/libview.rs:312
+msgid "Nothing found.\nFilters: rating>=4, year:1990-1999, genre:rock, artist:…, album:…, plays>=10, format:flac, added<30, length>6"
+msgstr "Nic nie znaleziono.\nFiltry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworzenia>=10, format:flac, dodane<30, dlugosc>6"
+
+#: app/src/libview.rs:323 app/src/libview.rs:401
+msgid "{n} album"
+msgid_plural "{n} albums"
+msgstr[0] "{n} album"
+msgstr[1] "{n} albumy"
+msgstr[2] "{n} albumów"
+
+#: app/src/libview.rs:323 app/src/libview.rs:372 app/src/libview.rs:395 app/src/libview.rs:401 app/src/libview.rs:550 app/src/libview.rs:566
+msgid "{n} track"
+msgid_plural "{n} tracks"
+msgstr[0] "{n} utwór"
+msgstr[1] "{n} utwory"
+msgstr[2] "{n} utworów"
+
+#: app/src/libview.rs:363
+msgid "Empty."
+msgstr "Pusto."
+
+#: app/src/libview.rs:395 app/src/libview.rs:550 app/src/libview.rs:1067
+msgid "{n} video"
+msgid_plural "{n} videos"
+msgstr[0] "{n} film"
+msgstr[1] "{n} filmy"
+msgstr[2] "{n} filmów"
+
+#: app/src/libview.rs:396
+msgid "{n} folder"
+msgid_plural "{n} folders"
+msgstr[0] "{n} folder"
+msgstr[1] "{n} foldery"
+msgstr[2] "{n} folderów"
+
+#: app/src/libview.rs:416
+msgid "By file date"
+msgstr "Według daty pliku"
+
+#: app/src/libview.rs:422
+msgid "Movies stopped midway – they will start where you left off"
+msgstr "Filmy przerwane w trakcie – zaczną się od miejsca, w którym skończyłeś"
+
+#: app/src/libview.rs:423
+msgid "No unfinished movies."
+msgstr "Nie ma przerwanych filmów."
+
+#: app/src/libview.rs:429
+msgid "the heart next to a track adds it here"
+msgstr "serce przy utworze dodaje go tutaj"
+
+#: app/src/libview.rs:430
+msgid "No favorites. Click the heart next to a track or press Ctrl+D."
+msgstr "Brak ulubionych. Kliknij serce przy utworze albo Ctrl+D."
+
+#: app/src/libview.rs:437
+msgid "Ctrl+1…5 rates the selection"
+msgstr "Ctrl+1…5 ocenia zaznaczone"
+
+#: app/src/libview.rs:438
+msgid "Nothing is rated yet. Select tracks and press Ctrl+1…5."
+msgstr "Nic jeszcze nie ma oceny. Zaznacz utwory i naciśnij Ctrl+1…5."
+
+#: app/src/libview.rs:444
+msgid "By play count"
+msgstr "Według liczby odtworzeń"
+
+#: app/src/libview.rs:445
+msgid "Nothing has been played yet."
+msgstr "Jeszcze nic nie zostało odtworzone."
+
+#: app/src/libview.rs:473
+msgid "Nothing matches this playlist."
+msgstr "Nic nie pasuje do tej listy."
+
+#: app/src/libview.rs:479
+msgid "Recently played"
+msgstr "Ostatnio odtwarzane"
+
+#: app/src/libview.rs:480
+msgid "History is empty."
+msgstr "Historia jest pusta."
+
+#: app/src/libview.rs:502
+msgid "{n} subfolder – expand in the panel"
+msgid_plural "{n} subfolders – expand in the panel"
+msgstr[0] "{n} podfolder – rozwiń w panelu"
+msgstr[1] "{n} podfoldery – rozwiń w panelu"
+msgstr[2] "{n} podfolderów – rozwiń w panelu"
+
+#: app/src/libview.rs:507
+msgid "No files in this folder, or the folder is unavailable (e.g. the NAS server is off)."
+msgstr "Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."
+
+#: app/src/libview.rs:509
+msgid "This folder only has subfolders – expand it with the arrow in the panel on the left."
+msgstr "W tym folderze są tylko podfoldery – rozwiń go strzałką w panelu po lewej."
+
+#: app/src/libview.rs:552
+msgid "Files in this folder"
+msgstr "Pliki w tym folderze"
+
+#: app/src/libview.rs:621
+msgid "watched {}"
+msgstr "obejrzano {}"
+
+#: app/src/libview.rs:653
+msgid "Season {}"
+msgstr "Sezon {}"
+
+#: app/src/libview.rs:654
+msgid "{n} episode"
+msgid_plural "{n} episodes"
+msgstr[0] "{n} odcinek"
+msgstr[1] "{n} odcinki"
+msgstr[2] "{n} odcinków"
+
+#: app/src/libview.rs:785 app/src/libview.rs:929
+msgid "Add to the current list"
+msgstr "Dodaj do bieżącej listy"
+
+#: app/src/libview.rs:786
+msgid "New list from this"
+msgstr "Nowa lista z tego"
+
+#: app/src/libview.rs:788
+msgid "Open"
+msgstr "Otwórz"
+
+#: app/src/libview.rs:862
+msgid "Added {} to the list “{}”"
+msgstr "Dodano {} do listy „{}”"
+
+#: app/src/libview.rs:930 app/src/lists.rs:749
+msgid "New list from selection"
+msgstr "Nowa lista z zaznaczonych"
+
+#: app/src/libview.rs:932
+msgid "Favorite (toggle)"
+msgstr "Ulubione (przełącz)"
+
+#: app/src/libview.rs:933 app/src/lists.rs:745
+msgid "Edit tags…"
+msgstr "Edytuj tagi…"
+
+#: app/src/libview.rs:934 app/src/lists.rs:747
+msgid "Show in Explorer"
+msgstr "Pokaż w Eksploratorze"
+
+#: app/src/libview.rs:936
+msgid "Forget the resume position"
+msgstr "Zapomnij miejsce wznowienia"
+
+#: app/src/libview.rs:937
+msgid "Watched / unwatched (toggle)"
+msgstr "Obejrzany / nieobejrzany (przełącz)"
+
+#: app/src/libview.rs:938
+msgid "Fix TMDB match…"
+msgstr "Popraw dopasowanie TMDB…"
+
+#: app/src/libview.rs:939
+msgid "Save search as a smart playlist"
+msgstr "Zapisz wyszukiwanie jako inteligentną listę"
+
+#: app/src/libview.rs:988
+msgid "Smart playlist “{}” saved"
+msgstr "Zapisano inteligentną listę „{}”"
+
+#: app/src/libview.rs:994
+msgid "Movie title on TMDB (with the year, e.g. Angels & Demons 2009)"
+msgstr "Tytuł filmu w TMDB (z rokiem, np. Anioły i demony 2009)"
+
+#: app/src/libview.rs:1009
+msgid "Marked as unwatched"
+msgstr "Oznaczono jako nieobejrzane"
+
+#: app/src/libview.rs:1009
+msgid "Marked as watched"
+msgstr "Oznaczono jako obejrzane"
+
+#: app/src/libview.rs:1045
+msgid "Looking for files…"
+msgstr "Szukanie plików…"
+
+#: app/src/libview.rs:1067
+msgid "Library: {}, {}"
+msgstr "Biblioteka: {}, {}"
+
+#: app/src/libview.rs:1113
+msgid "Scanning library: {} / {}"
+msgstr "Skanowanie biblioteki: {} / {}"
+
+#: app/src/lists.rs:82
+msgid "Season {} · Episode {}"
+msgstr "Sezon {} · Odcinek {}"
+
+#: app/src/lists.rs:225 app/src/lists.rs:387
+msgid "selected {} ({})"
+msgstr "zaznaczono {} ({})"
+
+#: app/src/lists.rs:228
+msgid "matching {}"
+msgstr "pasuje {}"
+
+#: app/src/lists.rs:627
+msgid "Will play next"
+msgstr "Zagra jako następne"
+
+#: app/src/lists.rs:632
+msgid "In queue: {}"
+msgstr "W kolejce: {}"
+
+#: app/src/lists.rs:693
+msgid "Rating removed"
+msgstr "Ocena usunięta"
+
+#: app/src/lists.rs:693
+msgid "Rating: {}"
+msgstr "Ocena: {}"
+
+#: app/src/lists.rs:741
+msgid "Play next"
+msgstr "Odtwórz jako następne"
+
+#: app/src/lists.rs:742
+msgid "Add to queue"
+msgstr "Dodaj do kolejki"
+
+#: app/src/lists.rs:744
+msgid "Remove from favorites"
+msgstr "Usuń z ulubionych"
+
+#: app/src/lists.rs:744
+msgid "Add to favorites"
+msgstr "Dodaj do ulubionych"
+
+#: app/src/lists.rs:745
+msgid "Edit tags of selected…"
+msgstr "Edytuj tagi zaznaczonych…"
+
+#: app/src/lists.rs:746
+msgid "Track info"
+msgstr "Informacje o utworze"
+
+#: app/src/lists.rs:750
+msgid "Remove from list"
+msgstr "Usuń z listy"
+
+#: app/src/lists.rs:751
+msgid "Keep only selected"
+msgstr "Zostaw tylko zaznaczone"
+
+#: app/src/lists.rs:753
+msgid "Sort: artist, album, number"
+msgstr "Sortuj: wykonawca, album, numer"
+
+#: app/src/lists.rs:754
+msgid "Sort: title"
+msgstr "Sortuj: tytuł"
+
+#: app/src/lists.rs:755
+msgid "Sort: artist"
+msgstr "Sortuj: wykonawca"
+
+#: app/src/lists.rs:756
+msgid "Sort: length"
+msgstr "Sortuj: długość"
+
+#: app/src/lists.rs:757
+msgid "Sort: file path"
+msgstr "Sortuj: ścieżka pliku"
+
+#: app/src/lists.rs:758
+msgid "Reverse order"
+msgstr "Odwróć kolejność"
+
+#: app/src/lists.rs:759
+msgid "Shuffle list"
+msgstr "Wymieszaj listę"
+
+#: app/src/lists.rs:761
+msgid "Remove duplicates"
+msgstr "Usuń duplikaty"
+
+#: app/src/lists.rs:762
+msgid "Remove missing files"
+msgstr "Usuń nieistniejące pliki"
+
+#: app/src/lists.rs:769 app/src/lists.rs:787
+msgid "List name"
+msgstr "Nazwa listy"
+
+#: app/src/lists.rs:774
+msgid "Save as M3U8…"
+msgstr "Zapisz jako M3U8…"
+
+#: app/src/lists.rs:775
+msgid "Import a playlist into this tab…"
+msgstr "Importuj listę do tej karty…"
+
+#: app/src/lists.rs:777
+msgid "Clear list"
+msgstr "Wyczyść listę"
+
+#: app/src/lists.rs:778
+msgid "Close tab"
+msgstr "Zamknij kartę"
+
+#: app/src/main.rs:92
+msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
+msgstr "Niedostępny: {}. Filmy i radio wymagają pliku libmpv-2.dll obok OpenMP.exe."
+
+#: app/src/main.rs:655
+msgid "Radio stream URL"
+msgstr "Adres strumienia radia"
+
+#: app/src/main.rs:711
+msgid "Equalizer preset name"
+msgstr "Nazwa ustawienia korektora"
+
+#: app/src/main.rs:711
+msgid "Mine"
+msgstr "Moje"
+
+#: app/src/menu.rs:127
+msgid "Open files…"
+msgstr "Otwórz pliki…"
+
+#: app/src/menu.rs:128
+msgid "Open folder…"
+msgstr "Otwórz folder…"
+
+#: app/src/menu.rs:129
+msgid "Open URL (stream, radio)…"
+msgstr "Otwórz adres (strumień, radio)…"
+
+#: app/src/menu.rs:131
+msgid "New list"
+msgstr "Nowa lista"
+
+#: app/src/menu.rs:132
+msgid "Import playlist (M3U, PLS, XSPF, CUE)…"
+msgstr "Importuj listę (M3U, PLS, XSPF, CUE)…"
+
+#: app/src/menu.rs:133
+msgid "Save list as M3U8…"
+msgstr "Zapisz listę jako M3U8…"
+
+#: app/src/menu.rs:136
+msgid "Sleep timer…"
+msgstr "Wyłącznik czasowy…"
+
+#: app/src/menu.rs:137 app/src/menu.rs:158
+msgid "Full screen"
+msgstr "Pełny ekran"
+
+#: app/src/menu.rs:138
+msgid "Mini player"
+msgstr "Miniodtwarzacz"
+
+#: app/src/menu.rs:142
+msgid "Check for updates"
+msgstr "Sprawdź aktualizacje"
+
+#: app/src/menu.rs:144
+msgid "Buy the author a coffee"
+msgstr "Postaw kawę autorowi"
+
+#: app/src/menu.rs:160
+msgid "Picture in picture"
+msgstr "Obraz w obrazie"
+
+#: app/src/menu.rs:162
+msgid "Audio tracks and speed…"
+msgstr "Ścieżki dźwiękowe i prędkość…"
+
+#: app/src/menu.rs:163
+msgid "Subtitles…"
+msgstr "Napisy…"
+
+#: app/src/menu.rs:164
+msgid "Picture: colors, zoom…"
+msgstr "Obraz: barwy, powiększenie…"
+
+#: app/src/menu.rs:165
+msgid "Chapters…"
+msgstr "Rozdziały…"
+
+#: app/src/menu.rs:170 app/src/video.rs:1137
+msgid "Aspect ratio: {}"
+msgstr "Proporcje: {}"
+
+#: app/src/menu.rs:172
+msgid "Rotate by 90°"
+msgstr "Obróć o 90°"
+
+#: app/src/menu.rs:173 app/src/video.rs:1103
+msgid "Picture as in file"
+msgstr "Obraz jak w pliku"
+
+#: app/src/menu.rs:178
+msgid "Screenshot without subtitles"
+msgstr "Zrzut ekranu bez napisów"
+
+#: app/src/menu.rs:181
+msgid "Open file…"
+msgstr "Otwórz plik…"
+
+#: app/src/menu.rs:182
+msgid "Audio only (picture off in the background)"
+msgstr "Tylko dźwięk (obraz w tle wyłączony)"
+
+#: app/src/menu.rs:183
+msgid "Library (the movie keeps playing)"
+msgstr "Biblioteka (film gra dalej)"
+
+#: app/src/menu.rs:192
+msgid "In {} min"
+msgstr "Za {} min"
+
+#: app/src/menu.rs:195
+msgid "After the current track"
+msgstr "Po bieżącym utworze"
+
+#: app/src/menu.rs:196
+msgid "When the list ends"
+msgstr "Po zakończeniu listy"
+
+#: app/src/menu.rs:199
+msgid "Turn off the sleep timer"
+msgstr "Wyłącz wyłącznik"
+
+#: app/src/player.rs:118
+msgid "No video engine (libmpv) – cannot play: {}"
+msgstr "Brak silnika wideo (libmpv) – nie można odtworzyć: {}"
+
+#: app/src/player.rs:493
+msgid "Volume {}%"
+msgstr "Głośność {}%"
+
+#: app/src/player.rs:519
+msgid "Muted"
+msgstr "Wyciszono"
+
+#: app/src/player.rs:519
+msgid "Sound on"
+msgstr "Dźwięk włączony"
+
+#: app/src/player.rs:591
+msgid "Cannot play: {} ({})"
+msgstr "Nie można odtworzyć: {} ({})"
+
+#: app/src/player.rs:660 app/src/player.rs:663
+msgid "Cannot play: {}"
+msgstr "Nie można odtworzyć: {}"
+
+#: app/src/player.rs:722
+msgid "Adding: {}…"
+msgstr "Dodawanie: {}…"
+
+#: app/src/player.rs:765
+msgid "No media files to add"
+msgstr "Brak plików multimedialnych do dodania"
+
+#: app/src/player.rs:782
+msgid "Added {}"
+msgstr "Dodano {}"
+
+#: app/src/prefs.rs:27 core/src/audio/dsp.rs:140
+msgid "Custom"
+msgstr "Własne"
+
+#: app/src/prefs.rs:162
+msgid "Idea and development: {}"
+msgstr "Pomysł i wykonanie: {}"
+
+#: app/src/prefs.rs:164
+msgid "System default device"
+msgstr "Domyślne urządzenie systemu"
+
+#: app/src/prefs.rs:170
+msgid "libmpv – video, subtitles, streams, hardware decoding"
+msgstr "libmpv – wideo, napisy, strumienie, dekodowanie sprzętowe"
+
+#: app/src/prefs.rs:231
+msgctxt "language"
+msgid "System"
+msgstr "Systemowy"
+
+#: app/src/prefs.rs:255
+msgid "Some texts will change language after restarting OpenMP"
+msgstr "Część tekstów zmieni język po ponownym uruchomieniu OpenMP"
+
+#: app/src/prefs.rs:356
+msgid "ReplayGain will apply from the next track"
+msgstr "ReplayGain zadziała od następnego utworu"
+
+#: app/src/prefs.rs:497
+msgid "AutoEQ profile (ParametricEQ.txt)"
+msgstr "Profil AutoEQ (ParametricEQ.txt)"
+
+#: app/src/prefs.rs:497
+msgid "AutoEQ profile"
+msgstr "Profil AutoEQ"
+
+#: app/src/prefs.rs:516
+msgid "{n} filter"
+msgid_plural "{n} filters"
+msgstr[0] "{n} filtr"
+msgstr[1] "{n} filtry"
+msgstr[2] "{n} filtrów"
+
+#: app/src/prefs.rs:516
+msgid "Loaded “{}” – {}, preamp {} dB"
+msgstr "Wczytano „{}” – {}, przedwzmocnienie {} dB"
+
+#: app/src/prefs.rs:518
+msgid "This is not an AutoEQ profile (ParametricEQ.txt)"
+msgstr "To nie jest profil AutoEQ (ParametricEQ.txt)"
+
+#: app/src/prefs.rs:554
+msgid "Another program is using some shortcuts ({} of 5 work)"
+msgstr "Część skrótów zajmuje inny program ({} z 5 działa)"
+
+#: app/src/prefs.rs:626
+msgid "Equalizer: {} (genre {})"
+msgstr "Korektor: {} (gatunek {})"
+
+#: app/src/prefs.rs:646
+msgid "Video folder"
+msgstr "Folder z wideo"
+
+#: app/src/prefs.rs:646
+msgid "Music folder"
+msgstr "Folder z muzyką"
+
+#: app/src/prefs.rs:653
+msgid "Network path (e.g. \\\\NAS\\Music or Z:\\Movies)"
+msgstr "Ścieżka sieciowa (np. \\\\NAS\\Muzyka lub Z:\\Filmy)"
+
+#: app/src/prefs.rs:662
+msgid "The folder “{}” is unavailable – check the path and network connection"
+msgstr "Folder „{}” jest niedostępny – sprawdź ścieżkę i połączenie z siecią"
+
+#: app/src/radio.rs:50
+msgid "Station directory unavailable: {}"
+msgstr "Katalog stacji niedostępny: {}"
+
+#: app/src/sleep.rs:23
+msgid "Sleep timer: in {} min"
+msgstr "Wyłącznik: za {} min"
+
+#: app/src/sleep.rs:24
+msgid "Sleep timer: after the current track"
+msgstr "Wyłącznik: po bieżącym utworze"
+
+#: app/src/sleep.rs:25
+msgid "Sleep timer: when the list ends"
+msgstr "Wyłącznik: po zakończeniu listy"
+
+#: app/src/sleep.rs:26
+msgid "Sleep timer off"
+msgstr "Wyłącznik wyłączony"
+
+#: app/src/sleep.rs:41
+msgid "The sleep timer stopped playback"
+msgstr "Wyłącznik czasowy zatrzymał odtwarzanie"
+
+#: app/src/sleep.rs:59
+msgctxt "sleep timer"
+msgid "track"
+msgstr "utwór"
+
+#: app/src/sleep.rs:60
+msgctxt "sleep timer"
+msgid "list"
+msgstr "lista"
+
+#: app/src/statsview.rs:17
+msgid "{} h {} min"
+msgstr "{} h {} min"
+
+#: app/src/statsview.rs:19
+msgid "{} min"
+msgstr "{} min"
+
+#: app/src/statsview.rs:39
+msgid "just now"
+msgstr "przed chwilą"
+
+#: app/src/statsview.rs:40
+msgid "{} min ago"
+msgstr "{} min temu"
+
+#: app/src/statsview.rs:41
+msgid "{} h ago"
+msgstr "{} h temu"
+
+#: app/src/statsview.rs:42
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} dzień temu"
+msgstr[1] "{n} dni temu"
+msgstr[2] "{n} dni temu"
+
+#: app/src/statsview.rs:85 app/src/statsview.rs:86
+msgid "{n} play"
+msgid_plural "{n} plays"
+msgstr[0] "{n} odtworzenie"
+msgstr[1] "{n} odtworzenia"
+msgstr[2] "{n} odtworzeń"
+
+#: app/src/statsview.rs:86
+msgid "{n} watched"
+msgid_plural "{n} watched"
+msgstr[0] "{n} obejrzany"
+msgstr[1] "{n} obejrzane"
+msgstr[2] "{n} obejrzanych"
+
+#: app/src/statsview.rs:86
+msgid "Movies"
+msgstr "Filmy"
+
+#: app/src/statsview.rs:87
+msgid "Today"
+msgstr "Dziś"
+
+#: app/src/statsview.rs:87
+msgid "music {} · movies {}"
+msgstr "muzyka {} · filmy {}"
+
+#: app/src/statsview.rs:88
+msgid "Last 7 days"
+msgstr "Ostatnie 7 dni"
+
+#: app/src/statsview.rs:88
+msgid "{} a day on average"
+msgstr "średnio {} dziennie"
+
+#: app/src/statsview.rs:103
+msgid "music {}, movies {}"
+msgstr "muzyka {}, filmy {}"
+
+#: app/src/statsview.rs:137
+msgid "watched · "
+msgstr "obejrzany · "
+
+#: app/src/video.rs:557
+msgid "The movie keeps playing as audio – click the cover to return to the picture"
+msgstr "Film gra dalej jako dźwięk – kliknij okładkę, by wrócić do obrazu"
+
+#: app/src/video.rs:659
+msgid "Chapter {}"
+msgstr "Rozdział {}"
+
+#: app/src/video.rs:689
+msgid "Resumed from {}  ·  Home – from the start"
+msgstr "Wznowiono od {}  ·  Home – od początku"
+
+#: app/src/video.rs:711
+msgid "external file"
+msgstr "plik zewnętrzny"
+
+#: app/src/video.rs:754
+msgid "{} fps"
+msgstr "{} kl./s"
+
+#: app/src/video.rs:759
+msgid "hardware ({})"
+msgstr "sprzętowo ({})"
+
+#: app/src/video.rs:771
+msgid "automatic"
+msgstr "automatyczne"
+
+#: app/src/video.rs:771
+msgid "stretched"
+msgstr "rozciągnięte"
+
+#: app/src/video.rs:771
+msgid "fill screen"
+msgstr "wypełnij ekran"
+
+#: app/src/video.rs:793
+msgid "Container"
+msgstr "Kontener"
+
+#: app/src/video.rs:801
+msgid "Resolution"
+msgstr "Rozdzielczość"
+
+#: app/src/video.rs:803
+msgid "Video codec"
+msgstr "Kodek obrazu"
+
+#: app/src/video.rs:807
+msgid "Frames"
+msgstr "Klatki"
+
+#: app/src/video.rs:807
+msgid "{} fps (displayed {})"
+msgstr "{} kl./s (wyświetlane {})"
+
+#: app/src/video.rs:809
+msgid "Decoding"
+msgstr "Dekodowanie"
+
+#: app/src/video.rs:810
+msgid "hardware – {}"
+msgstr "sprzętowe – {}"
+
+#: app/src/video.rs:811
+msgid "software (CPU)"
+msgstr "programowe (procesor)"
+
+#: app/src/video.rs:816
+msgid "Colors"
+msgstr "Barwy"
+
+#: app/src/video.rs:820
+msgid "Video bitrate"
+msgstr "Przepływność obrazu"
+
+#: app/src/video.rs:829
+msgid "Audio bitrate"
+msgstr "Przepływność dźwięku"
+
+#: app/src/video.rs:832
+msgid "Dropped frames"
+msgstr "Pominięte klatki"
+
+#: app/src/video.rs:834
+msgid "Buffer"
+msgstr "Bufor"
+
+#: app/src/video.rs:837
+msgid "A/V sync"
+msgstr "Synchronizacja A/V"
+
+#: app/src/video.rs:943
+msgid "Ambient glow on"
+msgstr "Poświata z obrazu włączona"
+
+#: app/src/video.rs:943
+msgid "Ambient glow off"
+msgstr "Poświata z obrazu wyłączona"
+
+#: app/src/video.rs:977
+msgid "Normal window"
+msgstr "Zwykłe okno"
+
+#: app/src/video.rs:986
+msgid "Screenshot saved"
+msgstr "Zrzut ekranu zapisany"
+
+#: app/src/video.rs:986
+msgid "Screenshot (without subtitles) saved"
+msgstr "Zrzut ekranu (bez napisów) zapisany"
+
+#: app/src/video.rs:997
+msgid "A-B loop: start {}"
+msgstr "Pętla A-B: początek {}"
+
+#: app/src/video.rs:998
+msgid "A-B loop: {} – {}"
+msgstr "Pętla A-B: {} – {}"
+
+#: app/src/video.rs:999
+msgid "A-B loop off"
+msgstr "Pętla A-B wyłączona"
+
+#: app/src/video.rs:1030
+msgid "Speed {}×"
+msgstr "Prędkość {}×"
+
+#: app/src/video.rs:1035
+msgid "Subtitles: {} ms"
+msgstr "Napisy: {} ms"
+
+#: app/src/video.rs:1040
+msgid "Audio: {} ms"
+msgstr "Dźwięk: {} ms"
+
+#: app/src/video.rs:1060
+msgid "Zoom {}%"
+msgstr "Powiększenie {}%"
+
+#: app/src/video.rs:1087
+msgid "Rotation {}°"
+msgstr "Obrót {}°"
+
+#: app/src/video.rs:1115
+msgid "Debanding: on"
+msgstr "Usuwanie pasm: włączone"
+
+#: app/src/video.rs:1115
+msgid "Debanding: off"
+msgstr "Usuwanie pasm: wyłączone"
+
+#: app/src/video.rs:1144
+msgid "Audio track"
+msgstr "Ścieżka dźwiękowa"
+
+#: app/src/video.rs:1154
+msgid "off"
+msgstr "wyłączone"
+
+#: app/src/video.rs:1177
+msgid "Enter an OpenSubtitles key in Settings → Library"
+msgstr "Wpisz klucz OpenSubtitles w Ustawieniach → Biblioteka"
+
+#: app/src/video.rs:1180
+msgid "Searching for subtitles…"
+msgstr "Szukam napisów…"
+
+#: app/src/video.rs:1194
+msgid "Subtitles downloaded"
+msgstr "Napisy pobrane"
+
+#: app/src/video.rs:1207
+msgid "Load subtitles"
+msgstr "Wczytaj napisy"
+
+#: app/src/video.rs:1379
+msgid "Skip intro"
+msgstr "Pomiń czołówkę"
+
+#: app/src/video.rs:1382
+msgid "Skip credits"
+msgstr "Pomiń napisy końcowe"
+
+#: core/src/audio/decoder.rs:74
+msgid "No audio track"
+msgstr "Brak ścieżki dźwiękowej"
+
+#: core/src/audio/dsp.rs:122
+msgid "Flat"
+msgstr "Płasko"
+
+#: core/src/audio/dsp.rs:123
+msgid "Bass boost"
+msgstr "Mocny bas"
+
+#: core/src/audio/dsp.rs:124
+msgid "Bass and treble"
+msgstr "Bas i soprany"
+
+#: core/src/audio/dsp.rs:125
+msgid "Treble"
+msgstr "Soprany"
+
+#: core/src/audio/dsp.rs:126
+msgid "Rock"
+msgstr "Rock"
+
+#: core/src/audio/dsp.rs:127
+msgid "Pop"
+msgstr "Pop"
+
+#: core/src/audio/dsp.rs:128
+msgid "Jazz"
+msgstr "Jazz"
+
+#: core/src/audio/dsp.rs:129
+msgid "Classical"
+msgstr "Klasyka"
+
+#: core/src/audio/dsp.rs:130
+msgid "Electronic"
+msgstr "Elektronika"
+
+#: core/src/audio/dsp.rs:131
+msgid "Hip-hop"
+msgstr "Hip-hop"
+
+#: core/src/audio/dsp.rs:132
+msgid "Metal"
+msgstr "Metal"
+
+#: core/src/audio/dsp.rs:133
+msgid "Acoustic"
+msgstr "Akustyczne"
+
+#: core/src/audio/dsp.rs:134
+msgid "Vocal"
+msgstr "Wokal"
+
+#: core/src/audio/dsp.rs:135
+msgid "Podcast and speech"
+msgstr "Podcast i mowa"
+
+#: core/src/audio/dsp.rs:136
+msgid "Dance"
+msgstr "Taneczna"
+
+#: core/src/audio/dsp.rs:137
+msgid "Laptop speakers"
+msgstr "Głośniki laptopa"
+
+#: core/src/audio/dsp.rs:138
+msgid "Headphones"
+msgstr "Słuchawki"
+
+#: core/src/audio/dsp.rs:139
+msgid "Night listening"
+msgstr "Głośność nocna"
+
+#: core/src/audio/engine.rs:451
+msgid "Exclusive mode unavailable ({}) – playing through the Windows mixer"
+msgstr "Tryb wyłączny niedostępny ({}) – gra przez mikser Windows"
+
+#: core/src/audio/engine.rs:472
+msgid "No audio device"
+msgstr "Brak urządzenia audio"
+
+#: core/src/audio/engine.rs:497
+msgid "Could not open the audio output: {}"
+msgstr "Nie udało się otworzyć wyjścia audio: {}"
+
+#: core/src/audio/exclusive.rs:86
+msgid "the sound card accepts no stereo format"
+msgstr "karta nie przyjmuje żadnego formatu stereo"
+
+#: core/src/audio/exclusive.rs:127
+msgid "could not start the stream"
+msgstr "nie udało się uruchomić strumienia"
+
+#: core/src/audio/exclusive.rs:152
+msgid "the output thread has ended"
+msgstr "wątek wyjścia zakończył się"
+
+#: core/src/mpv.rs:175
+msgid "mpv_create failed"
+msgstr "mpv_create się nie powiódł"
+
+#: core/src/opensubs.rs:26
+msgid "No OpenSubtitles key – enter it in Settings → Library"
+msgstr "Brak klucza OpenSubtitles – wpisz go w Ustawieniach → Biblioteka"
+
+#: core/src/opensubs.rs:57
+msgid "No subtitles found"
+msgstr "Nie znaleziono napisów"
+
+#: core/src/opensubs.rs:67
+msgid "OpenSubtitles returned no link (download limit?)"
+msgstr "OpenSubtitles nie podał linku (limit pobrań?)"
+
+#: core/src/settings.rs:293
+msgid "Top rated"
+msgstr "Najlepiej oceniane"
+
+#: core/src/settings.rs:294
+msgid "Played often"
+msgstr "Często słuchane"
+
+#: core/src/tmdb.rs:42
+msgid "Directed by: {}"
+msgstr "Reżyseria: {}"
+
+#: core/src/update.rs:22
+msgid "No releases to download"
+msgstr "Brak wydań do pobrania"
+
+#: core/src/update.rs:99
+msgid "The downloaded file's checksum does not match – update aborted"
+msgstr "Suma kontrolna pobranego pliku się nie zgadza – aktualizacja przerwana"
+
+#. Separator dziesiętny liczb (openmp_core::i18n::decimal)
+msgctxt "decimal separator"
+msgid "."
+msgstr ","

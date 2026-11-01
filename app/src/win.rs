@@ -323,8 +323,8 @@ fn thumb_add(t: &mut Thumb) {
     if t.added {
         return;
     }
-    let play = if t.playing { (t.icons[2], "Pauza") } else { (t.icons[1], "Odtwórz") };
-    let buttons = [thumb_button(THUMB_PREV, t.icons[0], "Poprzedni"), thumb_button(THUMB_PLAY, play.0, play.1), thumb_button(THUMB_NEXT, t.icons[3], "Następny")];
+    let play = if t.playing { (t.icons[2], tr!("Pause")) } else { (t.icons[1], tr!("Play")) };
+    let buttons = [thumb_button(THUMB_PREV, t.icons[0], tr!("Previous")), thumb_button(THUMB_PLAY, play.0, play.1), thumb_button(THUMB_NEXT, t.icons[3], tr!("Next"))];
     unsafe {
         if t.list.ThumbBarAddButtons(HWND(t.hwnd as *mut _), &buttons).is_ok() {
             t.added = true;
@@ -407,7 +407,7 @@ pub fn thumb_state(app: &App) {
             return;
         }
         t.playing = playing;
-        let btn = if playing { thumb_button(THUMB_PLAY, t.icons[2], "Pauza") } else { thumb_button(THUMB_PLAY, t.icons[1], "Odtwórz") };
+        let btn = if playing { thumb_button(THUMB_PLAY, t.icons[2], tr!("Pause")) } else { thumb_button(THUMB_PLAY, t.icons[1], tr!("Play")) };
         unsafe {
             let _ = t.list.ThumbBarUpdateButtons(HWND(t.hwnd as *mut _), &[btn]);
         }
@@ -478,4 +478,14 @@ pub fn hotkeys(app: &App, on: bool) -> usize {
         }
     }
     n
+}
+
+/// Język ustawień regionalnych Windows, np. „pl-PL” (pusty, gdy nie da się odczytać).
+pub fn system_language() -> String {
+    let mut buf = [0u16; 85];
+    let n = unsafe { windows::Win32::Globalization::GetUserDefaultLocaleName(&mut buf) };
+    if n <= 1 {
+        return String::new();
+    }
+    String::from_utf16_lossy(&buf[..n as usize - 1])
 }

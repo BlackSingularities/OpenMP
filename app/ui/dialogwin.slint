@@ -13,7 +13,7 @@ export component DialogWindow inherits Window {
     background: Theme.glass-color;
     default-font-family: Theme.font;
     default-font-size: Theme.fs;
-    title: Ui.settings ? "Ustawienia – OpenMP" : Ui.equalizer ? "Korektor – OpenMP" : Ui.tag-editor ? "Edytor tagów – OpenMP" : "OpenMP";
+    title: Ui.settings ? @tr("Settings – OpenMP") : Ui.equalizer ? @tr("Equalizer – OpenMP") : Ui.tag-editor ? @tr("Tag editor – OpenMP") : "OpenMP";
     // Rozmiar okna = rozmiar aktywnego dialogu.
     // Ustawienia: rozmiar zmieniany uchwytem (nie mniejszy niż minimum).
     width: Ui.settings ? (Ui.settings-w > 0 ? max(Ui.settings-w, 680px) : set.natural-width) : Ui.equalizer ? eq.natural-width : Ui.tag-editor ? tag.natural-width : Ui.update-dialog ? upd.natural-width : Ui.url-dialog ? url.natural-width : Ui.rename-dialog ? ren.natural-width : about.natural-width;

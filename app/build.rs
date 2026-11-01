@@ -16,5 +16,11 @@ fn main() {
             println!("cargo:warning=ikona .exe pominięta: {e}");
         }
     }
-    slint_build::compile_with_config("ui/main.slint", slint_build::CompilerConfiguration::new().with_style("fluent-dark".into())).expect("slint");
+    // Tłumaczenia: lang/<kod>/LC_MESSAGES/openmp.po – wspólne z tekstami z kodu Rust (openmp_core::i18n).
+    println!("cargo:rerun-if-changed=../lang");
+    let config = slint_build::CompilerConfiguration::new()
+        .with_style("fluent-dark".into())
+        .with_bundled_translations("../lang")
+        .with_default_translation_context(slint_build::DefaultTranslationContext::None);
+    slint_build::compile_with_config("ui/main.slint", config).expect("slint");
 }

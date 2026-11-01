@@ -49,7 +49,7 @@ export component Brand inherits HorizontalLayout {
         y: (parent.height - self.height) / 2;
         icon: Icons.menu;
         size: 32px;
-        tip: "Menu";
+        tip: @tr("Menu");
         clicked => { Ui.open-main-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
     }
     if root.show-menu: Rectangle {
@@ -92,7 +92,7 @@ export component TitleBar inherits Rectangle {
             y: (parent.height - self.height) / 2;
             icon: Icons.library;
             size: 32px;
-            tip: "Pokaż panel nawigacji";
+            tip: @tr("Show navigation panel");
             clicked => {
                 Prefs.show-sidebar = true;
                 Prefs.changed("show-sidebar");
@@ -113,7 +113,7 @@ export component TitleBar inherits Rectangle {
             active: Prefs.ontop;
             size: 30px;
             icon-size: 15px;
-            tip: Prefs.ontop ? "Przypięte na wierzchu – odepnij (Ctrl+T)" : "Zawsze na wierzchu (Ctrl+T)";
+            tip: Prefs.ontop ? @tr("Pinned on top – unpin (Ctrl+T)") : @tr("Always on top (Ctrl+T)");
             clicked => {
                 Prefs.ontop = !Prefs.ontop;
                 Prefs.changed("ontop");
@@ -142,7 +142,7 @@ export component ControlsBar inherits Rectangle {
                 icon: Icons.prev;
                 size: 38px;
                 icon-size: 22px;
-                tip: "Poprzedni (Ctrl+←)";
+                tip: @tr("Previous (Ctrl+←)");
                 clicked => { Player.prev(); }
             }
             Rectangle {
@@ -169,7 +169,7 @@ export component ControlsBar inherits Rectangle {
                 icon: Icons.next;
                 size: 38px;
                 icon-size: 22px;
-                tip: "Następny (Ctrl+→)";
+                tip: @tr("Next (Ctrl+→)");
                 clicked => { Player.next(); }
             }
             if root.width >= 480px: IconBtn {
@@ -178,7 +178,7 @@ export component ControlsBar inherits Rectangle {
                 size: 34px;
                 icon-size: 18px;
                 active: Player.stop-after;
-                tip: "Zatrzymaj (prawy przycisk – po bieżącym)";
+                tip: @tr("Stop (right-click – after current)");
                 clicked => { Player.stop(); }
                 right-clicked => { Ui.key("stop-after", false, false, false); }
             }
@@ -193,35 +193,35 @@ export component ControlsBar inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.shuffle;
                 active: Player.shuffle;
-                tip: "Losowo (S)";
+                tip: @tr("Shuffle (S)");
                 clicked => { Player.toggle-shuffle(); }
             }
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Player.repeat == 2 ? Icons.repeat-one : Icons.repeat;
                 active: Player.repeat > 0;
-                tip: Player.repeat == 0 ? "Powtarzanie wyłączone (R)" : Player.repeat == 1 ? "Powtarzaj listę (R)" : "Powtarzaj utwór (R)";
+                tip: Player.repeat == 0 ? @tr("Repeat off (R)") : Player.repeat == 1 ? @tr("Repeat list (R)") : @tr("Repeat track (R)");
                 clicked => { Player.cycle-repeat(); }
             }
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.equalizer;
                 active: Ui.equalizer || Prefs.eq-on;
-                tip: "Korektor i efekty (E)";
+                tip: @tr("Equalizer and effects (E)");
                 clicked => { Ui.equalizer = !Ui.equalizer; }
             }
             if root.width >= 600px: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.timer;
                 active: Player.sleep-text != "";
-                tip: "Wyłącznik czasowy";
+                tip: @tr("Sleep timer");
                 clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
             }
             if root.width >= 600px: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.lyrics;
                 active: Prefs.side-panel > 0;
-                tip: "Tekst, informacje, kolejka (L)";
+                tip: @tr("Lyrics, info, queue (L)");
                 clicked => {
                     Prefs.side-panel = Prefs.side-panel > 0 ? 0 : 1;
                     Prefs.changed("side-panel");
@@ -233,7 +233,7 @@ export component ControlsBar inherits Rectangle {
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
-                tip: "Wycisz (M)";
+                tip: @tr("Mute (M)");
                 clicked => { Player.toggle-mute(); }
             }
             HSlider {
@@ -264,7 +264,7 @@ component ViewSize inherits HorizontalLayout {
         icon: Icons.playlist;
         size: 26px;
         icon-size: 15px;
-        tip: "Lista";
+        tip: @tr("List");
         clicked => { Prefs.set-view(90); }
     }
     HSlider {
@@ -282,7 +282,7 @@ component ViewSize inherits HorizontalLayout {
         icon: Icons.album;
         size: 26px;
         icon-size: 15px;
-        tip: "Duże okładki";
+        tip: @tr("Large covers");
         clicked => { Prefs.set-view(280); }
     }
 }
@@ -312,7 +312,7 @@ export component Sidebar inherits Rectangle {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.menu;
                     size: 32px;
-                    tip: "Menu";
+                    tip: @tr("Menu");
                     clicked => { Ui.open-main-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
                 }
                 Rectangle {
@@ -328,7 +328,7 @@ export component Sidebar inherits Rectangle {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.back;
                     size: 32px;
-                    tip: "Schowaj panel nawigacji";
+                    tip: @tr("Hide navigation panel");
                     clicked => {
                         Prefs.show-sidebar = false;
                         Prefs.changed("show-sidebar");
@@ -367,7 +367,7 @@ export component Sidebar inherits Rectangle {
                         icon: Icons.add;
                         size: 24px;
                         icon-size: 15px;
-                        tip: "Dodaj folder z muzyką";
+                        tip: @tr("Add music folder");
                         clicked => { Prefs.add-folder(0); }
                     }
                 }
@@ -538,7 +538,7 @@ export component PlaylistView inherits Rectangle {
                             if i == Lists.active: IconBtn {
                                 y: (parent.height - self.height) / 2;
                                 icon: Icons.close;
-                                tip: "Zamknij listę";
+                                tip: @tr("Close list");
                                 size: 20px;
                                 icon-size: 12px;
                                 clicked => { Lists.tab-close(i); }
@@ -550,7 +550,7 @@ export component PlaylistView inherits Rectangle {
                         icon: Icons.add;
                         size: 28px;
                         icon-size: 16px;
-                        tip: "Nowa lista (Ctrl+N)";
+                        tip: @tr("New list (Ctrl+N)");
                         clicked => { Lists.tab-add(); }
                     }
                 }
@@ -562,7 +562,7 @@ export component PlaylistView inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 width: 210px;
                 icon: Icons.search;
-                placeholder: "Szukaj na liście (Ctrl+F)";
+                placeholder: @tr("Search the list (Ctrl+F)");
                 text <=> Lists.filter;
                 edited(t) => { Lists.filter-changed(t); }
                 escape => {
@@ -583,7 +583,7 @@ export component PlaylistView inherits Rectangle {
             show-album: !Lists.grouped;
             scroll-y: Lists.scroll-y;
             scroll-gen: Lists.scroll-gen;
-            empty-text: Lists.filter != "" ? "Nic nie pasuje do „" + Lists.filter + "”" : "Lista jest pusta.\nPrzeciągnij tu pliki lub foldery albo kliknij dwukrotnie, by je wybrać.";
+            empty-text: Lists.filter != "" ? @tr("Nothing matches “{}”", Lists.filter) : @tr("The list is empty.\nDrag files or folders here, or double-click to choose them.");
             clicked(i, c, s) => { Lists.row-clicked(i, c, s); }
             band(r0, r1, c0, c1, n, k) => { Lists.row-band(r0, r1, c0, c1, n, k); }
             double(i) => { Lists.row-double(i); }
@@ -624,7 +624,7 @@ export component LibraryView inherits Rectangle {
             if Lib.can-back: IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.back;
-                tip: "Wstecz (Backspace)";
+                tip: @tr("Back (Backspace)");
                 clicked => { Lib.back(); }
             }
             VerticalLayout {
@@ -651,7 +651,7 @@ export component LibraryView inherits Rectangle {
                 Btn {
                     y: (parent.height - self.height) / 2;
                     horizontal-stretch: 0;
-                    text: "Odtwórz";
+                    text: @tr("Play");
                     icon: Icons.play;
                     primary: true;
                     clicked => { Lib.play-all(); }
@@ -659,13 +659,13 @@ export component LibraryView inherits Rectangle {
                 IconBtn {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.shuffle;
-                    tip: "Odtwórz losowo";
+                    tip: @tr("Shuffle play");
                     clicked => { Lib.shuffle-all(); }
                 }
                 IconBtn {
                     y: (parent.height - self.height) / 2;
                     icon: Icons.add;
-                    tip: "Dodaj wszystko do listy";
+                    tip: @tr("Add all to the list");
                     clicked => { Lib.add-all(); }
                 }
             }
@@ -676,7 +676,7 @@ export component LibraryView inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 width: 200px;
                 icon: Icons.search;
-                placeholder: "Szukaj w bibliotece";
+                placeholder: @tr("Search the library");
                 text <=> Lib.search;
                 edited(t) => { Lib.search-changed(t); }
                 escape => {
@@ -687,7 +687,7 @@ export component LibraryView inherits Rectangle {
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.refresh;
-                tip: "Odśwież bibliotekę";
+                tip: @tr("Refresh library");
                 enabled: !Lib.scanning;
                 clicked => { Lib.rescan(); }
             }
@@ -697,12 +697,13 @@ export component LibraryView inherits Rectangle {
             vertical-stretch: 1;
             property <int> cols: max(1, floor((self.visible-width - 24px) / 168px));
             property <length> cell: (self.visible-width - 24px) / cols;
-            content-height: ceil(Lib.tiles.length / cols) * (cell + 46px) + 24px;
+            property <length> extra: Prefs.caption-overlay ? 0px : 46px;
+            content-height: ceil(Lib.tiles.length / cols) * (cell + extra) + 24px;
             for t[i] in Lib.tiles: Rectangle {
                 x: 12px + mod(i, parent.cols) * parent.cell;
-                y: 12px + floor(i / parent.cols) * (parent.cell + 46px);
+                y: 12px + floor(i / parent.cols) * (parent.cell + parent.extra);
                 width: parent.cell;
-                height: parent.cell + 46px;
+                height: parent.cell + parent.extra;
                 Rectangle {
                     x: 6px;
                     y: 6px;
@@ -710,7 +711,7 @@ export component LibraryView inherits Rectangle {
                     height: parent.height - 12px;
                     border-radius: Theme.radius;
                     background: transparent;
-                    Cover {
+                    tcov := Cover {
                         x: 6px;
                         y: gta.has-hover ? 2px : 6px;
                         width: parent.width - 12px;
@@ -722,22 +723,31 @@ export component LibraryView inherits Rectangle {
                         drop-shadow-color: gta.has-hover ? Theme.glow : #00000080;
                         animate y, drop-shadow-blur, drop-shadow-offset-y { duration: 180ms; easing: ease-out; }
                     }
+                    if Prefs.caption-overlay: Rectangle {
+                        x: tcov.x;
+                        y: tcov.y + tcov.height - self.height;
+                        width: tcov.width;
+                        height: 52px;
+                        border-bottom-left-radius: tcov.border-radius;
+                        border-bottom-right-radius: tcov.border-radius;
+                        background: @linear-gradient(0deg, #000000d8 0%, #00000099 55%, #00000000 100%);
+                    }
                     Text {
-                        x: 8px;
-                        y: parent.width;
-                        width: parent.width - 16px;
+                        x: Prefs.caption-overlay ? tcov.x + 8px : 8px;
+                        y: Prefs.caption-overlay ? tcov.y + tcov.height - 40px : parent.width;
+                        width: Prefs.caption-overlay ? tcov.width - 16px : parent.width - 16px;
                         text: t.name;
-                        color: gta.has-hover ? Theme.tint-hi : Theme.text;
+                        color: Prefs.caption-overlay ? (gta.has-hover ? Theme.tint-hi : #ffffff) : gta.has-hover ? Theme.tint-hi : Theme.text;
                         font-size: Theme.fs;
                         font-weight: 600;
                         overflow: elide;
                     }
                     Text {
-                        x: 8px;
-                        y: parent.width + 17px;
-                        width: parent.width - 16px;
+                        x: Prefs.caption-overlay ? tcov.x + 8px : 8px;
+                        y: Prefs.caption-overlay ? tcov.y + tcov.height - 22px : parent.width + 17px;
+                        width: Prefs.caption-overlay ? tcov.width - 16px : parent.width - 16px;
                         text: t.sub;
-                        color: Theme.text3;
+                        color: Prefs.caption-overlay ? #ffffffb8 : Theme.text3;
                         font-size: Theme.fs-sm;
                         overflow: elide;
                     }
@@ -853,13 +863,13 @@ export component RadioView inherits Rectangle {
             VerticalLayout {
                 alignment: center;
                 Text {
-                    text: "Radio internetowe";
+                    text: @tr("Internet radio");
                     color: Theme.heading;
                     font-size: Theme.fs-xl;
                     font-family: Theme.font-serif;
                 }
                 Text {
-                    text: "Katalog radio-browser.info – dziesiątki tysięcy stacji z całego świata";
+                    text: @tr("The radio-browser.info directory – tens of thousands of stations from around the world");
                     color: Theme.text3;
                     font-size: Theme.fs-sm;
                 }
@@ -869,7 +879,7 @@ export component RadioView inherits Rectangle {
             }
             Segmented {
                 y: (parent.height - self.height) / 2;
-                options: ["Polska", "Świat", "Zapisane"];
+                options: [@tr("My country"), @tr("World"), @tr("Saved")];
                 selected <=> Lib.radio-source;
                 changed(i) => { Lib.radio-source-changed(i); }
             }
@@ -877,7 +887,7 @@ export component RadioView inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 width: 210px;
                 icon: Icons.search;
-                placeholder: "Szukaj stacji lub gatunku";
+                placeholder: @tr("Search stations or genres");
                 text <=> Lib.radio-query;
                 accepted(t) => { Lib.radio-search(t); }
                 escape => {
@@ -888,21 +898,21 @@ export component RadioView inherits Rectangle {
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.link;
-                tip: "Dodaj stację z adresu";
+                tip: @tr("Add station from URL");
                 clicked => { Lib.radio-add-url(); }
             }
         }
         Divider { }
         if Lib.radio-busy: Text {
             vertical-stretch: 1;
-            text: "Wczytywanie stacji…";
+            text: @tr("Loading stations…");
             color: Theme.text3;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
         if !Lib.radio-busy && Lib.stations.length == 0: Text {
             vertical-stretch: 1;
-            text: Lib.radio-source == 2 ? "Brak zapisanych stacji – kliknij gwiazdkę przy stacji, by ją zapisać." : "Brak stacji. Sprawdź połączenie z internetem.";
+            text: Lib.radio-source == 2 ? @tr("No saved stations – click the star next to a station to save it.") : @tr("No stations. Check your internet connection.");
             color: Theme.text3;
             horizontal-alignment: center;
             vertical-alignment: center;
@@ -952,13 +962,13 @@ export component RadioView inherits Rectangle {
                             icon: Icons.star;
                             active: s.saved;
                             icon-color: s.saved ? #ffc94a : Theme.text3;
-                            tip: s.saved ? "Usuń z zapisanych" : "Zapisz stację";
+                            tip: s.saved ? @tr("Remove from saved") : @tr("Save station");
                             clicked => { Lib.radio-save(i); }
                         }
                         IconBtn {
                             y: (parent.height - self.height) / 2;
                             icon: Icons.play;
-                            tip: "Słuchaj";
+                            tip: @tr("Listen");
                             clicked => { Lib.radio-play(i); }
                         }
                     }
@@ -987,7 +997,7 @@ export component SidePanel inherits Rectangle {
             Segmented {
                 y: (parent.height - self.height) / 2;
                 small: true;
-                options: Player.hero-lyrics ? ["Informacje", "Kolejka"] : ["Tekst", "Informacje", "Kolejka"];
+                options: Player.hero-lyrics ? [@tr("Info"), @tr("Queue")] : [@tr("Lyrics"), @tr("Info"), @tr("Queue")];
                 selected: Player.hero-lyrics ? root.page - 2 : root.page - 1;
                 changed(i) => {
                     Prefs.side-panel = Player.hero-lyrics ? i + 2 : i + 1;
@@ -1000,7 +1010,7 @@ export component SidePanel inherits Rectangle {
             IconBtn {
                 y: (parent.height - self.height) / 2;
                 icon: Icons.close;
-                tip: "Zamknij panel";
+                tip: @tr("Close panel");
                 size: 26px;
                 icon-size: 14px;
                 clicked => {
@@ -1014,7 +1024,7 @@ export component SidePanel inherits Rectangle {
             padding: 10px;
             spacing: 8px;
             Text {
-                text: "Napisy";
+                text: @tr("Subtitles");
                 color: Theme.text3;
                 font-size: Theme.fs-sm;
                 vertical-alignment: center;
@@ -1036,7 +1046,7 @@ export component SidePanel inherits Rectangle {
             Field {
                 horizontal-stretch: 1;
                 icon: Icons.search;
-                placeholder: Player.subs-mode ? "Szukaj w napisach" : "Szukaj w tekście";
+                placeholder: Player.subs-mode ? @tr("Search subtitles") : @tr("Search lyrics");
                 text <=> Player.lyrics-query;
                 edited(t) => { Player.lyrics-search(t); }
                 accepted(t) => { Player.lyrics-next(1); }
@@ -1058,7 +1068,7 @@ export component SidePanel inherits Rectangle {
                 icon: Icons.chevron-up;
                 size: 26px;
                 icon-size: 15px;
-                tip: "Poprzednie";
+                tip: @tr("Previous match");
                 enabled: Player.lyrics-hits > 0;
                 clicked => { Player.lyrics-next(-1); }
             }
@@ -1067,7 +1077,7 @@ export component SidePanel inherits Rectangle {
                 icon: Icons.chevron-down;
                 size: 26px;
                 icon-size: 15px;
-                tip: "Następne (Enter)";
+                tip: @tr("Next match (Enter)");
                 enabled: Player.lyrics-hits > 0;
                 clicked => { Player.lyrics-next(1); }
             }
@@ -1075,9 +1085,9 @@ export component SidePanel inherits Rectangle {
         if root.page == 1: Rectangle {
             vertical-stretch: 1;
             if Player.lyrics.length == 0: Text {
-                text: !Player.subs-mode ? "Brak tekstu dla tego utworu.\nOpenMP czyta pliki .lrc obok utworu oraz teksty zapisane w tagach."
-                    : Player.sub-langs.length == 0 ? "Ten film nie ma napisów tekstowych.\nWczytaj albo pobierz napisy w panelu filmu."
-                    : "Wczytywanie napisów…";
+                text: !Player.subs-mode ? @tr("No lyrics for this track.\nOpenMP reads .lrc files next to the track and lyrics stored in tags.")
+                    : Player.sub-langs.length == 0 ? @tr("This movie has no text subtitles.\nLoad or download subtitles in the movie panel.")
+                    : @tr("Loading subtitles…");
                 color: Theme.text3;
                 font-size: Theme.fs;
                 horizontal-alignment: center;
@@ -1147,7 +1157,7 @@ export component SidePanel inherits Rectangle {
                 border-width: 1px;
                 border-color: Theme.line2;
                 lsrc := Text {
-                    text: "LRCLIB · zapisz obok utworu";
+                    text: @tr("LRCLIB · save next to the track");
                     color: Theme.text2;
                     font-size: Theme.fs-xs;
                 }
@@ -1193,7 +1203,7 @@ export component SidePanel inherits Rectangle {
             vertical-stretch: 1;
             if Player.queue.length == 0: Text {
                 vertical-stretch: 1;
-                text: "Kolejka jest pusta.\nPrawy przycisk na utworze → „Odtwórz jako następny”.";
+                text: @tr("The queue is empty.\nRight-click a track → “Play next”.");
                 color: Theme.text3;
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -1233,7 +1243,7 @@ export component SidePanel inherits Rectangle {
                         IconBtn {
                             y: (parent.height - self.height) / 2;
                             icon: Icons.close;
-                            tip: "Usuń z kolejki";
+                            tip: @tr("Remove from queue");
                             size: 24px;
                             icon-size: 13px;
                             clicked => { Player.queue-remove(i); }
@@ -1245,7 +1255,7 @@ export component SidePanel inherits Rectangle {
                 padding: 10px;
                 alignment: end;
                 Btn {
-                    text: "Wyczyść kolejkę";
+                    text: @tr("Clear queue");
                     compact: true;
                     clicked => { Player.queue-clear(); }
                 }

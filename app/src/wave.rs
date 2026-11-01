@@ -7,7 +7,7 @@
 use std::fmt::Write;
 
 /// Nazwy stylów w kolejności numerów (ustawienia, menu).
-pub const NAMES: [&str; 11] = ["Fala", "Słupki", "Od dołu", "Kontur", "Gęste słupki", "Lustro", "Diody", "Słupki 3D", "Fala 3D", "Linia", "Kropki"];
+pub const NAMES: [&str; 11] = ["Wave", "Bars", "From bottom", "Contour", "Dense bars", "Mirror", "LEDs", "3D bars", "3D wave", "Line", "Dots"];
 
 /// Warstwy taśmy: (główna, druga, rodzaj drugiej).
 pub fn paths(w: &[f32], style: i32) -> (String, String, i32) {
@@ -156,7 +156,7 @@ pub fn paths(w: &[f32], style: i32) -> (String, String, i32) {
 }
 
 /// Rodzaje żywej części taśmy przy znaczniku (ustawienia).
-pub const LIVE_NAMES: [&str; 7] = ["Wyłączona", "Puls taśmy", "Słupki widma", "Fala widma", "Kropki szczytów", "Obwiednia", "Fala uderzeniowa"];
+pub const LIVE_NAMES: [&str; 7] = ["Off", "Strip pulse", "Spectrum bars", "Spectrum wave", "Peak dots", "Envelope", "Shockwave"];
 
 /// Liczba kolumn stylu taśmy – puls porusza tymi samymi elementami co taśma.
 fn columns(style: i32) -> usize {

@@ -10,7 +10,7 @@ import { Player, Prefs, Ui, Video } from "state.slint";
 import { VideoStage } from "surface.slint";
 
 export global VizNames {
-    out property <[string]> names: ["Słupki", "Widmo", "Oscyloskop", "Wskaźniki VU", "Wyłączona", "Lustro", "Okrąg", "Widmo 3D", "Diody", "Stereo", "Kropki"];
+    out property <[string]> names: [@tr("Bars"), @tr("Spectrum"), @tr("Oscilloscope"), @tr("VU meters"), @tr("glow" => "Off"), @tr("Mirror"), @tr("Circle"), @tr("3D spectrum"), @tr("LEDs"), @tr("Stereo"), @tr("Dots")];
 }
 
 // Okładka z poświatą w kolorze akcentu i wizualizacją na dolnej części obrazu.
@@ -165,7 +165,7 @@ export component NowInfo inherits VerticalLayout {
             opacity: Player.playing ? 0.55 + 0.45 * abs(sin(animation-tick() / 1.6s * 180deg)) : 1;
         }
         Text {
-            text: Player.idle ? "OPENMP" : (Player.playing ? "TERAZ ODTWARZANE" : "WSTRZYMANE") + (root.movie ? "  ·  FILM" : "");
+            text: Player.idle ? "OPENMP" : (Player.playing ? @tr("NOW PLAYING") : @tr("PAUSED")) + (root.movie ? @tr("  ·  MOVIE") : "");
             color: Theme.text3;
             font-size: Theme.fs-xs;
             letter-spacing: 3px;
@@ -180,7 +180,7 @@ export component NowInfo inherits VerticalLayout {
         }
     }
     Marquee {
-        text: Player.idle ? "Nic nie gra" : Player.title;
+        text: Player.idle ? @tr("Nothing playing") : Player.title;
         font-size: root.small ? 22px : 40px;
         font-family: Theme.font-serif;
         text-color: Theme.heading;
@@ -191,7 +191,7 @@ export component NowInfo inherits VerticalLayout {
         }
     }
     if Player.idle || Player.artist != "": Marquee {
-        text: Player.idle ? "Upuść pliki albo foldery, by zacząć słuchać" : Player.artist;
+        text: Player.idle ? @tr("Drop files or folders to start listening") : Player.artist;
         font-size: root.small ? 15px : 24px;
         font-family: Theme.font-serif;
         text-color: Theme.tint.mix(Theme.text2, 0.45);
@@ -274,7 +274,7 @@ export component NowInfo inherits VerticalLayout {
             size: 30px;
             icon-size: 17px;
             active: Player.fav;
-            tip: "Ulubiony";
+            tip: @tr("Favorite");
             clicked => { Player.toggle-fav(); }
         }
         if !Player.hero-lyrics: IconBtn {
@@ -282,7 +282,7 @@ export component NowInfo inherits VerticalLayout {
             size: 30px;
             icon-size: 17px;
             active: Prefs.side-panel == 1;
-            tip: root.movie ? "Napisy w panelu (L)" : "Tekst (L)";
+            tip: root.movie ? @tr("Subtitles in the panel (L)") : @tr("Lyrics (L)");
             clicked => {
                 Prefs.side-panel = Prefs.side-panel == 1 ? 0 : 1;
                 Prefs.changed("side-panel");
@@ -293,7 +293,7 @@ export component NowInfo inherits VerticalLayout {
             size: 30px;
             icon-size: 17px;
             active: Prefs.side-panel == 2;
-            tip: "Informacje";
+            tip: @tr("Info");
             clicked => {
                 Prefs.side-panel = Prefs.side-panel == 2 ? 0 : 2;
                 Prefs.changed("side-panel");
@@ -304,14 +304,14 @@ export component NowInfo inherits VerticalLayout {
             size: 30px;
             icon-size: 17px;
             active: true;
-            tip: Video.bg-audio ? "Pokaż obraz filmu" : "Widok filmu";
+            tip: Video.bg-audio ? @tr("Show the movie picture") : @tr("Movie view");
             clicked => { Video.open-view(); }
         }
         IconBtn {
             icon: Icons.folder-open;
             size: 30px;
             icon-size: 17px;
-            tip: "Pokaż plik w Eksploratorze";
+            tip: @tr("Show file in Explorer");
             clicked => { Player.reveal-current(); }
         }
         IconBtn {
@@ -319,7 +319,7 @@ export component NowInfo inherits VerticalLayout {
             size: 30px;
             icon-size: 17px;
             active: Prefs.side-panel == 3;
-            tip: "Kolejka";
+            tip: @tr("Queue");
             clicked => {
                 Prefs.side-panel = Prefs.side-panel == 3 ? 0 : 3;
                 Prefs.changed("side-panel");
@@ -333,19 +333,19 @@ export component NowInfo inherits VerticalLayout {
             spacing: 12px;
             if Player.shuffle: Flag {
                 icon: Icons.shuffle;
-                text: "Losowo";
+                text: @tr("Shuffle");
             }
             if Player.eq-on: Flag {
                 icon: Icons.equalizer;
-                text: "Korektor";
+                text: @tr("Equalizer");
             }
             if Player.crossfade-on: Flag {
                 icon: Icons.compact;
-                text: "Przenikanie";
+                text: @tr("badge" => "Crossfade");
             }
             if Player.rg-on: Flag {
                 icon: Icons.volume-low;
-                text: "ReplayGain";
+                text: @tr("ReplayGain");
             }
             if Player.speed-text != "": Flag {
                 icon: Icons.speed;
@@ -448,7 +448,7 @@ component HeroVideo inherits Rectangle {
                 on-dark: true;
                 icon-color: #ffffffe0;
                 hover-color: #ffffff;
-                tip: "Pełny ekran filmu (F)";
+                tip: @tr("Movie full screen (F)");
                 clicked => { Video.toggle-fullscreen(); }
             }
         }
@@ -469,7 +469,7 @@ component SelInfo inherits VerticalLayout {
         alignment: start;
         height: 14px;
         Text {
-            text: "ZAZNACZENIE" + (Player.sel-movie ? "  ·  FILM" : "");
+            text: @tr("SELECTION") + (Player.sel-movie ? @tr("  ·  MOVIE") : "");
             color: Theme.text3;
             font-size: Theme.fs-xs;
             letter-spacing: 3px;
@@ -670,7 +670,7 @@ export component Hero inherits Rectangle {
         icon: Icons.close;
         size: 28px;
         icon-size: 15px;
-        tip: "Zamknij plik";
+        tip: @tr("Close file");
         clicked => { Player.close-current(); }
     }
 }
@@ -774,7 +774,7 @@ export component BottomBar inherits Rectangle {
                     y: (parent.height - self.height) / 2;
                     icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
                     size: 32px;
-                    tip: "Wycisz (M)";
+                    tip: @tr("Mute (M)");
                     clicked => { Player.toggle-mute(); }
                 }
                 HSlider {
@@ -824,7 +824,7 @@ export component BottomBar inherits Rectangle {
                     size: 40px;
                     icon-size: 20px;
                     active: Player.shuffle;
-                    tip: "Losowo (S)";
+                    tip: @tr("Shuffle (S)");
                     clicked => { Player.toggle-shuffle(); }
                 }
                 IconBtn {
@@ -834,7 +834,7 @@ export component BottomBar inherits Rectangle {
                     size: 44px;
                     icon-size: 26px;
                     icon-color: Theme.ink;
-                    tip: "Poprzedni (Ctrl+←)";
+                    tip: @tr("Previous (Ctrl+←)");
                     clicked => { Player.prev(); }
                 }
                 PlayRing {
@@ -848,7 +848,7 @@ export component BottomBar inherits Rectangle {
                     size: 44px;
                     icon-size: 26px;
                     icon-color: Theme.ink;
-                    tip: "Następny (Ctrl+→)";
+                    tip: @tr("Next (Ctrl+→)");
                     clicked => { Player.next(); }
                 }
                 IconBtn {
@@ -858,7 +858,7 @@ export component BottomBar inherits Rectangle {
                     size: 40px;
                     icon-size: 20px;
                     active: Player.repeat > 0;
-                    tip: Player.repeat == 0 ? "Powtarzanie wyłączone (R)" : Player.repeat == 1 ? "Powtarzaj listę (R)" : "Powtarzaj utwór (R)";
+                    tip: Player.repeat == 0 ? @tr("Repeat off (R)") : Player.repeat == 1 ? @tr("Repeat list (R)") : @tr("Repeat track (R)");
                     clicked => { Player.cycle-repeat(); }
                 }
             }
@@ -874,7 +874,7 @@ export component BottomBar inherits Rectangle {
                     size: 34px;
                     icon-size: 17px;
                     active: Player.stop-after;
-                    tip: "Zatrzymaj (prawy przycisk – po bieżącym)";
+                    tip: @tr("Stop (right-click – after current)");
                     clicked => { Player.stop(); }
                     right-clicked => { Ui.key("stop-after", false, false, false); }
                 }
@@ -884,7 +884,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.equalizer;
                     size: 34px;
                     active: Ui.equalizer || Prefs.eq-on;
-                    tip: "Korektor i efekty (E)";
+                    tip: @tr("Equalizer and effects (E)");
                     clicked => { Ui.equalizer = !Ui.equalizer; }
                 }
                 if !root.narrow: IconBtn {
@@ -893,7 +893,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.timer;
                     size: 34px;
                     active: Player.sleep-text != "";
-                    tip: "Wyłącznik czasowy";
+                    tip: @tr("Sleep timer");
                     clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
                 }
                 if !root.small: IconBtn {
@@ -902,7 +902,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.menu;
                     size: 34px;
                     active: Prefs.show-sidebar;
-                    tip: "Panel nawigacji";
+                    tip: @tr("Navigation panel");
                     clicked => {
                         Prefs.show-sidebar = !Prefs.show-sidebar;
                         Prefs.changed("show-sidebar");
@@ -914,7 +914,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.queue;
                     size: 34px;
                     active: Prefs.side-panel > 0;
-                    tip: "Tekst, informacje, kolejka (L)";
+                    tip: @tr("Lyrics, info, queue (L)");
                     clicked => {
                         Prefs.side-panel = Prefs.side-panel > 0 ? 0 : 3;
                         Prefs.changed("side-panel");
@@ -926,7 +926,7 @@ export component BottomBar inherits Rectangle {
                     icon: Icons.pip;
                     size: 34px;
                     icon-size: 17px;
-                    tip: "Miniodtwarzacz (Ctrl+M)";
+                    tip: @tr("Mini player (Ctrl+M)");
                     clicked => { Ui.set-mode(2); }
                 }
                 IconBtn {
@@ -935,7 +935,7 @@ export component BottomBar inherits Rectangle {
                     icon: Ui.fullscreen ? Icons.fullscreen-exit : Icons.fullscreen;
                     size: 34px;
                     icon-size: 17px;
-                    tip: Ui.fullscreen ? "Wyjdź z pełnego ekranu (F11)" : "Pełny ekran (F11)";
+                    tip: Ui.fullscreen ? @tr("Exit full screen (F11)") : @tr("Full screen (F11)");
                     clicked => { Ui.toggle-full(); }
                 }
             }

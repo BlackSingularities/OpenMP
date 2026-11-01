@@ -25,7 +25,7 @@ fn khz(r: u32) -> String {
     if (k - k.round()).abs() < 0.01 {
         format!("{} kHz", k.round())
     } else {
-        format!("{k:.1} kHz").replace('.', ",")
+        openmp_core::i18n::decimal(format!("{k:.1} kHz"))
     }
 }
 
@@ -44,9 +44,9 @@ fn badge_icon(b: &str) -> &'static str {
         "trending"
     } else if l.contains("hdr") || l == "hlg" {
         "eye"
-    } else if l == "mono" || l == "stereo" || l.contains("kan.") {
+    } else if l == "mono" || l == "stereo" || l.contains(&tr!("{} ch.", "").trim().to_lowercase()) {
         "audiotrack"
-    } else if l.contains("wyłączny") || l.starts_with('→') {
+    } else if l.contains(&tr!("Exclusive").to_lowercase()) || l.starts_with('→') {
         "volume"
     } else {
         "file"
@@ -80,10 +80,10 @@ fn badges(t: &TrackInfo, info: Option<&StreamInfo>) -> Vec<String> {
     }
     let ch = if t.channels > 0 { t.channels as usize } else { info.map(|i| i.channels).unwrap_or(0) };
     match ch {
-        1 => v.push("Mono".into()),
-        2 => v.push("Stereo".into()),
+        1 => v.push(tr!("Mono").into()),
+        2 => v.push(tr!("Stereo").into()),
         0 => {}
-        n => v.push(format!("{n} kan.")),
+        n => v.push(tr!("{} ch.", n)),
     }
     v
 }
@@ -142,7 +142,7 @@ pub fn show_track(app: &mut App) {
         Some(li) => format!("{} / {}", c.idx + 1, app.store.lists[li].items.len()),
         None => String::new(),
     }));
-    p.set_state_text(ss(if c.station.is_some() { "na żywo" } else { "" }));
+    p.set_state_text(ss(if c.station.is_some() { tr!("live") } else { "" }));
     p.set_wave(ss(""));
     p.set_wave2(ss(""));
     p.set_wave_live(ss(""));
@@ -335,7 +335,7 @@ pub fn update_badges_from(app: &mut App, info: &StreamInfo) {
     // Droga do karty: tryb wyłączny albo przepróbkowanie przez mikser Windows.
     let (out, _, excl) = app.engine.output();
     if excl {
-        b.push(if out == info.rate { "Wyłączny".into() } else { format!("Wyłączny → {}", khz(out)) });
+        b.push(if out == info.rate { tr!("Exclusive").into() } else { tr!("Exclusive → {}", khz(out)) });
     } else if out > 0 && out != info.rate {
         b.push(format!("→ {}", khz(out)));
     }
@@ -373,7 +373,7 @@ fn load_lyrics(app: &mut App) {
     let mut source = "";
     if !meta::is_url(&c.info.path) && !c.video {
         text = meta::lyrics(Path::new(&c.info.path));
-        source = "plik / tagi";
+        source = tr!("file / tags");
     }
     let online = text.is_none() && app.s.online_lyrics && !c.video && c.station.is_none();
     let (artist, title, album, dur) = (c.info.artist.clone(), c.info.title.clone(), c.info.album.clone(), c.info.duration);
@@ -460,7 +460,7 @@ fn publish_sub_langs(app: &App) {
         .sub_panel
         .iter()
         .map(|t| {
-            let mut n = if t.lang.is_empty() { format!("Ścieżka {}", t.id) } else { t.lang.clone() };
+            let mut n = if t.lang.is_empty() { tr!("Track {}", t.id) } else { t.lang.clone() };
             if !t.title.is_empty() {
                 n = format!("{n} · {}", t.title);
             }
@@ -535,7 +535,7 @@ fn set_sub_lines(app: &mut App, lines: Vec<(f64, String)>) {
         let p = ui.global::<Player>();
         p.set_lyrics_synced(true);
         p.set_lyrics_active(-1);
-        p.set_lyrics_source(ss("napisy"));
+        p.set_lyrics_source(ss(tr!("subtitles")));
     }
     apply_search(app, true);
 }
@@ -681,10 +681,10 @@ pub fn save_lyrics(app: &mut App) {
         return;
     }
     let ok = openmp_core::lrclib::save_next_to(Path::new(&c.info.path), &app.lyrics_text);
-    app.toast(if ok { "Zapisano tekst obok utworu (.lrc)" } else { "Nie udało się zapisać pliku .lrc" });
+    app.toast(if ok { tr!("Lyrics saved next to the track (.lrc)") } else { tr!("Could not save the .lrc file") });
     if ok {
         if let Some(ui) = app.ui() {
-            ui.global::<Player>().set_lyrics_source(ss("plik / tagi"));
+            ui.global::<Player>().set_lyrics_source(ss(tr!("file / tags")));
         }
     }
 }
@@ -710,26 +710,26 @@ fn details(app: &mut App) {
             v.push((l.into(), s));
         }
     };
-    add("Tytuł", t.display_title());
-    add("Wykonawca", t.artist.clone());
-    add("Album", t.album.clone());
-    add("Wykonawca albumu", t.album_artist.clone());
-    add("Rok", if t.year > 0 { t.year.to_string() } else { String::new() });
-    add("Gatunek", t.genre.clone());
-    add("Utwór", if t.track > 0 { if t.disc > 0 { format!("{} (płyta {})", t.track, t.disc) } else { t.track.to_string() } } else { String::new() });
-    add("Kompozytor", t.composer.clone());
-    add("Długość", if t.duration > 0.0 { meta::fmt_time(t.duration) } else { String::new() });
-    add("Format", badges(t, None).join(" · "));
-    add("ReplayGain", match (t.rg_track, t.rg_album) {
-        (Some(a), Some(b)) => format!("utwór {a:+.2} dB, album {b:+.2} dB"),
-        (Some(a), None) => format!("utwór {a:+.2} dB"),
-        (None, Some(b)) => format!("album {b:+.2} dB"),
+    add(tr!("Title"), t.display_title());
+    add(tr!("Artist"), t.artist.clone());
+    add(tr!("Album"), t.album.clone());
+    add(tr!("Album artist"), t.album_artist.clone());
+    add(tr!("Year"), if t.year > 0 { t.year.to_string() } else { String::new() });
+    add(tr!("Genre"), t.genre.clone());
+    add(tr!("Track"), if t.track > 0 { if t.disc > 0 { tr!("{} (disc {})", t.track, t.disc) } else { t.track.to_string() } } else { String::new() });
+    add(tr!("Composer"), t.composer.clone());
+    add(tr!("Length"), if t.duration > 0.0 { meta::fmt_time(t.duration) } else { String::new() });
+    add(tr!("Format"), badges(t, None).join(" · "));
+    add(tr!("ReplayGain"), match (t.rg_track, t.rg_album) {
+        (Some(a), Some(b)) => tr!("track {} dB, album {} dB", format!("{a:+.2}"), format!("{b:+.2}")),
+        (Some(a), None) => tr!("track {} dB", format!("{a:+.2}")),
+        (None, Some(b)) => tr!("album {} dB", format!("{b:+.2}")),
         _ => String::new(),
     });
-    add("Rozmiar", if t.size > 0 { format!("{:.1} MB", t.size as f64 / 1_048_576.0) } else { String::new() });
-    add("Odtworzenia", st.plays.to_string());
-    add("Komentarz", t.comment.clone());
-    add("Plik", t.path.clone());
+    add(tr!("Size"), if t.size > 0 { openmp_core::i18n::decimal(format!("{:.1} MB", t.size as f64 / 1_048_576.0)) } else { String::new() });
+    add(tr!("Plays"), st.plays.to_string());
+    add(tr!("Comment"), t.comment.clone());
+    add(tr!("File"), t.path.clone());
     let rows: Vec<Opt> = v.into_iter().map(|(l, s)| Opt { id: ss(""), label: ss(l), sub: ss(s), selected: false }).collect();
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_details(ModelRc::new(VecModel::from(rows)));
@@ -832,9 +832,9 @@ pub fn cycle_viz(app: &mut App) {
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_viz_mode(app.s.viz);
     }
-    let names = ["słupki", "widmo", "oscyloskop", "wskaźniki VU", "", "lustro", "okrąg", "widmo 3D", "diody", "stereo (Lissajous)", "kropki"];
+    let names = [trc!("visualization", "bars"), trc!("visualization", "spectrum"), trc!("visualization", "oscilloscope"), trc!("visualization", "VU meters"), "", trc!("visualization", "mirror"), trc!("visualization", "circle"), trc!("visualization", "3D spectrum"), trc!("visualization", "LEDs"), trc!("visualization", "stereo (Lissajous)"), trc!("visualization", "dots")];
     let n = names.get(app.s.viz as usize).copied().unwrap_or("");
-    app.toast(if n.is_empty() { "Wizualizacja wyłączona".to_string() } else { format!("Wizualizacja: {n}") });
+    app.toast(if n.is_empty() { tr!("Visualization off").to_string() } else { tr!("Visualization: {}", n) });
     app.dirty = true;
 }
 
@@ -856,7 +856,7 @@ pub fn sel_info(app: &mut App) {
     let mut rows: Vec<(&str, &str, String)> = Vec::new();
     let (title, sub, cover_path);
     let (mut sel_album, mut sel_badges, mut sel_movie) = (String::new(), Vec::new(), false);
-    let fmt_size = |b: u64| if b >= 1 << 30 { format!("{:.2} GB", b as f64 / (1u64 << 30) as f64).replace('.', ",") } else { format!("{:.1} MB", b as f64 / 1_048_576.0).replace('.', ",") };
+    let fmt_size = |b: u64| openmp_core::i18n::decimal(if b >= 1 << 30 { format!("{:.2} GB", b as f64 / (1u64 << 30) as f64) } else { format!("{:.1} MB", b as f64 / 1_048_576.0) });
     if sel.len() == 1 {
         let t = &sel[0];
         let video = meta::is_video(Path::new(&t.path));
@@ -874,25 +874,25 @@ pub fn sel_info(app: &mut App) {
         sel_badges = badges(t, None);
         sel_movie = video;
         if !t.album_artist.is_empty() && t.album_artist != t.display_artist() {
-            rows.push(("artist", "Wykonawca albumu", t.album_artist.clone()));
+            rows.push(("artist", tr!("Album artist"), t.album_artist.clone()));
         }
         if t.track > 0 {
-            rows.push(("playlist", "Numer", t.track.to_string()));
+            rows.push(("playlist", tr!("Number"), t.track.to_string()));
         }
         if !t.genre.is_empty() {
-            rows.push(("tag", "Gatunek", t.genre.clone()));
+            rows.push(("tag", tr!("Genre"), t.genre.clone()));
         }
         if t.duration > 0.0 {
-            rows.push(("clock", "Długość", meta::fmt_time(t.duration)));
+            rows.push(("clock", tr!("Length"), meta::fmt_time(t.duration)));
         }
         if t.size > 0 {
-            rows.push(("download", "Rozmiar", fmt_size(t.size)));
+            rows.push(("download", tr!("Size"), fmt_size(t.size)));
         }
         let st = app.stats.get(&t.path);
         if st.plays > 0 {
-            rows.push(("history", if video { "Obejrzane" } else { "Odtworzenia" }, st.plays.to_string()));
+            rows.push(("history", if video { tr!("Views") } else { tr!("Plays") }, st.plays.to_string()));
         }
-        rows.push(("folder-open", "Plik", t.path.clone()));
+        rows.push(("folder-open", tr!("File"), t.path.clone()));
         cover_path = t.path.clone();
     } else {
         // Kilka plików albo cała grupa (otwarty folder, album, wykonawca) w bibliotece.
@@ -903,36 +903,36 @@ pub fn sel_info(app: &mut App) {
             return;
         }
         let n = group.len();
-        title = if sel_is_group(app, in_lib, n) { lib.get_title().to_string() } else { format!("{n} {}", crate::lists::plural(n, "zaznaczony plik", "zaznaczone pliki", "zaznaczonych plików")) };
-        sub = format!("{n} {}", crate::lists::plural(n, "pozycja", "pozycje", "pozycji"));
+        title = if sel_is_group(app, in_lib, n) { lib.get_title().to_string() } else { trn!("{n} selected file", "{n} selected files", n) };
+        sub = trn!("{n} item", "{n} items", n);
         let dur: f64 = group.iter().map(|t| t.duration.max(0.0)).sum();
         let size: u64 = group.iter().map(|t| t.size).sum();
         if dur > 0.0 {
-            rows.push(("clock", "Łącznie", meta::fmt_time(dur)));
+            rows.push(("clock", tr!("Total"), meta::fmt_time(dur)));
         }
         if size > 0 {
-            rows.push(("download", "Rozmiar", fmt_size(size)));
+            rows.push(("download", tr!("Size"), fmt_size(size)));
         }
         let mut artists: Vec<String> = group.iter().map(|t| t.display_artist()).filter(|a| !a.is_empty()).collect();
         artists.sort();
         artists.dedup();
         if !artists.is_empty() {
-            let more = if artists.len() > 3 { format!(" i {} innych", artists.len() - 3) } else { String::new() };
-            rows.push(("artist", "Wykonawcy", format!("{}{more}", artists.iter().take(3).cloned().collect::<Vec<_>>().join(", "))));
+            let more = if artists.len() > 3 { trn!(" and {n} other", " and {n} others", artists.len() - 3) } else { String::new() };
+            rows.push(("artist", tr!("Artists"), format!("{}{more}", artists.iter().take(3).cloned().collect::<Vec<_>>().join(", "))));
         }
         let mut fmts: Vec<String> = group.iter().map(|t| t.format()).filter(|f| !f.is_empty()).collect();
         fmts.sort();
         fmts.dedup();
         if !fmts.is_empty() {
-            rows.push(("file", "Formaty", fmts.join(", ")));
+            rows.push(("file", tr!("Formats"), fmts.join(", ")));
         }
         let mut years: Vec<u32> = group.iter().map(|t| t.year).filter(|y| *y > 0).collect();
         years.sort();
         if let (Some(a), Some(b)) = (years.first(), years.last()) {
-            rows.push(("calendar", "Lata", if a == b { a.to_string() } else { format!("{a}–{b}") }));
+            rows.push(("calendar", tr!("Years"), if a == b { a.to_string() } else { format!("{a}–{b}") }));
         }
         if let Some(d) = Path::new(&group[0].path).parent() {
-            rows.push(("folder-open", "Folder", d.to_string_lossy().into_owned()));
+            rows.push(("folder-open", tr!("Folder"), d.to_string_lossy().into_owned()));
         }
         cover_path = group[0].path.clone();
         sel_movie = group.iter().all(|t| t.video || meta::is_video(Path::new(&t.path)));
@@ -1034,7 +1034,7 @@ fn sel_extras(app: &mut App, t: Option<TrackInfo>) {
         return;
     }
     if let Some(text) = meta::lyrics(Path::new(&t.path)) {
-        return set_lyrics(app, Some(text), "plik / tagi");
+        return set_lyrics(app, Some(text), tr!("file / tags"));
     }
     if !app.s.online_lyrics {
         return;

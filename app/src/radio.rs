@@ -47,7 +47,7 @@ pub fn load(app: &mut App, source: i32, query: String) {
                     Err(e) => {
                         app.stations.clear();
                         publish(app);
-                        app.toast(format!("Katalog stacji niedostępny: {e}"));
+                        app.toast(tr!("Station directory unavailable: {}", e));
                     }
                 }
             });

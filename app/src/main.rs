@@ -3,6 +3,9 @@
 
 #![windows_subsystem = "windows"]
 
+#[macro_use]
+extern crate openmp_core;
+
 slint::include_modules!();
 
 mod app;
@@ -41,6 +44,16 @@ thread_local! {
     static DROPS: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
 }
 
+/// Język interfejsu: kod z ustawień albo – gdy pusty – język Windows. Teksty Slint (`@tr`)
+/// i teksty z kodu (`tr!`) biorą tłumaczenia z tego samego pliku `lang/<kod>/LC_MESSAGES/openmp.po`.
+pub fn apply_language(code: &str) {
+    let want = if code.is_empty() { win::system_language() } else { code.to_string() };
+    let got = openmp_core::i18n::set_language(&want);
+    if let Err(e) = slint::select_bundled_translation(got) {
+        openmp_core::paths::log(&format!("tłumaczenie {got}: {e}"));
+    }
+}
+
 fn main() {
     // Awaria w dowolnym wątku trafia do dziennika – bez konsoli komunikat inaczej by zniknął.
     std::panic::set_hook(Box::new(|info| {
@@ -52,6 +65,12 @@ fn main() {
     openmp_core::paths::log(&format!("start {} {:?}", openmp_core::version(), argv));
     let add_only = argv.iter().any(|a| a == "--add");
     let files: Vec<String> = argv.iter().filter(|a| !a.starts_with("--")).cloned().collect();
+    // Najpierw język systemu – w nim powstają domyślne ustawienia przy pierwszym uruchomieniu.
+    let system = win::system_language();
+    openmp_core::i18n::set_language(&system);
+    if let Some((_, region)) = system.rsplit_once('-') {
+        openmp_core::radio::set_country(region);
+    }
     let settings = Settings::load();
     // Działa już okno OpenMP – oddajemy mu pliki i kończymy.
     if settings.single_instance {
@@ -65,11 +84,12 @@ fn main() {
     }
 
     let ui = AppWindow::new().expect("okno");
+    apply_language(&settings.language);
     let session = Session::load();
     let engine = Engine::new(settings.device.clone());
     let (mpv, mpv_err) = match video::create(&settings) {
         Ok(m) => (Some(m), String::new()),
-        Err(e) => (None, format!("Niedostępny: {e}. Filmy i radio wymagają pliku libmpv-2.dll obok OpenMP.exe.")),
+        Err(e) => (None, tr!("Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe.", e)),
     };
     let models = Models {
         bars: Rc::new(VecModel::default()),
@@ -632,7 +652,7 @@ fn wire(ui: &AppWindow) {
     }));
     b.on_radio_play(|i| later(move |app| radio::play_index(app, i as usize)));
     b.on_radio_save(|i| later(move |app| radio::toggle_save(app, i as usize)));
-    b.on_radio_add_url(|| later(|app| dialogs::rename(app, RenameCtx::RadioUrl, "Adres strumienia radia", "https://")));
+    b.on_radio_add_url(|| later(|app| dialogs::rename(app, RenameCtx::RadioUrl, tr!("Radio stream URL"), "https://")));
 
     // Wideo
     let v = ui.global::<Video>();
@@ -688,7 +708,7 @@ fn wire(ui: &AppWindow) {
     pr.on_changed(|k| later(move |app| prefs::changed(app, &k)));
     pr.on_eq_band(|i, v| later(move |app| prefs::eq_band(app, i as usize, v)));
     pr.on_eq_preset(|i| later(move |app| prefs::eq_preset(app, i as usize)));
-    pr.on_eq_save_preset(|| later(|app| dialogs::rename(app, RenameCtx::EqPreset, "Nazwa ustawienia korektora", "Moje")));
+    pr.on_eq_save_preset(|| later(|app| dialogs::rename(app, RenameCtx::EqPreset, tr!("Equalizer preset name"), tr!("Mine"))));
     pr.on_eq_reset(|| later(prefs::eq_reset));
     pr.on_add_folder(|k| later(move |app| prefs::add_folder(app, k)));
     pr.on_add_network_folder(|k| later(move |app| prefs::add_network_folder(app, k)));

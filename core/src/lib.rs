@@ -2,6 +2,7 @@
 
 pub mod audio;
 pub mod coverart;
+pub mod i18n;
 pub mod instance;
 pub mod library;
 pub mod listenbrainz;
@@ -23,6 +24,6 @@ pub fn version() -> &'static str {
 }
 
 /// Autor i wsparcie – jedno źródło dla okna „O programie”, stopki ustawień i instalatora.
-pub const AUTHOR_LINE: &str = "Pomysł i wykonanie: Adam Rędzikowski · redzikowski.com";
+pub const AUTHOR_LINE: &str = "Adam Rędzikowski · redzikowski.com";
 pub const AUTHOR_URL: &str = "https://redzikowski.com";
 pub const SUPPORT_URL: &str = "https://buycoffee.to/adamredzikowski";

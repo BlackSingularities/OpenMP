@@ -23,7 +23,7 @@ const UA: &str = "OpenMP v1";
 pub fn fetch(file: &Path, lang: &str) -> Result<PathBuf, String> {
     let key = KEY.read().map(|k| k.clone()).unwrap_or_default();
     if key.is_empty() {
-        return Err("Brak klucza OpenSubtitles – wpisz go w Ustawieniach → Biblioteka".into());
+        return Err(crate::tr!("No OpenSubtitles key – enter it in Settings → Library").into());
     }
     let (title, year, _) = crate::tmdb::guess(file);
     let stem = file.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
@@ -54,7 +54,7 @@ pub fn fetch(file: &Path, lang: &str) -> Result<PathBuf, String> {
             }
         }
     }
-    let (fid, _) = best.ok_or("Nie znaleziono napisów")?;
+    let (fid, _) = best.ok_or(crate::tr!("No subtitles found"))?;
     let link: serde_json::Value = ureq::post(&format!("{API}/download"))
         .set("Api-Key", &key)
         .set("User-Agent", UA)
@@ -64,7 +64,7 @@ pub fn fetch(file: &Path, lang: &str) -> Result<PathBuf, String> {
         .map_err(|e| format!("pobieranie: {e}"))?
         .into_json()
         .map_err(|e| e.to_string())?;
-    let link = link["link"].as_str().ok_or("OpenSubtitles nie podał linku (limit pobrań?)")?;
+    let link = link["link"].as_str().ok_or(crate::tr!("OpenSubtitles returned no link (download limit?)"))?;
     let body = ureq::get(link).timeout(std::time::Duration::from_secs(20)).call().map_err(|e| e.to_string())?.into_string().map_err(|e| e.to_string())?;
     let name = format!("{stem}.{lang}.srt");
     let near = file.with_file_name(&name);

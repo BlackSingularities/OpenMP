@@ -115,6 +115,34 @@ pub fn presets() -> Vec<(&'static str, [f32; 18])> {
     ]
 }
 
+/// Nazwa gotowego ustawienia do wyświetlenia. Klucze (polskie nazwy) zostają w ustawieniach
+/// użytkownika, więc tłumaczymy dopiero na ekranie; własne nazwy użytkownika – bez zmian.
+pub fn preset_label(key: &str) -> String {
+    match key {
+        "Płasko" => crate::tr!("Flat"),
+        "Mocny bas" => crate::tr!("Bass boost"),
+        "Bas i soprany" => crate::tr!("Bass and treble"),
+        "Soprany" => crate::tr!("Treble"),
+        "Rock" => crate::tr!("Rock"),
+        "Pop" => crate::tr!("Pop"),
+        "Jazz" => crate::tr!("Jazz"),
+        "Klasyka" => crate::tr!("Classical"),
+        "Elektronika" => crate::tr!("Electronic"),
+        "Hip-hop" => crate::tr!("Hip-hop"),
+        "Metal" => crate::tr!("Metal"),
+        "Akustyczne" => crate::tr!("Acoustic"),
+        "Wokal" => crate::tr!("Vocal"),
+        "Podcast i mowa" => crate::tr!("Podcast and speech"),
+        "Taneczna" => crate::tr!("Dance"),
+        "Głośniki laptopa" => crate::tr!("Laptop speakers"),
+        "Słuchawki" => crate::tr!("Headphones"),
+        "Głośność nocna" => crate::tr!("Night listening"),
+        "Własne" => crate::tr!("Custom"),
+        other => other,
+    }
+    .to_string()
+}
+
 /// Preset dla gatunku z tagu – dopasowanie po słowach kluczowych (jak w OpenAMP).
 pub fn preset_for_genre(genre: &str) -> Option<&'static str> {
     let g = genre.to_lowercase();

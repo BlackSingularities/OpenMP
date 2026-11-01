@@ -115,7 +115,7 @@ pub fn start_track(app: &mut App, list: Option<u64>, idx: usize, t: TrackInfo, s
         refresh_next(app);
     } else {
         let Some(m) = app.mpv.clone() else {
-            app.toast(format!("Brak silnika wideo (libmpv) – nie można odtworzyć: {}", t.display_title()));
+            app.toast(tr!("No video engine (libmpv) – cannot play: {}", t.display_title()));
             return;
         };
         app.engine.stop();
@@ -490,7 +490,7 @@ pub fn set_volume(app: &mut App, v: f32) {
     }
     apply_volume(app);
     if app.is_video_mode() {
-        app.osd(format!("Głośność {}%", (app.s.volume * 100.0).round()));
+        app.osd(tr!("Volume {}%", (app.s.volume * 100.0).round()));
     }
 }
 
@@ -516,7 +516,7 @@ pub fn toggle_mute(app: &mut App) {
     app.s.muted = !app.s.muted;
     apply_volume(app);
     if app.is_video_mode() {
-        app.osd(if app.s.muted { "Wyciszono" } else { "Dźwięk włączony" });
+        app.osd(if app.s.muted { tr!("Muted") } else { tr!("Sound on") });
     }
 }
 
@@ -588,7 +588,7 @@ pub fn tick(app: &mut App) {
                             continue;
                         }
                     }
-                    app.toast(format!("Nie można odtworzyć: {name} ({msg})"));
+                    app.toast(tr!("Cannot play: {} ({})", name, msg));
                     on_end(app);
                 } else if app.pending.as_ref().is_some_and(|p| p.item == id) {
                     app.pending = None;
@@ -657,10 +657,10 @@ pub fn tick(app: &mut App) {
                             if app.is_video_mode() {
                                 if let Some(ui) = app.ui() {
                                     ui.global::<Video>().set_loading(false);
-                                    ui.global::<Video>().set_error(ss(format!("Nie można odtworzyć: {name}")));
+                                    ui.global::<Video>().set_error(ss(tr!("Cannot play: {}", name)));
                                 }
                             } else {
-                                app.toast(format!("Nie można odtworzyć: {name}"));
+                                app.toast(tr!("Cannot play: {}", name));
                             }
                         }
                         if eof || error {
@@ -719,7 +719,7 @@ pub fn open_paths(app: &mut App, paths: Vec<String>, play_first: bool, new_list:
     let weak = app.ui.clone();
     let count = paths.len();
     if count > 3 {
-        app.toast(format!("Dodawanie: {count} pozycji…"));
+        app.toast(tr!("Adding: {}…", trn!("{n} item", "{n} items", count)));
     }
     std::thread::spawn(move || {
         let mut out: Vec<TrackInfo> = Vec::new();
@@ -762,7 +762,7 @@ pub fn open_paths(app: &mut App, paths: Vec<String>, play_first: bool, new_list:
             let _ = weak;
             later(move |app| {
                 if out.is_empty() {
-                    app.toast("Brak plików multimedialnych do dodania");
+                    app.toast(tr!("No media files to add"));
                     return;
                 }
                 let Some(li) = app.list_index(list_id) else { return };
@@ -779,7 +779,7 @@ pub fn open_paths(app: &mut App, paths: Vec<String>, play_first: bool, new_list:
                 if play_first {
                     play(app, list_id, start, None);
                 } else if n > 3 {
-                    app.toast(format!("Dodano {n} pozycji"));
+                    app.toast(tr!("Added {}", trn!("{n} item", "{n} items", n)));
                 }
             });
         });

@@ -172,7 +172,7 @@ impl Mpv {
         let api = Api::load()?;
         let h = unsafe { (api.create)() };
         if h.is_null() {
-            return Err("mpv_create się nie powiódł".into());
+            return Err(crate::tr!("mpv_create failed").into());
         }
         let inner = Inner { api, h };
         for (k, v) in opts {

@@ -46,34 +46,34 @@ fn folder_name(root: &str) -> String {
 pub fn rebuild_nav(app: &mut App) {
     let lists: usize = app.store.lists.len();
     let mut v = vec![
-        nav("playlist", "Listy odtwarzania", "playlist", n(lists)),
-        section("sec-music", "MUZYKA"),
-        nav("artist", "Wykonawcy", "artist", String::new()),
-        nav("album", "Albumy", "album", String::new()),
-        nav("genre", "Gatunki", "tag", String::new()),
-        nav("year", "Lata", "calendar", String::new()),
-        nav("all", "Wszystkie utwory", "note", n(app.lib.tracks.len())),
-        section("sec-video", "WIDEO"),
-        nav("v-all", "Wszystkie filmy", "movie", n(app.lib.videos.len())),
-        nav("v-continue", "Kontynuuj oglądanie", "history", String::new()),
-        nav("v-recent", "Ostatnio dodane", "clock", String::new()),
-        section("sec-sets", "ZBIORY"),
-        nav("fav", "Ulubione", "heart", n(app.stats.map.values().filter(|s| s.rating >= 5).count())),
-        nav("rated", "Ocenione", "heart", n(app.stats.map.values().filter(|s| s.rating > 0).count())),
-        nav("top", "Najczęściej odtwarzane", "trending", String::new()),
-        nav("recent", "Ostatnio dodana muzyka", "clock", String::new()),
-        nav("history", "Historia", "history", String::new()),
-        nav("radio", "Radio internetowe", "radio", String::new()),
-        nav("stats", "Statystyki", "trending", String::new()),
+        nav("playlist", tr!("Playlists"), "playlist", n(lists)),
+        section("sec-music", tr!("MUSIC")),
+        nav("artist", tr!("Artists"), "artist", String::new()),
+        nav("album", tr!("Albums"), "album", String::new()),
+        nav("genre", tr!("Genres"), "tag", String::new()),
+        nav("year", tr!("Years"), "calendar", String::new()),
+        nav("all", tr!("All tracks"), "note", n(app.lib.tracks.len())),
+        section("sec-video", tr!("VIDEO")),
+        nav("v-all", tr!("All videos"), "movie", n(app.lib.videos.len())),
+        nav("v-continue", tr!("Continue watching"), "history", String::new()),
+        nav("v-recent", tr!("Recently added"), "clock", String::new()),
+        section("sec-sets", tr!("COLLECTIONS")),
+        nav("fav", tr!("Favorites"), "heart", n(app.stats.map.values().filter(|s| s.rating >= 5).count())),
+        nav("rated", tr!("Rated"), "heart", n(app.stats.map.values().filter(|s| s.rating > 0).count())),
+        nav("top", tr!("Most played"), "trending", String::new()),
+        nav("recent", tr!("Recently added music"), "clock", String::new()),
+        nav("history", tr!("History"), "history", String::new()),
+        nav("radio", tr!("Internet radio"), "radio", String::new()),
+        nav("stats", tr!("Statistics"), "trending", String::new()),
     ];
     if !app.s.smart_lists.is_empty() {
-        v.push(section("sec-smart", "INTELIGENTNE LISTY"));
+        v.push(section("sec-smart", tr!("SMART PLAYLISTS")));
         for (i, (name, _)) in app.s.smart_lists.iter().enumerate() {
             v.push(nav(&format!("smart:{i}"), name, "playlist", String::new()));
         }
     }
     // Foldery biblioteki (także udziały sieciowe) – skrót do całej zawartości folderu.
-    v.push(section("sec-folders", "FOLDERY"));
+    v.push(section("sec-folders", tr!("FOLDERS")));
     let roots: Vec<String> = app.s.library_folders.iter().chain(app.s.video_folders.iter()).cloned().collect();
     for root in roots {
         let count = under_root(app, &root).count();
@@ -196,17 +196,17 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
     }
     if id.starts_with("smart:") {
         let items = vec![
-            crate::menu::item("smart-rename", "Zmień nazwę…", "edit", ""),
-            crate::menu::item("smart-query", "Zmień filtry…", "edit", ""),
+            crate::menu::item("smart-rename", tr!("Rename…"), "edit", ""),
+            crate::menu::item("smart-query", tr!("Edit filters…"), "edit", ""),
             crate::menu::sep(),
-            crate::menu::item("smart-del", "Usuń inteligentną listę", "delete", ""),
+            crate::menu::item("smart-del", tr!("Delete smart playlist"), "delete", ""),
         ];
         crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
         return;
     }
     let items = vec![
-        crate::menu::item("rescan", "Odśwież bibliotekę", "refresh", ""),
-        crate::menu::item("folders", "Foldery biblioteki…", "folder", ""),
+        crate::menu::item("rescan", tr!("Refresh library"), "refresh", ""),
+        crate::menu::item("folders", tr!("Library folders…"), "folder", ""),
     ];
     crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
 }
@@ -217,9 +217,9 @@ pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
             let Some(i) = id.strip_prefix("smart:").and_then(|s| s.parse::<usize>().ok()) else { return };
             let Some((name, query)) = app.s.smart_lists.get(i).cloned() else { return };
             if cmd == "smart-rename" {
-                crate::dialogs::rename(app, RenameCtx::SmartName(i), "Nazwa inteligentnej listy", &name);
+                crate::dialogs::rename(app, RenameCtx::SmartName(i), tr!("Smart playlist name"), &name);
             } else {
-                crate::dialogs::rename(app, RenameCtx::SmartQuery(i), "Filtry, np. ocena>=4 rok:1990-1999 gatunek:rock", &query);
+                crate::dialogs::rename(app, RenameCtx::SmartQuery(i), tr!("Filters, e.g. rating>=4 year:1990-1999 genre:rock"), &query);
             }
         }
         "smart-del" => {
@@ -259,22 +259,22 @@ fn from_stats(a: &[TrackInfo], b: &[TrackInfo], mut keys: Vec<(String, u64)>, li
 
 fn title_for(kind: &str) -> &'static str {
     match kind {
-        "artist" => "Wykonawcy",
-        "album" => "Albumy",
-        "genre" => "Gatunki",
-        "year" => "Lata",
-        "folder" => "Foldery",
-        "all" => "Wszystkie utwory",
-        "fav" => "Ulubione",
-        "top" => "Najczęściej odtwarzane",
-        "rated" => "Ocenione",
-        "recent" => "Ostatnio dodana muzyka",
-        "history" => "Historia",
-        "v-all" => "Wszystkie filmy",
-        "v-folder" => "Foldery wideo",
-        "v-continue" => "Kontynuuj oglądanie",
-        "v-recent" => "Ostatnio dodane filmy",
-        _ => "Biblioteka",
+        "artist" => tr!("Artists"),
+        "album" => tr!("Albums"),
+        "genre" => tr!("Genres"),
+        "year" => tr!("Years"),
+        "folder" => tr!("Folders"),
+        "all" => tr!("All tracks"),
+        "fav" => tr!("Favorites"),
+        "top" => tr!("Most played"),
+        "rated" => tr!("Rated"),
+        "recent" => tr!("Recently added music"),
+        "history" => tr!("History"),
+        "v-all" => tr!("All videos"),
+        "v-folder" => tr!("Video folders"),
+        "v-continue" => tr!("Continue watching"),
+        "v-recent" => tr!("Recently added videos"),
+        _ => tr!("Library"),
     }
 }
 
@@ -299,18 +299,17 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
     let video_kind = kind.starts_with("v-");
     l.set_can_back(!app.libv.stack.is_empty());
     let empty_lib = if video_kind {
-        "Brak filmów w bibliotece.\nDodaj foldery z wideo (także na dysku sieciowym) w Ustawieniach → Biblioteka."
+        tr!("No videos in the library.\nAdd video folders (network drives work too) in Settings → Library.")
     } else {
-        "Biblioteka jest pusta.\nDodaj foldery z muzyką (także na dysku sieciowym) w Ustawieniach → Biblioteka."
+        tr!("The library is empty.\nAdd music folders (network drives work too) in Settings → Library.")
     };
     // Wyszukiwanie obejmuje całą bibliotekę – muzykę i filmy.
     if !app.libv.search.trim().is_empty() {
         let q = library::Query::parse(&app.libv.search);
         let found: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(2000).cloned().collect();
-        l.set_title(ss(format!("Wyniki: „{}”", app.libv.search.trim())));
-        l.set_subtitle(ss(format!("{} {}", found.len(), crate::lists::plural(found.len(), "pozycja", "pozycje", "pozycji"))));
-        l.set_empty_text(ss("Nic nie znaleziono.
-Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworzenia>=10, format:flac, dodane<30, dlugosc>6"));
+        l.set_title(ss(tr!("Results: “{}”", app.libv.search.trim())));
+        l.set_subtitle(ss(trn!("{n} item", "{n} items", found.len())));
+        l.set_empty_text(ss(tr!("Nothing found.\nFilters: rating>=4, year:1990-1999, genre:rock, artist:…, album:…, plays>=10, format:flac, added<30, length>6")));
         set_tracks(app, found);
         return;
     }
@@ -321,7 +320,7 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             let mine: Vec<TrackInfo> = library::in_group(&source, "artist", &name, "").into_iter().cloned().collect();
             let groups = library::group_by(&mine, "album");
             l.set_title(ss(&name));
-            l.set_subtitle(ss(format!("{} albumów · {} utworów", groups.len(), mine.len())));
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} album", "{n} albums", groups.len()), trn!("{n} track", "{n} tracks", mine.len()))));
             app.libv.tracks = mine;
             set_tiles(app, groups, "album", true);
             return;
@@ -353,7 +352,7 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
         if !sub.is_empty() {
             s.push(sub.clone());
         }
-        s.push(format!("{} {}", tracks.len(), crate::lists::plural(tracks.len(), "pozycja", "pozycje", "pozycji")));
+        s.push(trn!("{n} item", "{n} items", tracks.len()));
         if dur > 0.0 {
             s.push(meta::fmt_total(dur));
         }
@@ -361,7 +360,7 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             s.push(name.clone());
         }
         l.set_subtitle(ss(s.join("  ·  ")));
-        l.set_empty_text(ss("Pusto."));
+        l.set_empty_text(ss(tr!("Empty.")));
         set_tracks(app, tracks);
         return;
     }
@@ -370,7 +369,7 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
     match kind.as_str() {
         "artist" | "genre" | "year" => {
             let groups = library::group_by(&source, &kind);
-            l.set_subtitle(ss(format!("{} · {} utworów", groups.len(), source.len())));
+            l.set_subtitle(ss(format!("{} · {}", groups.len(), trn!("{n} track", "{n} tracks", source.len()))));
             set_tiles(app, groups, &kind, false);
         }
         "folder" | "v-folder" => {
@@ -393,13 +392,13 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
                     }
                 })
                 .collect();
-            let what = if video_kind { "filmów" } else { "utworów" };
-            l.set_subtitle(ss(format!("{} {} · {} {what}", groups.len(), crate::lists::plural(groups.len(), "folder", "foldery", "folderów"), source.len())));
+            let what = if video_kind { trn!("{n} video", "{n} videos", source.len()) } else { trn!("{n} track", "{n} tracks", source.len()) };
+            l.set_subtitle(ss(format!("{} · {what}", trn!("{n} folder", "{n} folders", groups.len()))));
             set_tiles(app, groups, if video_kind { "v-dir" } else { "dir" }, true);
         }
         "album" => {
             let groups = library::group_by(&source, "album");
-            l.set_subtitle(ss(format!("{} albumów · {} utworów", groups.len(), source.len())));
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} album", "{n} albums", groups.len()), trn!("{n} track", "{n} tracks", source.len()))));
             set_tiles(app, groups, "album", true);
         }
         "all" | "v-all" => {
@@ -407,43 +406,43 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             if video_kind {
                 t.sort_by_key(|t| natural(&t.path));
             }
-            l.set_subtitle(ss(format!("{} {}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))));
+            l.set_subtitle(ss(trn!("{n} item", "{n} items", t.len())));
             set_tracks(app, t);
         }
         "recent" | "v-recent" => {
             let mut t = source.to_vec();
             t.sort_by_key(|t| std::cmp::Reverse(t.modified));
             t.truncate(300);
-            l.set_subtitle(ss("Według daty pliku"));
+            l.set_subtitle(ss(tr!("By file date")));
             set_tracks(app, t);
         }
         "v-continue" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(k, s)| s.resume > 10.0 && meta::is_video(std::path::Path::new(k.as_str()))).map(|(k, s)| (k.clone(), s.last)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 100);
-            l.set_subtitle(ss("Filmy przerwane w trakcie – zaczną się od miejsca, w którym skończyłeś"));
-            l.set_empty_text(ss("Nie ma przerwanych filmów."));
+            l.set_subtitle(ss(tr!("Movies stopped midway – they will start where you left off")));
+            l.set_empty_text(ss(tr!("No unfinished movies.")));
             set_tracks(app, t);
         }
         "fav" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating >= 5).map(|(k, s)| (k.clone(), s.last)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 5000);
-            l.set_subtitle(ss(format!("{} pozycji · serce przy utworze dodaje go tutaj", t.len())));
-            l.set_empty_text(ss("Brak ulubionych. Kliknij serce przy utworze albo Ctrl+D."));
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} item", "{n} items", t.len()), tr!("the heart next to a track adds it here"))));
+            l.set_empty_text(ss(tr!("No favorites. Click the heart next to a track or press Ctrl+D.")));
             set_tracks(app, t);
         }
         "rated" => {
             // Najpierw wyższa ocena, w niej ostatnio odtwarzane.
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating > 0).map(|(k, s)| (k.clone(), ((s.rating as u64) << 40) | (s.last & 0xff_ffff_ffff))).collect();
             let t = from_stats(source, other(app, video_kind), keys, 5000);
-            l.set_subtitle(ss(format!("{} pozycji · Ctrl+1…5 ocenia zaznaczone", t.len())));
-            l.set_empty_text(ss("Nic jeszcze nie ma oceny. Zaznacz utwory i naciśnij Ctrl+1…5."));
+            l.set_subtitle(ss(format!("{} · {}", trn!("{n} item", "{n} items", t.len()), tr!("Ctrl+1…5 rates the selection"))));
+            l.set_empty_text(ss(tr!("Nothing is rated yet. Select tracks and press Ctrl+1…5.")));
             set_tracks(app, t);
         }
         "top" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.plays > 0).map(|(k, s)| (k.clone(), s.plays as u64)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 200);
-            l.set_subtitle(ss("Według liczby odtworzeń"));
-            l.set_empty_text(ss("Jeszcze nic nie zostało odtworzone."));
+            l.set_subtitle(ss(tr!("By play count")));
+            l.set_empty_text(ss(tr!("Nothing has been played yet.")));
             set_tracks(app, t);
         }
         k if k.starts_with("root:") => {
@@ -470,15 +469,15 @@ Filtry: ocena>=4, rok:1990-1999, gatunek:rock, wykonawca:…, album:…, odtworz
             let mut t: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(5000).cloned().collect();
             t.sort_by(library::album_order);
             l.set_title(ss(&name));
-            l.set_subtitle(ss(format!("{} {}  ·  {query}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))));
-            l.set_empty_text(ss("Nic nie pasuje do tej listy."));
+            l.set_subtitle(ss(format!("{}  ·  {query}", trn!("{n} item", "{n} items", t.len()))));
+            l.set_empty_text(ss(tr!("Nothing matches this playlist.")));
             set_tracks(app, t);
         }
         "history" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.last > 0).map(|(k, s)| (k.clone(), s.last)).collect();
             let t = from_stats(source, other(app, video_kind), keys, 300);
-            l.set_subtitle(ss("Ostatnio odtwarzane"));
-            l.set_empty_text(ss("Historia jest pusta."));
+            l.set_subtitle(ss(tr!("Recently played")));
+            l.set_empty_text(ss(tr!("History is empty.")));
             set_tracks(app, t);
         }
         _ => set_tracks(app, Vec::new()),
@@ -495,24 +494,25 @@ fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, _video: bool) {
     t.sort_by_key(|t| natural(&t.path));
     let dur: f64 = t.iter().map(|t| t.duration).sum();
     l.set_title(ss(folder_name(dir)));
-    let mut s = vec![format!("{} {}", t.len(), crate::lists::plural(t.len(), "pozycja", "pozycje", "pozycji"))];
+    let mut s = vec![trn!("{n} item", "{n} items", t.len())];
     if dur > 0.0 {
         s.push(meta::fmt_total(dur));
     }
     if !groups.is_empty() {
-        s.push(format!("{} {} – rozwiń w panelu", groups.len(), crate::lists::plural(groups.len(), "podfolder", "podfoldery", "podfolderów")));
+        s.push(trn!("{n} subfolder – expand in the panel", "{n} subfolders – expand in the panel", groups.len()));
     }
     s.push(dir.trim_end_matches(['\\', '/']).to_string());
     l.set_subtitle(ss(s.join("  ·  ")));
     l.set_empty_text(ss(if groups.is_empty() {
-        "Brak plików w tym folderze albo folder jest niedostępny (np. wyłączony serwer NAS)."
+        tr!("No files in this folder, or the folder is unavailable (e.g. the NAS server is off).")
     } else {
-        "W tym folderze są tylko podfoldery – rozwiń go strzałką w panelu po lewej."
+        tr!("This folder only has subfolders – expand it with the arrow in the panel on the left.")
     }));
     set_tracks(app, t);
 }
 
-const FILES_HERE: &str = "Pliki w tym folderze";
+/// Znacznik grupy plików leżących wprost w otwartym folderze (nie nazwa do wyświetlenia).
+const FILES_HERE: &str = "\u{1}files-here";
 
 /// Porządek „naturalny”: odcinek 2 przed odcinkiem 10.
 fn natural(s: &str) -> Vec<(String, u64)> {
@@ -547,14 +547,14 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
         .map(|(i, g)| {
             let cover = if with_cover { crate::covers::get(&g.first) } else { None };
             let video = kind == "v-folder" || kind == "v-dir";
-            let what = if video { crate::lists::plural(g.count, "film", "filmy", "filmów") } else { crate::lists::plural(g.count, "utwór", "utwory", "utworów") };
+            let what = if video { trn!("{n} video", "{n} videos", g.count) } else { trn!("{n} track", "{n} tracks", g.count) };
             if kind == "dir" || kind == "v-dir" {
-                let name = if g.sub == FILES_HERE { FILES_HERE.to_string() } else { folder_name(&g.name) };
+                let name = if g.sub == FILES_HERE { tr!("Files in this folder").to_string() } else { folder_name(&g.name) };
                 return Tile {
                     key: ss(i.to_string()),
                     name: ss(name),
-                    sub: ss(format!("{} {what}", g.count)),
-                    count: ss(format!("{} {what}", g.count)),
+                    sub: ss(&what),
+                    count: ss(&what),
                     has_cover: cover.is_some(),
                     cover: cover.unwrap_or_default(),
                 };
@@ -563,7 +563,7 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
             let sub = match kind {
                 "album" => {
                     if g.sub.is_empty() {
-                        format!("{} utw.", g.count)
+                        trn!("{n} track", "{n} tracks", g.count)
                     } else {
                         g.sub.clone()
                     }
@@ -574,8 +574,8 @@ fn set_tiles(app: &mut App, groups: Vec<library::Group>, kind: &str, grid: bool)
             Tile {
                 key: ss(i.to_string()),
                 name: ss(name),
-                sub: ss(if grid && kind == "v-folder" { format!("{} {what}", g.count) } else { sub }),
-                count: ss(format!("{} {what}", g.count)),
+                sub: ss(if grid && kind == "v-folder" { what.clone() } else { sub }),
+                count: ss(&what),
                 has_cover: cover.is_some(),
                 cover: cover.unwrap_or_default(),
             }
@@ -618,7 +618,7 @@ fn rows(app: &mut App) {
             }
             if t.video && st.resume > 10.0 {
                 let pct = if t.duration > 0.0 { format!("{}%", (st.resume / t.duration * 100.0).round()) } else { meta::fmt_time(st.resume) };
-                r.info = ss(format!("obejrzano {pct}"));
+                r.info = ss(tr!("watched {}", pct));
             }
             r
         })
@@ -650,8 +650,8 @@ fn with_seasons(tracks: &[TrackInfo], rows: Vec<TrackRow>) -> Vec<TrackRow> {
                 out.push(TrackRow {
                     header: true,
                     idx: -1,
-                    h_title: ss(format!("{name}Sezon {}", k.1)),
-                    h_sub: ss(format!("{n} {}", if n == 1 { "odcinek" } else if (2..5).contains(&(n % 10)) && !(12..15).contains(&(n % 100)) { "odcinki" } else { "odcinków" })),
+                    h_title: ss(format!("{name}{}", tr!("Season {}", k.1))),
+                    h_sub: ss(trn!("{n} episode", "{n} episodes", n)),
                     ..Default::default()
                 });
             }
@@ -780,12 +780,12 @@ pub fn tile_double(app: &mut App, key: &str) {
 
 pub fn tile_menu(app: &mut App, key: &str, x: f32, y: f32) {
     let items = vec![
-        crate::menu::item("t-play", "Odtwórz", "play", ""),
-        crate::menu::item("t-shuffle", "Odtwórz losowo", "shuffle", ""),
-        crate::menu::item("t-add", "Dodaj do bieżącej listy", "add", ""),
-        crate::menu::item("t-new", "Nowa lista z tego", "playlist", ""),
+        crate::menu::item("t-play", tr!("Play"), "play", ""),
+        crate::menu::item("t-shuffle", tr!("Shuffle play"), "shuffle", ""),
+        crate::menu::item("t-add", tr!("Add to the current list"), "add", ""),
+        crate::menu::item("t-new", tr!("New list from this"), "playlist", ""),
         crate::menu::sep(),
-        crate::menu::item("t-open", "Otwórz", "chevron-right", ""),
+        crate::menu::item("t-open", tr!("Open"), "chevron-right", ""),
     ];
     crate::menu::open(app, MenuCtx::Tile(key.to_string()), items, x, y);
 }
@@ -797,7 +797,7 @@ pub fn tile_command(app: &mut App, key: &str, cmd: &str) {
         "t-shuffle" => play_tracks(app, t, 0, true),
         "t-add" => add_to_active(app, t),
         "t-new" => {
-            let name = app.libv.tile_keys.get(key.parse::<usize>().unwrap_or(usize::MAX)).map(|k| k.1.clone()).unwrap_or_else(|| "Lista".into());
+            let name = app.libv.tile_keys.get(key.parse::<usize>().unwrap_or(usize::MAX)).map(|k| k.1.clone()).unwrap_or_else(|| tr!("List").into());
             let name = std::path::Path::new(&name).file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or(name);
             let id = crate::lists::create_list(app, &name);
             if let Some(li) = app.list_index(id) {
@@ -859,7 +859,7 @@ fn add_to_active(app: &mut App, tracks: Vec<TrackInfo>) {
     rebuild_nav(app);
     crate::player::refresh_next(app);
     let name = app.store.lists[li].name.clone();
-    app.toast(format!("Dodano {n} do listy „{name}”"));
+    app.toast(tr!("Added {} to the list “{}”", n, name));
 }
 
 /// Zaznaczenie prostokątem w siatce okładek.
@@ -925,18 +925,18 @@ pub fn selected(app: &App) -> Vec<TrackInfo> {
 pub fn row_menu(app: &mut App, x: f32, y: f32) {
     let n = app.libv.sel.len();
     let items = vec![
-        crate::menu::item("l-play", "Odtwórz", "play", "Enter"),
-        crate::menu::item("l-add", "Dodaj do bieżącej listy", "add", ""),
-        crate::menu::item("l-new", "Nowa lista z zaznaczonych", "playlist", ""),
+        crate::menu::item("l-play", tr!("Play"), "play", "Enter"),
+        crate::menu::item("l-add", tr!("Add to the current list"), "add", ""),
+        crate::menu::item("l-new", tr!("New list from selection"), "playlist", ""),
         crate::menu::sep(),
-        crate::menu::item("l-fav", "Ulubione (przełącz)", "heart", ""),
-        crate::menu::item_en("l-tags", "Edytuj tagi…", "edit", "", n > 0),
-        crate::menu::item("l-explorer", "Pokaż w Eksploratorze", "folder-open", ""),
+        crate::menu::item("l-fav", tr!("Favorite (toggle)"), "heart", ""),
+        crate::menu::item_en("l-tags", tr!("Edit tags…"), "edit", "", n > 0),
+        crate::menu::item("l-explorer", tr!("Show in Explorer"), "folder-open", ""),
         crate::menu::sep(),
-        crate::menu::item("l-resume-reset", "Zapomnij miejsce wznowienia", "history", ""),
-        crate::menu::item("l-watched", "Obejrzany / nieobejrzany (przełącz)", "check", ""),
-        crate::menu::item_en("l-tmdb", "Popraw dopasowanie TMDB…", "edit", "", n == 1 && !app.s.tmdb_key.is_empty()),
-        crate::menu::item_en("l-save-smart", "Zapisz wyszukiwanie jako inteligentną listę", "playlist", "", !app.libv.search.trim().is_empty()),
+        crate::menu::item("l-resume-reset", tr!("Forget the resume position"), "history", ""),
+        crate::menu::item("l-watched", tr!("Watched / unwatched (toggle)"), "check", ""),
+        crate::menu::item_en("l-tmdb", tr!("Fix TMDB match…"), "edit", "", n == 1 && !app.s.tmdb_key.is_empty()),
+        crate::menu::item_en("l-save-smart", tr!("Save search as a smart playlist"), "playlist", "", !app.libv.search.trim().is_empty()),
     ];
     crate::menu::open(app, MenuCtx::Lib, items, x, y);
 }
@@ -954,7 +954,7 @@ pub fn command(app: &mut App, cmd: &str) {
         }
         "l-add" => add_to_active(app, sel),
         "l-new" => {
-            let id = crate::lists::create_list(app, &format!("Lista {}", app.store.lists.len() + 1));
+            let id = crate::lists::create_list(app, &tr!("List {}", app.store.lists.len() + 1));
             if let Some(li) = app.list_index(id) {
                 app.store.lists[li].items = sel;
             }
@@ -985,13 +985,13 @@ pub fn command(app: &mut App, cmd: &str) {
                 app.s.smart_lists.push((q.clone(), q.clone()));
                 app.dirty = true;
                 rebuild_nav(app);
-                app.toast(format!("Zapisano inteligentną listę „{q}”"));
+                app.toast(tr!("Smart playlist “{}” saved", q));
             }
         }
         "l-tmdb" => {
             if let Some(t) = sel.first() {
                 let q = openmp_core::tmdb::query_of(std::path::Path::new(&t.path));
-                crate::dialogs::rename(app, RenameCtx::Tmdb(t.path.clone()), "Tytuł filmu w TMDB (z rokiem, np. Anioły i demony 2009)", &q);
+                crate::dialogs::rename(app, RenameCtx::Tmdb(t.path.clone()), tr!("Movie title on TMDB (with the year, e.g. Angels & Demons 2009)"), &q);
             }
         }
         "l-watched" => {
@@ -1006,7 +1006,7 @@ pub fn command(app: &mut App, cmd: &str) {
             }
             app.dirty = true;
             show(app);
-            app.toast(if all { "Oznaczono jako nieobejrzane" } else { "Oznaczono jako obejrzane" });
+            app.toast(if all { tr!("Marked as unwatched") } else { tr!("Marked as watched") });
         }
         "l-resume-reset" => {
             for t in &sel {
@@ -1042,7 +1042,7 @@ pub fn start_scan(app: &mut App) {
     app.scan = Some(prog.clone());
     if let Some(ui) = app.ui() {
         ui.global::<Lib>().set_scanning(true);
-        ui.global::<Lib>().set_scan_text(ss("Szukanie plików…"));
+        ui.global::<Lib>().set_scan_text(ss(tr!("Looking for files…")));
         ui.global::<Lib>().set_scan_progress(0.0);
     }
     std::thread::spawn(move || {
@@ -1064,7 +1064,7 @@ pub fn start_scan(app: &mut App) {
                 if app.ui().map(|u| u.global::<Lib>().get_view() == 1).unwrap_or(false) {
                     show(app);
                 }
-                app.toast(format!("Biblioteka: {nt} utworów, {nv} filmów"));
+                app.toast(tr!("Library: {}, {}", trn!("{n} track", "{n} tracks", nt), trn!("{n} video", "{n} videos", nv)));
             });
         });
     });
@@ -1110,7 +1110,7 @@ pub fn scan_tick(app: &mut App) {
     if let Some(ui) = app.ui() {
         let l = ui.global::<Lib>();
         if found > 0 {
-            l.set_scan_text(ss(format!("Skanowanie biblioteki: {done} / {found}")));
+            l.set_scan_text(ss(tr!("Scanning library: {} / {}", done, found)));
             l.set_scan_progress(done as f32 / found as f32);
         }
     }

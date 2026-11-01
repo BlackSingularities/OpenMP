@@ -63,14 +63,14 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
     props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has);
     props!(v, Prefs:
-        compact_ui, track_grid, grid_size, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
+        compact_ui, track_grid, grid_size, caption_overlay, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
         video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,
         deband, tone_mapping, ambient, video_tint, tint_rate, seek_preview, wheel_action, dblclick_seek, video_autonext,
         volume_boost, night_mode, downmix, ytdl_format, ytdl, cache_mb, sub_font, sub_color, sub_style,
         sub_pos, sub_bold, sub_override, sub_auto,
     );
     props!(v, Prefs:
-        accent, accent_from_cover, audio_lang, author_line, auto_eq, autohide_ms, balance, check_updates,
+        accent, accent_from_cover, languages, language, audio_lang, author_line, auto_eq, autohide_ms, balance, check_updates,
         crossfade, crossfeed, dark, deinterlace, device, devices, eq, eq_on, folders, follow_playing,
         group_albums, keys, limiter, media_keys, global_hotkeys, mono, mpv_info, mpv_ok, online_lyrics, preamp,
         lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
@@ -157,14 +157,14 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
 }
 
 /// Ustawienia do wyszukiwarki: (strona, nazwa strony, tytuł, opis) – czytane z pliku okna
-/// ustawień przy kompilacji, więc każde nowe ustawienie od razu da się znaleźć.
-fn settings_index() -> &'static Vec<(i32, String, String, String)> {
-    static IDX: std::sync::OnceLock<Vec<(i32, String, String, String)>> = std::sync::OnceLock::new();
-    IDX.get_or_init(|| {
-        let src = include_str!("../ui/dialogs.slint");
-        let quoted = |l: &str| -> String {
-            // Tekst ze wszystkich "…" w linii (opisy bywają składane z wyrażeń).
-            l.split('"').skip(1).step_by(2).collect::<Vec<_>>().join("")
+/// ustawień przy kompilacji, więc każde nowe ustawienie od razu da się znaleźć. Teksty są
+/// tłumaczone przy każdym wyszukiwaniu, więc pasują do bieżącego języka.
+fn settings_index() -> Vec<(i32, String, String, String)> {
+    {
+        let src: &'static str = include_str!("../ui/dialogs.slint");
+        let quoted = |l: &'static str| -> String {
+            // Tekst ze wszystkich "…" w linii (opisy bywają składane z wyrażeń), przetłumaczony.
+            l.split('"').skip(1).step_by(2).map(|q| openmp_core::i18n::tr(q).replace("{}", "")).collect::<Vec<_>>().join("")
         };
         let mut v: Vec<(i32, String, String, String)> = Vec::new();
         let (mut page, mut name) = (-1, String::new());
@@ -200,7 +200,7 @@ fn settings_index() -> &'static Vec<(i32, String, String, String)> {
             }
         }
         v
-    })
+    }
 }
 
 fn settings_search(q: &str) -> Vec<(i32, String, String)> {
@@ -209,10 +209,10 @@ fn settings_search(q: &str) -> Vec<(i32, String, String)> {
         return Vec::new();
     }
     settings_index()
-        .iter()
+        .into_iter()
         .filter(|(_, _, t, h)| t.to_lowercase().contains(&q) || h.to_lowercase().contains(&q))
         .take(40)
-        .map(|(p, n, t, _)| (*p, n.clone(), t.clone()))
+        .map(|(p, n, t, _)| (p, n, t))
         .collect()
 }
 

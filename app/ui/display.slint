@@ -563,7 +563,7 @@ export component MusicDisplay inherits Rectangle {
                     }
                 }
                 Marquee {
-                    text: root.idle ? "Upuść pliki albo foldery, by zacząć słuchać" : root.artist;
+                    text: root.idle ? @tr("Drop files or folders to start listening") : root.artist;
                     font-size: root.compact ? 13px : 15px;
                     text-color: Theme.tint.brighter(0.5);
                     enabled: root.scroll-title;

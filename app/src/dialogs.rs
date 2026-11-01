@@ -56,36 +56,36 @@ fn media_filters(d: rfd::FileDialog) -> rfd::FileDialog {
     let mut all: Vec<&str> = meta::AUDIO.to_vec();
     all.extend_from_slice(meta::VIDEO);
     all.extend_from_slice(meta::PLAYLISTS);
-    d.add_filter("Multimedia i listy", &all)
-        .add_filter("Muzyka", meta::AUDIO)
-        .add_filter("Wideo", meta::VIDEO)
-        .add_filter("Listy odtwarzania", meta::PLAYLISTS)
-        .add_filter("Wszystkie pliki", &["*"])
+    d.add_filter(tr!("Media and playlists"), &all)
+        .add_filter(tr!("Music"), meta::AUDIO)
+        .add_filter(tr!("Video"), meta::VIDEO)
+        .add_filter(tr!("Playlists"), meta::PLAYLISTS)
+        .add_filter(tr!("All files"), &["*"])
 }
 
 pub fn open_files(app: &mut App) {
-    ask(app, |d| media_filters(d.set_title("Otwórz pliki")).pick_files(), |app, files| {
+    ask(app, |d| media_filters(d.set_title(tr!("Open files"))).pick_files(), |app, files| {
         let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
         crate::player::open_paths(app, paths, true, None);
     });
 }
 
 pub fn add_files(app: &mut App) {
-    ask(app, |d| media_filters(d.set_title("Dodaj do listy")).pick_files(), |app, files| {
+    ask(app, |d| media_filters(d.set_title(tr!("Add to list"))).pick_files(), |app, files| {
         let paths: Vec<String> = files.into_iter().map(|p| p.to_string_lossy().into_owned()).collect();
         crate::player::open_paths(app, paths, false, None);
     });
 }
 
 pub fn open_folder(app: &mut App) {
-    ask(app, |d| d.set_title("Otwórz folder").pick_folder(), |app, dir| {
+    ask(app, |d| d.set_title(tr!("Open folder")).pick_folder(), |app, dir| {
         crate::player::open_paths(app, vec![dir.to_string_lossy().into_owned()], true, None);
     });
 }
 
 pub fn import_list(app: &mut App, new_tab: bool) {
-    ask(app, |d| d.set_title("Importuj listę").add_filter("Listy odtwarzania", meta::PLAYLISTS).pick_file(), move |app, f| {
-        let name = f.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "Lista".into());
+    ask(app, |d| d.set_title(tr!("Import playlist")).add_filter(tr!("Playlists"), meta::PLAYLISTS).pick_file(), move |app, f| {
+        let name = f.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| tr!("List").into());
         crate::player::open_paths(app, vec![f.to_string_lossy().into_owned()], false, new_tab.then_some(name));
     });
 }
@@ -93,7 +93,7 @@ pub fn import_list(app: &mut App, new_tab: bool) {
 pub fn export_list(app: &mut App) {
     let li = app.store.active;
     let name = app.store.lists[li].name.clone();
-    ask(app, move |d| d.set_title("Zapisz listę").set_file_name(format!("{name}.m3u8")).add_filter("Lista M3U8", &["m3u8", "m3u"]).save_file(), move |app, f| export_to(app, li, f));
+    ask(app, move |d| d.set_title(tr!("Save playlist")).set_file_name(format!("{name}.m3u8")).add_filter(tr!("M3U8 playlist"), &["m3u8", "m3u"]).save_file(), move |app, f| export_to(app, li, f));
 }
 
 fn export_to(app: &mut App, li: usize, f: std::path::PathBuf) {
@@ -101,8 +101,8 @@ fn export_to(app: &mut App, li: usize, f: std::path::PathBuf) {
         return;
     }
     match openmp_core::playlist::export_m3u(&f, &app.store.lists[li].items) {
-        Ok(()) => app.toast(format!("Zapisano „{}”", f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default())),
-        Err(e) => app.toast(format!("Nie udało się zapisać: {e}")),
+        Ok(()) => app.toast(tr!("Saved “{}”", f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default())),
+        Err(e) => app.toast(tr!("Could not save: {}", e)),
     }
 }
 
@@ -141,7 +141,7 @@ pub fn rename_accepted(app: &mut App, text: &str) {
             app.s.eq_preset = text;
             crate::prefs::publish_presets(app);
             app.s.save();
-            app.toast("Zapisano ustawienie korektora");
+            app.toast(tr!("Equalizer preset saved"));
         }
         RenameCtx::RadioUrl => crate::radio::add_url(app, &text),
         RenameCtx::Tmdb(path) => {
@@ -151,7 +151,7 @@ pub fn rename_accepted(app: &mut App, text: &str) {
             if app.cur.as_ref().is_some_and(|c| c.info.path == path) {
                 crate::display::show_track(app);
             }
-            app.toast(format!("Szukam w TMDB: „{text}”"));
+            app.toast(tr!("Searching TMDB: “{}”", text));
         }
         RenameCtx::NetFolder(kind) => crate::prefs::add_folder_path(app, kind, text),
         ctx @ (RenameCtx::SmartName(_) | RenameCtx::SmartQuery(_)) => {
@@ -215,7 +215,7 @@ pub fn open_tag_editor(app: &mut App, paths: Vec<String>) {
     let cover = meta::cover(Path::new(&paths[0])).and_then(|b| crate::covers::decode(&b, 300));
     if let Some(ui) = app.ui() {
         let u = ui.global::<Ui>();
-        u.set_tag_title(ss(if paths.len() == 1 { paths[0].clone() } else { format!("{} plików", paths.len()) }));
+        u.set_tag_title(ss(if paths.len() == 1 { paths[0].clone() } else { trn!("{n} file", "{n} files", paths.len()) }));
         u.set_tag_values(ModelRc::new(VecModel::from(values.iter().map(ss).collect::<Vec<_>>())));
         u.set_tag_mixed(ModelRc::new(VecModel::from(mixed)));
         u.set_tag_has_cover(cover.is_some());
@@ -226,7 +226,7 @@ pub fn open_tag_editor(app: &mut App, paths: Vec<String>) {
 }
 
 pub fn tag_pick_cover(app: &mut App) {
-    ask(app, |d| d.set_title("Okładka").add_filter("Obrazy", &["jpg", "jpeg", "png", "webp", "bmp"]).pick_file(), tag_cover_from);
+    ask(app, |d| d.set_title(tr!("Cover")).add_filter(tr!("Images"), &["jpg", "jpeg", "png", "webp", "bmp"]).pick_file(), tag_cover_from);
 }
 
 fn tag_cover_from(app: &mut App, f: std::path::PathBuf) {
@@ -304,9 +304,9 @@ pub fn tag_save(app: &mut App, v: Vec<String>) {
                     crate::display::show_track(app);
                 }
                 if errors.is_empty() {
-                    app.toast(format!("Zapisano tagi ({n})"));
+                    app.toast(tr!("Tags saved ({})", n));
                 } else {
-                    app.toast(format!("Błędy zapisu: {}", errors.join("; ")));
+                    app.toast(tr!("Save errors: {}", errors.join("; ")));
                 }
             });
         });
@@ -334,12 +334,12 @@ pub fn check_update(app: &mut App, manual: bool) {
                 }
                 Ok(_) => {
                     if manual {
-                        app.toast(format!("Masz najnowszą wersję ({})", openmp_core::version()));
+                        app.toast(tr!("You have the latest version ({})", openmp_core::version()));
                     }
                 }
                 Err(e) => {
                     if manual {
-                        app.toast(format!("Nie udało się sprawdzić aktualizacji: {e}"));
+                        app.toast(tr!("Could not check for updates: {}", e));
                     }
                 }
             });
@@ -351,7 +351,7 @@ pub fn update_install(app: &mut App) {
     let Some(rel) = app.update.clone() else { return };
     if let Some(ui) = app.ui() {
         ui.global::<Ui>().set_update_progress(0.0);
-        ui.global::<Ui>().set_update_status(ss("Pobieranie…"));
+        ui.global::<Ui>().set_update_status(ss(tr!("Downloading…")));
     }
     let weak = app.ui.clone();
     std::thread::spawn(move || {
@@ -368,17 +368,17 @@ pub fn update_install(app: &mut App) {
             later(move |app| match res {
                 Ok(path) => {
                     if let Some(ui) = app.ui() {
-                        ui.global::<Ui>().set_update_status(ss("Instalowanie – OpenMP uruchomi się ponownie."));
+                        ui.global::<Ui>().set_update_status(ss(tr!("Installing – OpenMP will restart.")));
                     }
                     match openmp_core::update::apply(&path) {
                         Ok(()) => crate::keys::quit(app),
-                        Err(e) => app.toast(format!("Nie udało się uruchomić instalatora: {e}")),
+                        Err(e) => app.toast(tr!("Could not start the installer: {}", e)),
                     }
                 }
                 Err(e) => {
                     if let Some(ui) = app.ui() {
                         ui.global::<Ui>().set_update_progress(-1.0);
-                        ui.global::<Ui>().set_update_status(ss(format!("Błąd: {e}")));
+                        ui.global::<Ui>().set_update_status(ss(tr!("Error: {}", e)));
                     }
                 }
             });

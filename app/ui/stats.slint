@@ -54,7 +54,7 @@ component TopList inherits VerticalLayout {
         height: 6px;
     }
     if root.items.length == 0: Text {
-        text: "Jeszcze nic tu nie ma";
+        text: @tr("Nothing here yet");
         color: Theme.text3;
         font-size: Theme.fs-sm;
     }
@@ -114,7 +114,7 @@ export component StatsView inherits Rectangle {
             padding: 24px;
             spacing: 22px;
             Text {
-                text: "Statystyki";
+                text: @tr("Statistics");
                 color: Theme.heading;
                 font-size: Theme.fs-lg * 1.4;
                 font-weight: 700;
@@ -134,7 +134,7 @@ export component StatsView inherits Rectangle {
                 HorizontalLayout {
                     spacing: 16px;
                     Text {
-                        text: "OSTATNIE 14 DNI";
+                        text: @tr("LAST 14 DAYS");
                         color: Theme.text3;
                         font-size: Theme.fs-xs;
                         font-weight: 700;
@@ -149,7 +149,7 @@ export component StatsView inherits Rectangle {
                         background: Theme.tint;
                     }
                     Text {
-                        text: "muzyka";
+                        text: @tr("music");
                         color: Theme.text3;
                         font-size: Theme.fs-xs;
                     }
@@ -161,7 +161,7 @@ export component StatsView inherits Rectangle {
                         background: Theme.tint.brighter(0.6).with-alpha(0.6);
                     }
                     Text {
-                        text: "filmy";
+                        text: @tr("movies");
                         color: Theme.text3;
                         font-size: Theme.fs-xs;
                     }
@@ -207,12 +207,12 @@ export component StatsView inherits Rectangle {
                 alignment: stretch;
                 TopList {
                     horizontal-stretch: 1;
-                    heading: "NAJCZĘŚCIEJ SŁUCHANE";
+                    heading: @tr("MOST PLAYED");
                     items: Lib.stat-tracks;
                 }
                 TopList {
                     horizontal-stretch: 1;
-                    heading: "WYKONAWCY";
+                    heading: @tr("ARTISTS");
                     items: Lib.stat-artists;
                 }
             }
@@ -221,12 +221,12 @@ export component StatsView inherits Rectangle {
                 alignment: stretch;
                 TopList {
                     horizontal-stretch: 1;
-                    heading: "FILMY – CZAS OGLĄDANIA";
+                    heading: @tr("MOVIES – WATCH TIME");
                     items: Lib.stat-videos;
                 }
                 TopList {
                     horizontal-stretch: 1;
-                    heading: "OSTATNIO ODTWARZANE";
+                    heading: @tr("RECENTLY PLAYED");
                     items: Lib.stat-history;
                     history: true;
                 }

@@ -540,7 +540,7 @@ export component Field inherits Rectangle {
         if root.clearable && root.text != "": IconBtn {
             y: (parent.height - self.height) / 2;
             icon: Icons.close;
-            tip: "Wyczyść";
+            tip: @tr("Clear");
             size: 22px;
             icon-size: 13px;
             clicked => {

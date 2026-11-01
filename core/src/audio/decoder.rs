@@ -71,7 +71,7 @@ impl Source {
             .tracks()
             .iter()
             .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
-            .ok_or("Brak ścieżki dźwiękowej")?;
+            .ok_or(crate::tr!("No audio track"))?;
         let params = track.codec_params.clone();
         let decoder = symphonia::default::get_codecs()
             .make(&params, &DecoderOptions::default())

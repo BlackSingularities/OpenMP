@@ -39,7 +39,7 @@ impl Info {
     pub fn credits(&self) -> String {
         let mut v = Vec::new();
         if !self.director.is_empty() {
-            v.push(format!("Reżyseria: {}", self.director));
+            v.push(crate::tr!("Directed by: {}", self.director));
         }
         if !self.cast.is_empty() {
             v.push(format!("Obsada: {}", self.cast));
@@ -57,7 +57,7 @@ impl Info {
             v.push(self.genres.clone());
         }
         if self.rating > 0.0 {
-            v.push(format!("★ {:.1}", self.rating).replace('.', ","));
+            v.push(crate::i18n::decimal(format!("★ {:.1}", self.rating)));
         }
         if self.runtime > 0 {
             v.push(if self.runtime >= 60 { format!("{} h {:02} min", self.runtime / 60, self.runtime % 60) } else { format!("{} min", self.runtime) });

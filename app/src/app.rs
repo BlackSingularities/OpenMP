@@ -306,39 +306,45 @@ fn osd_style(t: &str) -> (&'static str, f32) {
         let start = head.rfind(|c: char| !(c.is_ascii_digit() || c == '.' || c == ',')).map(|k| k + 1).unwrap_or(0);
         head[start..].replace(',', ".").parse().ok()
     };
-    if t.starts_with("Głośność") {
+    // Rodzaj komunikatu po początku tekstu – przetłumaczonym tak samo jak przy wywołaniu osd().
+    let is = |ids: &[&'static str]| {
+        ids.iter().any(|id| {
+            let s = openmp_core::i18n::tr(*id);
+            let head = s.split('{').next().unwrap_or(s).trim_end();
+            !head.is_empty() && t.starts_with(head)
+        })
+    };
+    if is(&["Volume {}%"]) {
         return ("volume", num('%').map(|v| v / 100.0).unwrap_or(-1.0));
     }
-    if t.starts_with("Wyciszono") {
+    if is(&["Muted"]) {
         return ("volume-off", -1.0);
     }
-    if t.starts_with("Dźwięk włączony") {
+    if is(&["Sound on"]) {
         return ("volume", -1.0);
     }
-    if t.starts_with("Prędkość") {
+    if is(&["Speed {}×"]) {
         return ("speed", num('×').map(|v| (v - 0.25) / 3.75).unwrap_or(-1.0));
     }
-    if t.starts_with("Powiększenie") {
+    if is(&["Zoom {}%"]) {
         return ("expand", num('%').map(|v| (v / 800.0).sqrt()).unwrap_or(-1.0));
     }
-    let icon = if t.starts_with("Zawsze na wierzchu") || t.starts_with("Zwykłe okno") {
+    let icon = if is(&["Always on top", "Normal window"]) {
         "pin"
-    } else if t.starts_with("Napisy") {
+    } else if is(&["Subtitles: {} ms", "Subtitles", "Subtitles downloaded"]) {
         "subtitles"
-    } else if t.starts_with("Dźwięk") {
+    } else if is(&["Audio: {} ms", "Audio track"]) {
         "audiotrack"
-    } else if t.starts_with("Obrót") || t.starts_with("Proporcje") || t.starts_with("Obraz") {
+    } else if is(&["Rotation {}°", "Aspect ratio: {}", "Picture as in file"]) {
         "aspect"
-    } else if t.starts_with("Zrzut") {
+    } else if is(&["Screenshot saved", "Screenshot (without subtitles) saved"]) {
         "camera"
-    } else if t.starts_with("Wznowiono") {
+    } else if is(&["Resumed from {}  ·  Home – from the start"]) {
         "history"
     } else if t.starts_with('+') || t.starts_with('−') || t.starts_with('-') {
         "forward"
-    } else if t.starts_with("Poświata") || t.starts_with("Usuwanie pasm") {
+    } else if is(&["Ambient glow on", "Ambient glow off", "Debanding: on", "Debanding: off"]) {
         "tune"
-    } else if t.starts_with("Widok") {
-        "movie"
     } else {
         "info"
     };

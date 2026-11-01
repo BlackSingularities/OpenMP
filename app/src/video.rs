@@ -554,7 +554,7 @@ pub fn leave_view(app: &mut App) {
     }
     leave_video(app);
     if app.s.video_leave == 1 && app.cur.as_ref().is_some_and(|c| c.video) {
-        app.toast("Film gra dalej jako dźwięk – kliknij okładkę, by wrócić do obrazu");
+        app.toast(tr!("The movie keeps playing as audio – click the cover to return to the picture"));
     }
 }
 
@@ -656,7 +656,7 @@ pub fn on_loaded(app: &mut App) {
         chapters
             .iter()
             .enumerate()
-            .map(|(i, (t, n))| Opt { id: ss(i.to_string()), label: ss(if n.is_empty() { format!("Rozdział {}", i + 1) } else { n.clone() }), sub: ss(meta::fmt_time(*t)), selected: false })
+            .map(|(i, (t, n))| Opt { id: ss(i.to_string()), label: ss(if n.is_empty() { tr!("Chapter {}", i + 1) } else { n.clone() }), sub: ss(meta::fmt_time(*t)), selected: false })
             .collect::<Vec<_>>(),
     )));
     if let Some(title) = m.get_str("media-title") {
@@ -686,7 +686,7 @@ pub fn on_loaded(app: &mut App) {
     // Wznowiony film – komunikat, skąd gra.
     let pos = m.get_f64("time-pos").unwrap_or(0.0);
     if is_video && pos > 10.0 && app.is_video_mode() {
-        app.osd(format!("Wznowiono od {}  ·  Home – od początku", meta::fmt_time(pos)));
+        app.osd(tr!("Resumed from {}  ·  Home – from the start", meta::fmt_time(pos)));
     }
     // Podgląd klatek – ten sam plik w drugim, niewidocznym odtwarzaczu.
     app.preview_file.clear();
@@ -700,15 +700,15 @@ fn publish_tracks(app: &App, tracks: &[openmp_core::mpv::TrackEntry]) {
     let Some(ui) = app.ui() else { return };
     let v = ui.global::<Video>();
     let mut audio: Vec<Opt> = Vec::new();
-    let mut subs: Vec<Opt> = vec![Opt { id: ss("no"), label: ss("Wyłączone"), sub: ss(""), selected: !tracks.iter().any(|t| t.kind == "sub" && t.selected) }];
+    let mut subs: Vec<Opt> = vec![Opt { id: ss("no"), label: ss(tr!("Off")), sub: ss(""), selected: !tracks.iter().any(|t| t.kind == "sub" && t.selected) }];
     for t in tracks {
-        let mut label = if t.title.is_empty() { format!("Ścieżka {}", t.id) } else { t.title.clone() };
+        let mut label = if t.title.is_empty() { tr!("Track {}", t.id) } else { t.title.clone() };
         if !t.lang.is_empty() {
             label = format!("{label} [{}]", t.lang);
         }
         let mut sub = t.codec.to_uppercase();
         if t.external {
-            sub.push_str(" · plik zewnętrzny");
+            sub.push_str(&format!(" · {}", tr!("external file")));
         }
         let o = Opt { id: ss(t.id.to_string()), label: ss(label), sub: ss(sub), selected: t.selected };
         match t.kind.as_str() {
@@ -751,12 +751,12 @@ fn info_line(app: &mut App) {
         badges.push(hdr.into());
     }
     if let Some(f) = m.get_f64("container-fps").filter(|f| *f > 0.0) {
-        let s = format!("{} kl./s", num(f, 3));
+        let s = tr!("{} fps", num(f, 3));
         badges.push(s.clone());
         parts.push(s);
     }
     if let Some(hw) = m.get_str("hwdec-current").filter(|h| !h.is_empty() && h != "no") {
-        parts.push(format!("sprzętowo ({hw})"));
+        parts.push(tr!("hardware ({})", hw));
     }
     if let Some(ui) = app.ui() {
         ui.global::<Video>().set_info(ss(parts.join("  ·  ")));
@@ -764,6 +764,11 @@ fn info_line(app: &mut App) {
             crate::display::set_badges(&ui.global::<Player>(), &badges);
         }
     }
+}
+
+/// Nazwy proporcji obrazu – w kolejności ustawienia `aspect`.
+pub fn aspect_names() -> [&'static str; 6] {
+    [tr!("automatic"), "16:9", "4:3", "21:9", tr!("stretched"), tr!("fill screen")]
 }
 
 /// Liczba z przecinkiem dziesiętnym, bez zbędnych zer na końcu.
@@ -783,9 +788,9 @@ fn stats(app: &mut App) {
         }
     };
     if let Some(c) = &app.cur {
-        add("Plik", std::path::Path::new(&c.info.path).file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| c.info.path.clone()));
+        add(tr!("File"), std::path::Path::new(&c.info.path).file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| c.info.path.clone()));
     }
-    add("Kontener", m.get_str("file-format").unwrap_or_default().to_uppercase());
+    add(tr!("Container"), m.get_str("file-format").unwrap_or_default().to_uppercase());
     if let (Some(w), Some(h)) = (m.get_i64("width"), m.get_i64("height")) {
         let mut s = format!("{w}×{h}");
         if let (Some(dw), Some(dh)) = (m.get_i64("dwidth"), m.get_i64("dheight")) {
@@ -793,43 +798,43 @@ fn stats(app: &mut App) {
                 s.push_str(&format!(" → {dw}×{dh}"));
             }
         }
-        add("Rozdzielczość", s);
+        add(tr!("Resolution"), s);
     }
-    add("Kodek obrazu", m.get_str("video-format").or_else(|| m.get_str("video-codec")).unwrap_or_default());
+    add(tr!("Video codec"), m.get_str("video-format").or_else(|| m.get_str("video-codec")).unwrap_or_default());
     let fps = m.get_f64("container-fps").unwrap_or(0.0);
     let real = m.get_f64("estimated-vf-fps").unwrap_or(0.0);
     if fps > 0.0 {
-        add("Klatki", format!("{} kl./s (wyświetlane {})", num(fps, 3), num(real, 2)));
+        add(tr!("Frames"), tr!("{} fps (displayed {})", num(fps, 3), num(real, 2)));
     }
-    add("Dekodowanie", match m.get_str("hwdec-current").filter(|h| !h.is_empty() && h != "no") {
-        Some(h) => format!("sprzętowe – {h}"),
-        None => "programowe (procesor)".into(),
+    add(tr!("Decoding"), match m.get_str("hwdec-current").filter(|h| !h.is_empty() && h != "no") {
+        Some(h) => tr!("hardware – {}", h),
+        None => tr!("software (CPU)").into(),
     });
     let prim = m.get_str("video-params/primaries").unwrap_or_default();
     let gamma = m.get_str("video-params/gamma").unwrap_or_default();
     if !prim.is_empty() {
-        add("Barwy", format!("{prim} · {gamma}"));
+        add(tr!("Colors"), format!("{prim} · {gamma}"));
     }
     let mbps = |b: f64| format!("{} Mb/s", num(b / 1e6, 2));
     if let Some(b) = m.get_f64("video-bitrate").filter(|b| *b > 0.0) {
-        add("Przepływność obrazu", mbps(b));
+        add(tr!("Video bitrate"), mbps(b));
     }
     let ac = m.get_str("audio-codec-name").unwrap_or_default().to_uppercase();
     let rate = m.get_i64("audio-params/samplerate").unwrap_or(0);
     let ch = m.get_i64("audio-params/channel-count").unwrap_or(0);
     if !ac.is_empty() {
-        add("Dźwięk", format!("{ac} · {} kHz · {ch} kan.", num(rate as f64 / 1000.0, 1)));
+        add(tr!("Audio"), format!("{ac} · {} kHz · {}", num(rate as f64 / 1000.0, 1), tr!("{} ch.", ch)));
     }
     if let Some(b) = m.get_f64("audio-bitrate").filter(|b| *b > 0.0) {
-        add("Przepływność dźwięku", format!("{:.0} kb/s", b / 1000.0));
+        add(tr!("Audio bitrate"), format!("{:.0} kb/s", b / 1000.0));
     }
     let drop = m.get_i64("frame-drop-count").unwrap_or(0) + m.get_i64("decoder-frame-drop-count").unwrap_or(0);
-    add("Pominięte klatki", drop.to_string());
+    add(tr!("Dropped frames"), drop.to_string());
     if let Some(c) = m.get_f64("demuxer-cache-duration") {
-        add("Bufor", format!("{} s", num(c, 1)));
+        add(tr!("Buffer"), format!("{} s", num(c, 1)));
     }
     if let Some(a) = m.get_f64("avsync") {
-        add("Synchronizacja A/V", format!("{:+.0} ms", a * 1000.0));
+        add(tr!("A/V sync"), format!("{:+.0} ms", a * 1000.0));
     }
     let rows: Vec<Opt> = v.into_iter().map(|(l, s)| Opt { id: ss(""), label: ss(l), sub: ss(s), selected: false }).collect();
     if let Some(ui) = app.ui() {
@@ -935,7 +940,7 @@ pub fn command(app: &mut App, id: &str) {
             if let Some(ui) = app.ui() {
                 ui.global::<Prefs>().set_ambient(app.s.ambient);
             }
-            app.osd(if app.s.ambient > 0 { "Poświata z obrazu włączona" } else { "Poświata z obrazu wyłączona" });
+            app.osd(if app.s.ambient > 0 { tr!("Ambient glow on") } else { tr!("Ambient glow off") });
             app.dirty = true;
         }
         "open-files" => crate::dialogs::open_files(app),
@@ -969,7 +974,7 @@ pub fn toggle_ontop(app: &mut App) {
     let on = !ui.global::<Video>().get_ontop();
     ui.global::<Video>().set_ontop(on);
     crate::win::set_ontop(app, on);
-    app.osd(if on { "Zawsze na wierzchu" } else { "Zwykłe okno" });
+    app.osd(if on { tr!("Always on top") } else { tr!("Normal window") });
 }
 
 pub fn screenshot(app: &mut App, with_subs: bool) {
@@ -978,7 +983,7 @@ pub fn screenshot(app: &mut App, with_subs: bool) {
         m.set("screenshot-directory", &app.s.screenshot_dir);
         m.command_async(&["screenshot", if with_subs { "subtitles" } else { "video" }]);
     }
-    app.osd(if with_subs { "Zrzut ekranu zapisany" } else { "Zrzut ekranu (bez napisów) zapisany" });
+    app.osd(if with_subs { tr!("Screenshot saved") } else { tr!("Screenshot (without subtitles) saved") });
 }
 
 pub fn ab_loop(app: &mut App) {
@@ -989,9 +994,9 @@ pub fn ab_loop(app: &mut App) {
         _ => (None, None),
     };
     let msg = match app.ab {
-        (Some(a), None) => format!("Pętla A-B: początek {}", meta::fmt_time(a)),
-        (Some(a), Some(b)) => format!("Pętla A-B: {} – {}", meta::fmt_time(a), meta::fmt_time(b)),
-        _ => "Pętla A-B wyłączona".into(),
+        (Some(a), None) => tr!("A-B loop: start {}", meta::fmt_time(a)),
+        (Some(a), Some(b)) => tr!("A-B loop: {} – {}", meta::fmt_time(a), meta::fmt_time(b)),
+        _ => tr!("A-B loop off").into(),
     };
     if let Some(ui) = app.ui() {
         let p = ui.global::<Player>();
@@ -1022,17 +1027,17 @@ pub fn set(app: &mut App, what: &str, v: f32) {
             let v = (v * 20.0).round() / 20.0;
             m.set_f64("speed", v as f64);
             vg.set_speed(v);
-            app.osd(format!("Prędkość {}×", format!("{v:.2}").trim_end_matches('0').trim_end_matches('.')));
+            app.osd(tr!("Speed {}×", openmp_core::i18n::decimal(format!("{v:.2}").trim_end_matches('0').trim_end_matches('.'))));
         }
         "sub-delay" => {
             m.set_f64("sub-delay", v as f64);
             vg.set_sub_delay(v);
-            app.osd(format!("Napisy: {:+} ms", (v * 1000.0).round()));
+            app.osd(tr!("Subtitles: {} ms", format!("{:+}", (v * 1000.0).round())));
         }
         "audio-delay" => {
             m.set_f64("audio-delay", v as f64);
             vg.set_audio_delay(v);
-            app.osd(format!("Dźwięk: {:+} ms", (v * 1000.0).round()));
+            app.osd(tr!("Audio: {} ms", format!("{:+}", (v * 1000.0).round())));
         }
         "sub-scale" => {
             m.set_f64("sub-scale", v as f64);
@@ -1052,7 +1057,7 @@ pub fn set(app: &mut App, what: &str, v: f32) {
             let z = v.clamp(-2.0, 3.0);
             m.set_f64("video-zoom", z as f64);
             vg.set_zoom(z);
-            app.osd(format!("Powiększenie {}%", (2f32.powf(z) * 100.0).round()));
+            app.osd(tr!("Zoom {}%", (2f32.powf(z) * 100.0).round()));
         }
         _ => {}
     }
@@ -1079,7 +1084,7 @@ pub fn rotate(app: &mut App) {
     if let Some(ui) = app.ui() {
         ui.global::<Video>().set_rotate(r);
     }
-    app.osd(format!("Obrót {r}°"));
+    app.osd(tr!("Rotation {}°", r));
 }
 
 /// Obraz jak w pliku: bez powiększenia, przesunięcia, obrotu i zmiany proporcji.
@@ -1095,7 +1100,7 @@ pub fn reset_view(app: &mut App) {
         v.set_rotate(0);
     }
     set_aspect(app, 0);
-    app.osd("Obraz jak w pliku");
+    app.osd(tr!("Picture as in file"));
 }
 
 pub fn toggle_deband(app: &mut App) {
@@ -1107,7 +1112,7 @@ pub fn toggle_deband(app: &mut App) {
         ui.global::<Prefs>().set_deband(app.s.deband);
         ui.global::<Video>().set_deband(app.s.deband);
     }
-    app.osd(if app.s.deband { "Usuwanie pasm: włączone" } else { "Usuwanie pasm: wyłączone" });
+    app.osd(if app.s.deband { tr!("Debanding: on") } else { tr!("Debanding: off") });
     app.dirty = true;
 }
 
@@ -1129,14 +1134,14 @@ pub fn set_aspect(app: &mut App, i: i32) {
 pub fn cycle_aspect(app: &mut App) {
     let i = (app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0) + 1) % 6;
     set_aspect(app, i);
-    app.osd(format!("Proporcje: {}", ["automatyczne", "16:9", "4:3", "21:9", "rozciągnięte", "wypełnij ekran"][i as usize]));
+    app.osd(tr!("Aspect ratio: {}", aspect_names()[i as usize]));
 }
 
 pub fn cycle_track(app: &mut App, kind: &str) {
     let Some(m) = &app.mpv else { return };
     m.command_async(&["cycle", kind]);
     let is_sub = kind == "sid";
-    let label = if is_sub { "Napisy" } else { "Ścieżka dźwiękowa" };
+    let label = if is_sub { tr!("Subtitles") } else { tr!("Audio track") };
     let m2 = m.clone();
     slint::Timer::single_shot(Duration::from_millis(150), move || {
         with(|app| {
@@ -1146,7 +1151,7 @@ pub fn cycle_track(app: &mut App, kind: &str) {
             let cur = tracks.into_iter().find(|t| t.selected && t.kind == if is_sub { "sub" } else { "audio" });
             let text = match cur {
                 Some(t) => format!("{label}: {}", if t.title.is_empty() { if t.lang.is_empty() { t.id.to_string() } else { t.lang } } else { t.title }),
-                None => format!("{label}: wyłączone"),
+                None => format!("{label}: {}", tr!("off")),
             };
             app.osd(text);
         });
@@ -1169,10 +1174,10 @@ pub fn goto_chapter(app: &mut App, id: &str) {
 pub fn fetch_sub(app: &mut App) {
     let Some(c) = app.cur.clone().filter(|c| c.video && !meta::is_url(&c.info.path)) else { return };
     if !openmp_core::opensubs::has_key() {
-        app.osd("Wpisz klucz OpenSubtitles w Ustawieniach → Biblioteka");
+        app.osd(tr!("Enter an OpenSubtitles key in Settings → Library"));
         return;
     }
-    app.osd("Szukam napisów…");
+    app.osd(tr!("Searching for subtitles…"));
     let path = c.info.path.clone();
     std::thread::spawn(move || {
         let res = openmp_core::opensubs::fetch(std::path::Path::new(&path), "pl");
@@ -1186,7 +1191,7 @@ pub fn fetch_sub(app: &mut App) {
                         app.sub_panel_id = 0;
                         crate::display::sub_panel_setup(app, &tracks);
                     }
-                    app.osd("Napisy pobrane");
+                    app.osd(tr!("Subtitles downloaded"));
                 }
                 Err(e) => app.osd(e),
             });
@@ -1199,7 +1204,7 @@ pub fn load_sub(app: &mut App) {
     crate::dialogs::ask(
         app,
         move |d| {
-            let mut d = d.set_title("Wczytaj napisy").add_filter("Napisy", openmp_core::meta::SUBTITLES);
+            let mut d = d.set_title(tr!("Load subtitles")).add_filter(tr!("Subtitles"), openmp_core::meta::SUBTITLES);
             if let Some(dir) = dir {
                 d = d.set_directory(dir);
             }
@@ -1371,10 +1376,10 @@ fn skip_tick(app: &mut App, pos: f64, dur: f64) {
             let n = app.chapters[i].1.to_lowercase();
             let has = |ks: &[&str]| ks.iter().any(|k| n.contains(k));
             if has(&["intro", "opening", "czołówk", "czolowk"]) || n == "op" {
-                text = "Pomiń czołówkę".into();
+                text = tr!("Skip intro").into();
                 to = app.chapters.get(i + 1).map(|c| c.0).unwrap_or(dur);
             } else if has(&["credits", "ending", "outro", "napisy końcowe", "napisy koncowe"]) || n == "ed" {
-                text = "Pomiń napisy końcowe".into();
+                text = tr!("Skip credits").into();
                 to = -1.0;
             }
         }

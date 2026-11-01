@@ -83,7 +83,7 @@ impl Exclusive {
                 let init = || -> Result<_, String> {
                     let dev = find_device(device.as_deref()).map_err(|e| e.to_string())?;
                     let mut client = dev.get_iaudioclient().map_err(|e| e.to_string())?;
-                    let (wf, fmt, rate) = negotiate(&client, want).ok_or("karta nie przyjmuje żadnego formatu stereo")?;
+                    let (wf, fmt, rate) = negotiate(&client, want).ok_or(crate::tr!("the sound card accepts no stereo format"))?;
                     let period = client.calculate_aligned_period_near(100_000, Some(128), &wf).map_err(|e| e.to_string())?;
                     client.initialize_client(&wf, &Direction::Render, &StreamMode::EventsExclusive { period_hns: period }).map_err(|e| e.to_string())?;
                     let ev = client.set_get_eventhandle().map_err(|e| e.to_string())?;
@@ -124,7 +124,7 @@ impl Exclusive {
                 };
                 fill(&mut tmp, &mut bytes, &mut fade);
                 if rc.write_to_device(frames, &bytes, None).is_err() || client.start_stream().is_err() {
-                    let _ = tx.send(Err("nie udało się uruchomić strumienia".into()));
+                    let _ = tx.send(Err(crate::tr!("could not start the stream").into()));
                     return;
                 }
                 let _ = tx.send(Ok((rate, bits)));
@@ -149,7 +149,7 @@ impl Exclusive {
                 let _ = thread.join();
                 Err(e)
             }
-            Err(_) => Err("wątek wyjścia zakończył się".into()),
+            Err(_) => Err(crate::tr!("the output thread has ended").into()),
         }
     }
 }

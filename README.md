@@ -51,6 +51,18 @@ cargo build --release -p openmp
 
 Do odtwarzania wideo obok `OpenMP.exe` musi leżeć `libmpv-2.dll` (np. z [mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake/releases), paczka `mpv-dev-x86_64`). Wydanie powstaje wyłącznie po wypchnięciu tagu `vX.Y.Z`. CI buduje wtedy program, instalator (Inno Setup) i wersję przenośną, liczy sumy SHA-256 i publikuje wydanie z numerem wersji z tagu.
 
+## Języki
+
+Interfejs jest po angielsku (język źródłowy) i po polsku; domyślnie program wybiera język Windows, a w Ustawieniach → Wygląd można go zmienić. Teksty w plikach Slint są oznaczone `@tr("…")`, a w kodzie Rust `tr!`, `trn!` (liczba mnoga) i `trc!` (kontekst). Wszystkie tłumaczenia jednego języka leżą w jednym pliku `lang/<kod>/LC_MESSAGES/openmp.po`.
+
+Nowy język:
+
+1. Skopiuj `lang/openmp.pot` do `lang/<kod>/LC_MESSAGES/openmp.po` (np. `lang/de/LC_MESSAGES/openmp.po`).
+2. W nagłówku wpisz `Language`, `X-Language-Name` (nazwa języka w nim samym, widoczna w ustawieniach) i `Plural-Forms`.
+3. Uzupełnij `msgstr` (np. w Poedit). Znaczniki `{}` i `{n}` muszą zostać.
+
+Program wbudowuje pliki `.po` przy kompilacji – nie trzeba zmieniać kodu. Jeśli język odmienia liczebniki inaczej niż angielski, dopisz jego regułę w `plural_rule` w `core/src/i18n.rs`.
+
 ## Licencja
 
 MIT. Wideo: [libmpv](https://mpv.io) (LGPL).

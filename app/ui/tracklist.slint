@@ -61,7 +61,7 @@ export component TrackList inherits Rectangle {
         init => { Ui.grid-cols = self.cols; }
         changed cols => { Ui.grid-cols = self.cols; }
         property <length> cell: (self.visible-width - 16px) / cols;
-        property <length> cell-h: cell + 44px;
+        property <length> cell-h: Prefs.caption-overlay ? cell : cell + 44px;
         content-height: ceil(root.rows.length / cols) * cell-h + 16px;
         // Prostokąt zaznaczenia (współrzędne treści): kotwica, bieżący punkt i ostatni zakres.
         property <bool> band-on;
@@ -127,7 +127,7 @@ export component TrackList inherits Rectangle {
                 background: r.selected ? Theme.sel : transparent;
                 border-width: r.selected ? 1px : 0;
                 border-color: Theme.tint.with-alpha(0.35);
-                Cover {
+                cov := Cover {
                     x: 5px;
                     y: gta.has-hover ? 1px : 5px;
                     animate y, drop-shadow-blur, drop-shadow-offset-y { duration: 180ms; easing: ease-out; }
@@ -140,6 +140,16 @@ export component TrackList inherits Rectangle {
                     drop-shadow-blur: r.playing || gta.has-hover ? 24px : 10px;
                     drop-shadow-offset-y: r.playing || gta.has-hover ? 8px : 3px;
                     drop-shadow-color: r.playing || gta.has-hover ? Theme.glow : #00000080;
+                }
+                // Podpisy na dole okładki (ustawienie) – na przyciemnieniu, żeby były czytelne.
+                if Prefs.caption-overlay: Rectangle {
+                    x: cov.x;
+                    y: cov.y + cov.height - self.height;
+                    width: cov.width;
+                    height: 52px;
+                    border-bottom-left-radius: cov.border-radius;
+                    border-bottom-right-radius: cov.border-radius;
+                    background: @linear-gradient(0deg, #000000d8 0%, #00000099 55%, #00000000 100%);
                 }
                 // Film: obejrzana część u dołu okładki i znacznik obejrzanego.
                 if r.video && r.progress > 0 && !r.watched: Rectangle {
@@ -157,8 +167,8 @@ export component TrackList inherits Rectangle {
                     }
                 }
                 if r.video && r.watched: Rectangle {
-                    x: 11px;
-                    y: parent.width - self.height - 12px;
+                    x: Prefs.caption-overlay ? parent.width - self.width - 11px : 11px;
+                    y: Prefs.caption-overlay ? 11px : parent.width - self.height - 12px;
                     height: 22px;
                     width: wtx.preferred-width + 30px;
                     border-radius: 11px;
@@ -173,7 +183,7 @@ export component TrackList inherits Rectangle {
                             fill: Theme.tint-hi;
                         }
                         wtx := Text {
-                            text: "Obejrzany";
+                            text: @tr("Watched");
                             color: #ffffffe0;
                             font-size: 10px;
                             vertical-alignment: center;
@@ -225,7 +235,7 @@ export component TrackList inherits Rectangle {
                             fill: Theme.tint-hi;
                         }
                         qtx := Text {
-                            text: "W kolejce";
+                            text: @tr("Queued");
                             color: #ffffffe0;
                             font-size: 10px;
                             vertical-alignment: center;
@@ -233,21 +243,21 @@ export component TrackList inherits Rectangle {
                     }
                 }
                 Text {
-                    x: 8px;
-                    y: parent.width + 1px;
-                    width: parent.width - 16px;
+                    x: Prefs.caption-overlay ? cov.x + 8px : 8px;
+                    y: Prefs.caption-overlay ? cov.y + cov.height - 40px : parent.width + 1px;
+                    width: Prefs.caption-overlay ? cov.width - 16px : parent.width - 16px;
                     text: r.title;
-                    color: r.missing ? Theme.text3 : r.playing ? Theme.tint-hi : Theme.text;
+                    color: Prefs.caption-overlay ? (r.playing ? Theme.tint-hi : #ffffff) : r.missing ? Theme.text3 : r.playing ? Theme.tint-hi : Theme.text;
                     font-size: Theme.fs;
                     font-weight: 600;
                     overflow: elide;
                 }
                 Text {
-                    x: 8px;
-                    y: parent.width + 18px;
-                    width: parent.width - 16px;
+                    x: Prefs.caption-overlay ? cov.x + 8px : 8px;
+                    y: Prefs.caption-overlay ? cov.y + cov.height - 22px : parent.width + 18px;
+                    width: Prefs.caption-overlay ? cov.width - 16px : parent.width - 16px;
                     text: r.artist + (r.dur != "" ? "  ·  " + r.dur : "");
-                    color: Theme.text3;
+                    color: Prefs.caption-overlay ? #ffffffb8 : Theme.text3;
                     font-size: Theme.fs-sm;
                     overflow: elide;
                 }

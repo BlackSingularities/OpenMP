@@ -298,6 +298,9 @@ export global Video {
 
 // Ustawienia (lustro settings.json).
 export global Prefs {
+    // Języki interfejsu: „Systemowy” i dostępne katalogi; wybrany indeks.
+    in-out property <[string]> languages;
+    in-out property <int> language;
     in-out property <bool> dark: true;
     in-out property <string> accent: "#4f8cff";
     in-out property <bool> accent-from-cover: true;
@@ -338,6 +341,8 @@ export global Prefs {
     in-out property <bool> compact-ui;
     in-out property <bool> track-grid;
     in-out property <float> grid-size: 160;
+    // Tytuł i podtytuł na dole okładki zamiast pod nią.
+    in-out property <bool> caption-overlay;
     // Jeden suwak widoku: skrajnie po lewej lista, dalej okładki coraz większe.
     out property <float> view-size: track-grid ? grid-size : 90;
     public function set-view(v: float) {

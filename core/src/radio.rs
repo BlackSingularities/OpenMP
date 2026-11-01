@@ -41,11 +41,21 @@ fn enc(s: &str) -> String {
         .collect()
 }
 
-/// `source`: 0 – Polska, 1 – świat; `query` – nazwa albo gatunek (puste = najpopularniejsze).
+static COUNTRY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+/// Kraj stacji „z mojego kraju” – kod ISO z ustawień regionalnych (np. „PL”); domyślnie Polska.
+pub fn set_country(code: &str) {
+    let c = code.trim().to_ascii_uppercase();
+    if c.len() == 2 && c.chars().all(|c| c.is_ascii_alphabetic()) {
+        let _ = COUNTRY.set(c);
+    }
+}
+
+/// `source`: 0 – mój kraj, 1 – świat; `query` – nazwa albo gatunek (puste = najpopularniejsze).
 pub fn fetch(source: i32, query: &str) -> Result<Vec<Station>, String> {
     let mut params = String::from("order=clickcount&reverse=true&hidebroken=true&limit=250");
     if source == 0 {
-        params.push_str("&countrycode=PL");
+        params.push_str(&format!("&countrycode={}", COUNTRY.get().map(String::as_str).unwrap_or("PL")));
     }
     let q = query.trim();
     let mut last = String::new();

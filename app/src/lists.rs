@@ -79,7 +79,7 @@ pub fn with_progress(r: &mut TrackRow, t: &TrackInfo, st: &openmp_core::library:
     }
     // Serial: sezon i odcinek pod tytułem.
     if let Some((s, e)) = Path::new(&t.path).file_stem().and_then(|n| episode(&n.to_string_lossy())) {
-        r.artist = ss(format!("Sezon {s} · Odcinek {e}"));
+        r.artist = ss(tr!("Season {} · Episode {}", s, e));
     }
     r.watched = st.watched;
     if st.resume > 0.0 && t.duration > 0.0 {
@@ -179,7 +179,7 @@ pub fn rebuild(app: &mut App) {
                     if !t.genre.is_empty() {
                         sub.push(t.genre.clone());
                     }
-                    sub.push(format!("{n} utw."));
+                    sub.push(trn!("{n} track", "{n} tracks", n));
                     sub.push(meta::fmt_total(dur));
                     let cover = crate::covers::get(&t.path);
                     rows.push(TrackRow {
@@ -216,31 +216,20 @@ pub fn rebuild(app: &mut App) {
     }
     app.m.rows.set_vec(rows);
     let total = list.total();
-    let mut summary = format!("{} {}", list.items.len(), plural(list.items.len(), "pozycja", "pozycje", "pozycji"));
+    let mut summary = trn!("{n} item", "{n} items", list.items.len());
     if total > 0.0 {
         summary.push_str(&format!("  ·  {}", meta::fmt_total(total)));
     }
     if !app.sel.is_empty() {
         let sd: f64 = app.sel.iter().filter_map(|&i| list.items.get(i)).map(|t| t.duration).sum();
-        summary.push_str(&format!("  ·  zaznaczono {} ({})", app.sel.len(), meta::fmt_total(sd)));
+        summary.push_str(&format!("  ·  {}", tr!("selected {} ({})", app.sel.len(), meta::fmt_total(sd))));
     }
     if !words.is_empty() {
-        summary.push_str(&format!("  ·  pasuje {}", app.row_of.len()));
+        summary.push_str(&format!("  ·  {}", tr!("matching {}", app.row_of.len())));
     }
     ui.global::<Lists>().set_summary(ss(summary));
     ui.global::<Lists>().set_grouped(grouped);
     update_queue_panel(app);
-}
-
-pub fn plural(n: usize, one: &str, few: &str, many: &str) -> String {
-    let (d, h) = (n % 10, n % 100);
-    if n == 1 {
-        one.into()
-    } else if (2..=4).contains(&d) && !(12..=14).contains(&h) {
-        few.into()
-    } else {
-        many.into()
-    }
 }
 
 pub fn rebuild_tabs(app: &mut App) {
@@ -248,7 +237,7 @@ pub fn rebuild_tabs(app: &mut App) {
         .store
         .lists
         .iter()
-        .map(|l| TabItem { label: ss(&l.name), count: ss(if l.items.is_empty() { String::new() } else { l.items.len().to_string() }) })
+        .map(|l| TabItem { label: ss(display_name(&l.name)), count: ss(if l.items.is_empty() { String::new() } else { l.items.len().to_string() }) })
         .collect();
     app.m.tabs.set_vec(tabs);
     if let Some(ui) = app.ui() {
@@ -388,14 +377,14 @@ fn update_summary_only(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     let li = app.store.active;
     let Some(list) = app.store.lists.get(li) else { return };
-    let mut s = format!("{} {}", list.items.len(), plural(list.items.len(), "pozycja", "pozycje", "pozycji"));
+    let mut s = trn!("{n} item", "{n} items", list.items.len());
     let total = list.total();
     if total > 0.0 {
         s.push_str(&format!("  ·  {}", meta::fmt_total(total)));
     }
     if !app.sel.is_empty() {
         let sd: f64 = app.sel.iter().filter_map(|&i| list.items.get(i)).map(|t| t.duration).sum();
-        s.push_str(&format!("  ·  zaznaczono {} ({})", app.sel.len(), meta::fmt_total(sd)));
+        s.push_str(&format!("  ·  {}", tr!("selected {} ({})", app.sel.len(), meta::fmt_total(sd))));
     }
     ui.global::<Lists>().set_summary(ss(s));
 }
@@ -412,8 +401,17 @@ pub fn selected_tracks(app: &App) -> Vec<TrackInfo> {
     selected_sorted(app).into_iter().filter_map(|i| list.items.get(i).cloned()).collect()
 }
 
-/// Nazwa karty bieżącego odtwarzania.
+/// Nazwa karty bieżącego odtwarzania w zapisanych listach (identyfikator – na ekranie tłumaczona).
 pub const QUEUE_NAME: &str = "Kolejka";
+
+/// Nazwa listy do wyświetlenia.
+pub fn display_name(name: &str) -> &str {
+    if name == QUEUE_NAME {
+        tr!("Queue")
+    } else {
+        name
+    }
+}
 
 /// Karta „Kolejka” – bieżące odtwarzanie: tu trafia to, co gramy z biblioteki, otwarte pliki
 /// i pozycje dodane do kolejki. Dawne karty „Biblioteka”/„Wideo”/„Domyślna” stają się kolejką.
@@ -626,12 +624,12 @@ pub fn command(app: &mut App, id: &str) {
                 for (n, &i) in idx.iter().enumerate() {
                     app.queue.insert(n, (qlist, i));
                 }
-                app.toast("Zagra jako następne");
+                app.toast(tr!("Will play next"));
             } else {
                 for &i in &idx {
                     app.queue.push((qlist, i));
                 }
-                app.toast(format!("W kolejce: {}", app.queue.len()));
+                app.toast(tr!("In queue: {}", app.queue.len()));
             }
             if qlist != list {
                 rebuild(app);
@@ -692,7 +690,7 @@ pub fn command(app: &mut App, id: &str) {
                 app.stats.entry(&t.path).rating = n;
             }
             app.dirty = true;
-            app.toast(if n == 0 { "Ocena usunięta".to_string() } else { format!("Ocena: {}", stars(n)) });
+            app.toast(if n == 0 { tr!("Rating removed").to_string() } else { tr!("Rating: {}", stars(n)) });
             rebuild(app);
             if let Some(c) = &app.cur {
                 let f = app.stats.get(&c.info.path).rating >= 5;
@@ -718,7 +716,7 @@ pub fn command(app: &mut App, id: &str) {
         }
         "new-from-sel" => {
             let tracks = selected_tracks(app);
-            let id = create_list(app, &format!("Lista {}", app.store.lists.len() + 1));
+            let id = create_list(app, &tr!("List {}", app.store.lists.len() + 1));
             if let Some(li) = app.list_index(id) {
                 app.store.lists[li].items = tracks;
             }
@@ -739,45 +737,45 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
     let tracks = selected_tracks(app);
     let all_fav = !tracks.is_empty() && tracks.iter().all(|t| app.stats.get(&t.path).rating >= 5);
     let items = vec![
-        crate::menu::item("play", "Odtwórz", "play", "Enter"),
-        crate::menu::item("play-next", "Odtwórz jako następne", "queue", ""),
-        crate::menu::item("enqueue", "Dodaj do kolejki", "add", "Q"),
+        crate::menu::item("play", tr!("Play"), "play", "Enter"),
+        crate::menu::item("play-next", tr!("Play next"), "queue", ""),
+        crate::menu::item("enqueue", tr!("Add to queue"), "add", "Q"),
         crate::menu::sep(),
-        crate::menu::item("fav", if all_fav { "Usuń z ulubionych" } else { "Dodaj do ulubionych" }, "heart", "Ctrl+D"),
-        crate::menu::item_en("tags", if n > 1 { "Edytuj tagi zaznaczonych…" } else { "Edytuj tagi…" }, "edit", "F2", n > 0),
-        crate::menu::item("info", "Informacje o utworze", "info", "Ctrl+I"),
-        crate::menu::item("explorer", "Pokaż w Eksploratorze", "folder-open", ""),
+        crate::menu::item("fav", if all_fav { tr!("Remove from favorites") } else { tr!("Add to favorites") }, "heart", "Ctrl+D"),
+        crate::menu::item_en("tags", if n > 1 { tr!("Edit tags of selected…") } else { tr!("Edit tags…") }, "edit", "F2", n > 0),
+        crate::menu::item("info", tr!("Track info"), "info", "Ctrl+I"),
+        crate::menu::item("explorer", tr!("Show in Explorer"), "folder-open", ""),
         crate::menu::sep(),
-        crate::menu::item("new-from-sel", "Nowa lista z zaznaczonych", "playlist", ""),
-        crate::menu::item("remove", "Usuń z listy", "delete", "Del"),
-        crate::menu::item("crop", "Zostaw tylko zaznaczone", "delete", ""),
+        crate::menu::item("new-from-sel", tr!("New list from selection"), "playlist", ""),
+        crate::menu::item("remove", tr!("Remove from list"), "delete", "Del"),
+        crate::menu::item("crop", tr!("Keep only selected"), "delete", ""),
         crate::menu::sep(),
-        crate::menu::item("sort-album", "Sortuj: wykonawca, album, numer", "sort", ""),
-        crate::menu::item("sort-title", "Sortuj: tytuł", "sort", ""),
-        crate::menu::item("sort-artist", "Sortuj: wykonawca", "sort", ""),
-        crate::menu::item("sort-duration", "Sortuj: długość", "sort", ""),
-        crate::menu::item("sort-path", "Sortuj: ścieżka pliku", "sort", ""),
-        crate::menu::item("reverse", "Odwróć kolejność", "sort", ""),
-        crate::menu::item("randomize", "Wymieszaj listę", "shuffle", ""),
+        crate::menu::item("sort-album", tr!("Sort: artist, album, number"), "sort", ""),
+        crate::menu::item("sort-title", tr!("Sort: title"), "sort", ""),
+        crate::menu::item("sort-artist", tr!("Sort: artist"), "sort", ""),
+        crate::menu::item("sort-duration", tr!("Sort: length"), "sort", ""),
+        crate::menu::item("sort-path", tr!("Sort: file path"), "sort", ""),
+        crate::menu::item("reverse", tr!("Reverse order"), "sort", ""),
+        crate::menu::item("randomize", tr!("Shuffle list"), "shuffle", ""),
         crate::menu::sep(),
-        crate::menu::item("dedupe", "Usuń duplikaty", "delete", ""),
-        crate::menu::item("missing", "Usuń nieistniejące pliki", "delete", ""),
+        crate::menu::item("dedupe", tr!("Remove duplicates"), "delete", ""),
+        crate::menu::item("missing", tr!("Remove missing files"), "delete", ""),
     ];
     crate::menu::open(app, MenuCtx::List, items, x, y);
 }
 
 pub fn tab_menu(app: &mut App, i: usize, x: f32, y: f32) {
     if x < 0.0 {
-        crate::dialogs::rename(app, RenameCtx::Tab(i), "Nazwa listy", &app.store.lists[i].name.clone());
+        crate::dialogs::rename(app, RenameCtx::Tab(i), tr!("List name"), &app.store.lists[i].name.clone());
         return;
     }
     let items = vec![
-        crate::menu::item("tab-rename", "Zmień nazwę…", "edit", ""),
-        crate::menu::item("tab-export", "Zapisz jako M3U8…", "download", "Ctrl+S"),
-        crate::menu::item("tab-import", "Importuj listę do tej karty…", "file", ""),
+        crate::menu::item("tab-rename", tr!("Rename…"), "edit", ""),
+        crate::menu::item("tab-export", tr!("Save as M3U8…"), "download", "Ctrl+S"),
+        crate::menu::item("tab-import", tr!("Import a playlist into this tab…"), "file", ""),
         crate::menu::sep(),
-        crate::menu::item("tab-clear", "Wyczyść listę", "delete", ""),
-        crate::menu::item("tab-close", "Zamknij kartę", "close", ""),
+        crate::menu::item("tab-clear", tr!("Clear list"), "delete", ""),
+        crate::menu::item("tab-close", tr!("Close tab"), "close", ""),
     ];
     crate::menu::open(app, MenuCtx::Tab(i), items, x, y);
 }
@@ -786,7 +784,7 @@ pub fn tab_command(app: &mut App, i: usize, id: &str) {
     match id {
         "tab-rename" => {
             let name = app.store.lists.get(i).map(|l| l.name.clone()).unwrap_or_default();
-            crate::dialogs::rename(app, RenameCtx::Tab(i), "Nazwa listy", &name);
+            crate::dialogs::rename(app, RenameCtx::Tab(i), tr!("List name"), &name);
         }
         "tab-export" => {
             switch_tab(app, i);
