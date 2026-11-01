@@ -997,6 +997,8 @@ pub fn select(app: &mut App, kind: &str, id: &str) {
     let Some(m) = app.mpv.clone() else { return };
     m.set(kind, id);
     publish_tracks(app, &m.tracks());
+    // Wybór zapamiętany dla filmu od razu (nie dopiero przy pauzie czy zamknięciu).
+    crate::player::save_resume(app);
 }
 
 pub fn set(app: &mut App, what: &str, v: f32) {
@@ -1128,6 +1130,7 @@ pub fn cycle_track(app: &mut App, kind: &str) {
         with(|app| {
             let tracks = m2.tracks();
             publish_tracks(app, &tracks);
+            crate::player::save_resume(app);
             let cur = tracks.into_iter().find(|t| t.selected && t.kind == if is_sub { "sub" } else { "audio" });
             let text = match cur {
                 Some(t) => format!("{label}: {}", if t.title.is_empty() { if t.lang.is_empty() { t.id.to_string() } else { t.lang } } else { t.title }),
