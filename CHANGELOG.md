@@ -2,6 +2,7 @@
 
 ## 1.6.2
 
+- **Podcasty** (panel biblioteki → Podcasty → Dodaj podcast…): subskrypcja z adresu kanału RSS, lista odcinków z datą i długością, odtwarzanie jak strumień; prawy przycisk – sprawdzenie nowych odcinków albo usunięcie subskrypcji.
 - **Własne skróty klawiszowe** (Ustawienia → Skróty klawiszowe): 20 akcji – odtwarzanie, przewijanie, głośność, losowo, powtarzanie, ulubione, kolejka, korektor, pełny ekran, miniodtwarzacz i inne. Kliknij pole i naciśnij kombinację; Backspace usuwa. Własne skróty mają pierwszeństwo przed domyślnymi.
 
 ## 1.6.1

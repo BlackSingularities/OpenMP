@@ -162,6 +162,8 @@ pub struct Settings {
     pub tray: bool,
     /// Własne skróty: (kombinacja, np. „Ctrl+Shift+K”, id akcji) – mają pierwszeństwo przed domyślnymi.
     pub custom_keys: Vec<(String, String)>,
+    /// Subskrybowane podcasty: (adres kanału RSS, tytuł).
+    pub podcasts: Vec<(String, String)>,
     pub media_keys: bool,
     /// Globalne skróty Ctrl+Alt+Spacja/strzałki.
     pub global_hotkeys: bool,
@@ -285,6 +287,7 @@ impl Default for Settings {
             single_instance: true,
             tray: false,
             custom_keys: Vec::new(),
+            podcasts: Vec::new(),
             media_keys: true,
             global_hotkeys: true,
             prevent_sleep: true,

@@ -73,6 +73,11 @@ pub fn rebuild_nav(app: &mut App) {
             v.push(nav(&format!("smart:{i}"), name, "playlist", String::new()));
         }
     }
+    v.push(section("sec-podcasts", tr!("PODCASTS")));
+    for (i, (_, title)) in app.s.podcasts.iter().enumerate() {
+        v.push(nav(&format!("pod:{i}"), title, "radio", String::new()));
+    }
+    v.push(nav("pod-add", tr!("Add podcast…"), "add", String::new()));
     // Foldery biblioteki (także udziały sieciowe) – skrót do całej zawartości folderu.
     v.push(section("sec-folders", tr!("FOLDERS")));
     let roots: Vec<String> = app.s.library_folders.iter().chain(app.s.video_folders.iter()).cloned().collect();
@@ -166,6 +171,10 @@ pub fn nav_clicked(app: &mut App, id: &str) {
         l.set_view(0);
         return;
     }
+    if id == "pod-add" {
+        crate::dialogs::rename(app, RenameCtx::Podcast, tr!("Podcast feed address (RSS)"), "https://");
+        return;
+    }
     if id == "stats" {
         l.set_view(3);
         crate::statsview::show(app);
@@ -193,6 +202,15 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
         return;
     }
     if id.starts_with("sec-") || id == "playlist" {
+        return;
+    }
+    if id.starts_with("pod:") {
+        let items = vec![
+            crate::menu::item("pod-refresh", tr!("Check for new episodes"), "refresh", ""),
+            crate::menu::sep(),
+            crate::menu::item("pod-del", tr!("Unsubscribe"), "delete", ""),
+        ];
+        crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
         return;
     }
     if id.starts_with("smart:") {
@@ -230,6 +248,19 @@ pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
                     app.dirty = true;
                     rebuild_nav(app);
                 }
+            }
+        }
+        "pod-refresh" | "pod-del" => {
+            let Some(i) = id.strip_prefix("pod:").and_then(|s| s.parse::<usize>().ok()) else { return };
+            let Some((url, _)) = app.s.podcasts.get(i).cloned() else { return };
+            app.podcasts.remove(&url);
+            if cmd == "pod-del" {
+                app.s.podcasts.remove(i);
+                app.s.save();
+                rebuild_nav(app);
+            }
+            if app.libv.kind.starts_with("pod:") {
+                show(app);
             }
         }
         "rescan" => start_scan(app),
@@ -469,6 +500,26 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
                 show_dir(app, &src, &root, video);
             }
         }
+        k if k.starts_with("pod:") => {
+            let Some((url, title)) = k[4..].parse::<usize>().ok().and_then(|i| app.s.podcasts.get(i).cloned()) else {
+                set_tracks(app, Vec::new());
+                return;
+            };
+            l.set_title(ss(&title));
+            match app.podcasts.get(&url).cloned() {
+                Some(eps) => {
+                    l.set_subtitle(ss(trn!("{n} episode", "{n} episodes", eps.len())));
+                    l.set_empty_text(ss(tr!("No episodes – the feed could not be loaded or is empty.")));
+                    set_tracks(app, eps);
+                }
+                None => {
+                    l.set_subtitle(ss(tr!("Loading episodes…")));
+                    l.set_empty_text(ss(tr!("Loading episodes…")));
+                    set_tracks(app, Vec::new());
+                    fetch_podcast(url, false);
+                }
+            }
+        }
         k if k.starts_with("smart:") => {
             let Some((name, query)) = k[6..].parse::<usize>().ok().and_then(|i| app.s.smart_lists.get(i).cloned()) else {
                 set_tracks(app, Vec::new());
@@ -522,6 +573,67 @@ fn show_dir(app: &mut App, source: &[TrackInfo], dir: &str, _video: bool) {
 
 /// Znacznik grupy plików leżących wprost w otwartym folderze (nie nazwa do wyświetlenia).
 const FILES_HERE: &str = "\u{1}files-here";
+
+/// Odcinki kanału jako pozycje listy (adres pliku – odtwarzany jak strumień).
+fn episodes(feed: &openmp_core::podcast::Feed) -> Vec<TrackInfo> {
+    feed.episodes
+        .iter()
+        .map(|e| TrackInfo {
+            path: e.url.clone(),
+            title: e.title.clone(),
+            artist: feed.title.clone(),
+            album: e.date.clone(),
+            duration: e.duration,
+            ..Default::default()
+        })
+        .collect()
+}
+
+/// Pobranie kanału w tle; `subscribe` – nowa subskrypcja (zapis i przejście do niej).
+fn fetch_podcast(url: String, subscribe: bool) {
+    std::thread::spawn(move || {
+        let r = openmp_core::podcast::fetch(&url);
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| match r {
+                Ok(feed) => {
+                    let title = if feed.title.trim().is_empty() { url.clone() } else { feed.title.trim().to_string() };
+                    app.podcasts.insert(url.clone(), episodes(&feed));
+                    if subscribe {
+                        if !app.s.podcasts.iter().any(|(u, _)| *u == url) {
+                            app.s.podcasts.push((url.clone(), title.clone()));
+                            app.s.save();
+                        }
+                        rebuild_nav(app);
+                        let i = app.s.podcasts.iter().position(|(u, _)| *u == url).unwrap_or(0);
+                        nav_clicked(app, &format!("pod:{i}"));
+                        app.toast(tr!("Subscribed to “{}”", title));
+                    } else if app.libv.kind.starts_with("pod:") {
+                        show(app);
+                    }
+                }
+                Err(e) => {
+                    if !subscribe {
+                        app.podcasts.insert(url.clone(), Vec::new());
+                        if app.libv.kind.starts_with("pod:") {
+                            show(app);
+                        }
+                    }
+                    app.toast(tr!("Could not load the podcast: {}", e));
+                }
+            });
+        });
+    });
+}
+
+/// Nowa subskrypcja z adresu kanału RSS (sprawdzana pobraniem).
+pub fn add_podcast(app: &mut App, url: String) {
+    let url = url.trim().to_string();
+    if !(url.starts_with("http://") || url.starts_with("https://")) || url.len() < 12 {
+        return;
+    }
+    app.toast(tr!("Loading the podcast…"));
+    fetch_podcast(url, true);
+}
 
 /// Klucz duplikatu: wykonawca i tytuł bez wielkości liter, znaków i dopisków w nawiasach
 /// („(Remastered)”, „[Live]”), oraz długość w sekundach.

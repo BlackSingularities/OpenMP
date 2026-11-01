@@ -13,6 +13,7 @@ pub mod mpv;
 pub mod opensubs;
 pub mod paths;
 pub mod playlist;
+pub mod podcast;
 pub mod radio;
 pub mod settings;
 pub mod tmdb;

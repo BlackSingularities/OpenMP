@@ -75,6 +75,8 @@ pub enum RenameCtx {
     /// Inteligentna lista: nazwa albo zapytanie.
     SmartName(usize),
     SmartQuery(usize),
+    /// Adres kanału RSS nowego podcastu.
+    Podcast,
 }
 
 #[derive(Clone, Debug)]
@@ -186,6 +188,8 @@ pub struct App {
     pub last_save: Instant,
     pub last_smtc: Instant,
     pub stations: Vec<Station>,
+    /// Odcinki pobranych kanałów podcastów (adres kanału → odcinki), na czas działania programu.
+    pub podcasts: std::collections::HashMap<String, Vec<TrackInfo>>,
     pub saved_stations: Vec<Station>,
     pub update: Option<openmp_core::update::Release>,
     pub cover_bytes: Option<Vec<u8>>,

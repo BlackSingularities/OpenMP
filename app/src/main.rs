@@ -197,6 +197,7 @@ fn main() {
         last_save: Instant::now(),
         last_smtc: Instant::now(),
         stations: Vec::new(),
+        podcasts: Default::default(),
         saved_stations: openmp_core::radio::load_saved(),
         update: None,
         cover_bytes: None,

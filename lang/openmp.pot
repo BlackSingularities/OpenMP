@@ -213,7 +213,7 @@ msgstr ""
 msgid "Subtitles"
 msgstr ""
 
-#: app/ui/dialogs.slint:520 app/ui/dialogs.slint:1500 app/src/libview.rs:279
+#: app/ui/dialogs.slint:520 app/ui/dialogs.slint:1500 app/src/libview.rs:310
 msgid "Library"
 msgstr ""
 
@@ -1340,7 +1340,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: app/ui/dialogs.slint:1840 app/ui/views.slint:654 app/src/libview.rs:833 app/src/libview.rs:978 app/src/lists.rs:740 app/src/menu.rs:157
+#: app/ui/dialogs.slint:1840 app/ui/views.slint:654 app/src/libview.rs:945 app/src/libview.rs:1090 app/src/lists.rs:740 app/src/menu.rs:157
 msgid "Play"
 msgstr ""
 
@@ -1641,7 +1641,7 @@ msgstr ""
 msgid "Queued"
 msgstr ""
 
-#: app/ui/video.slint:164 app/ui/video.slint:193 app/ui/views.slint:267 app/src/dialogs.rs:88 app/src/libview.rs:850
+#: app/ui/video.slint:164 app/ui/video.slint:193 app/ui/views.slint:267 app/src/dialogs.rs:88 app/src/libview.rs:962
 msgid "List"
 msgstr ""
 
@@ -1922,7 +1922,7 @@ msgstr ""
 msgid "Back (Backspace)"
 msgstr ""
 
-#: app/ui/views.slint:662 app/src/libview.rs:834
+#: app/ui/views.slint:662 app/src/libview.rs:946
 msgid "Shuffle play"
 msgstr ""
 
@@ -1934,7 +1934,7 @@ msgstr ""
 msgid "Search the library"
 msgstr ""
 
-#: app/ui/views.slint:690 app/src/libview.rs:209
+#: app/ui/views.slint:690 app/src/libview.rs:227
 msgid "Refresh library"
 msgstr ""
 
@@ -2094,53 +2094,53 @@ msgstr ""
 msgid "Equalizer preset saved"
 msgstr ""
 
-#: app/src/dialogs.rs:154
+#: app/src/dialogs.rs:155
 msgid "Searching TMDB: “{}”"
 msgstr ""
 
-#: app/src/dialogs.rs:218 app/src/prefs.rs:722
+#: app/src/dialogs.rs:219 app/src/prefs.rs:722
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/dialogs.rs:229
+#: app/src/dialogs.rs:230
 msgid "Cover"
 msgstr ""
 
-#: app/src/dialogs.rs:229
+#: app/src/dialogs.rs:230
 msgid "Images"
 msgstr ""
 
-#: app/src/dialogs.rs:307
+#: app/src/dialogs.rs:308
 msgid "Tags saved ({})"
 msgstr ""
 
-#: app/src/dialogs.rs:309
+#: app/src/dialogs.rs:310
 msgid "Save errors: {}"
 msgstr ""
 
-#: app/src/dialogs.rs:337
+#: app/src/dialogs.rs:338
 msgid "You have the latest version ({})"
 msgstr ""
 
-#: app/src/dialogs.rs:342
+#: app/src/dialogs.rs:343
 msgid "Could not check for updates: {}"
 msgstr ""
 
-#: app/src/dialogs.rs:354
+#: app/src/dialogs.rs:355
 msgid "Downloading…"
 msgstr ""
 
-#: app/src/dialogs.rs:371
+#: app/src/dialogs.rs:372
 msgid "Installing – OpenMP will restart."
 msgstr ""
 
-#: app/src/dialogs.rs:375
+#: app/src/dialogs.rs:376
 msgid "Could not start the installer: {}"
 msgstr ""
 
-#: app/src/dialogs.rs:381
+#: app/src/dialogs.rs:382
 msgid "Error: {}"
 msgstr ""
 
@@ -2284,7 +2284,7 @@ msgid_plural "{n} selected files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/display.rs:907 app/src/libview.rs:313 app/src/libview.rs:357 app/src/libview.rs:411 app/src/libview.rs:431 app/src/libview.rs:439
+#: app/src/display.rs:907 app/src/libview.rs:344 app/src/libview.rs:388 app/src/libview.rs:442 app/src/libview.rs:462 app/src/libview.rs:470
 msgid "{n} item"
 msgid_plural "{n} items"
 msgstr[0] ""
@@ -2300,7 +2300,7 @@ msgid_plural " and {n} others"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/display.rs:921 app/src/libview.rs:51 app/src/libview.rs:263
+#: app/src/display.rs:921 app/src/libview.rs:51 app/src/libview.rs:294
 msgid "Artists"
 msgstr ""
 
@@ -2308,7 +2308,7 @@ msgstr ""
 msgid "Formats"
 msgstr ""
 
-#: app/src/display.rs:932 app/src/libview.rs:54 app/src/libview.rs:266
+#: app/src/display.rs:932 app/src/libview.rs:54 app/src/libview.rs:297
 msgid "Years"
 msgstr ""
 
@@ -2381,7 +2381,7 @@ msgstr ""
 msgid "Global: play/pause, track, volume"
 msgstr ""
 
-#: app/src/keys.rs:44 app/src/keys.rs:583 app/src/libview.rs:61 app/src/libview.rs:269
+#: app/src/keys.rs:44 app/src/keys.rs:583 app/src/libview.rs:61 app/src/libview.rs:300
 msgid "Favorites"
 msgstr ""
 
@@ -2505,7 +2505,7 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: app/src/keys.rs:219 app/src/libview.rs:1007 app/src/lists.rs:719
+#: app/src/keys.rs:219 app/src/libview.rs:1119 app/src/lists.rs:719
 msgid "List {}"
 msgstr ""
 
@@ -2593,23 +2593,23 @@ msgstr ""
 msgid "{} was moved from “{}”"
 msgstr ""
 
-#: app/src/libview.rs:52 app/src/libview.rs:264
+#: app/src/libview.rs:52 app/src/libview.rs:295
 msgid "Albums"
 msgstr ""
 
-#: app/src/libview.rs:53 app/src/libview.rs:265
+#: app/src/libview.rs:53 app/src/libview.rs:296
 msgid "Genres"
 msgstr ""
 
-#: app/src/libview.rs:55 app/src/libview.rs:268
+#: app/src/libview.rs:55 app/src/libview.rs:299
 msgid "All tracks"
 msgstr ""
 
-#: app/src/libview.rs:57 app/src/libview.rs:275
+#: app/src/libview.rs:57 app/src/libview.rs:306
 msgid "All videos"
 msgstr ""
 
-#: app/src/libview.rs:58 app/src/libview.rs:277
+#: app/src/libview.rs:58 app/src/libview.rs:308
 msgid "Continue watching"
 msgstr ""
 
@@ -2621,23 +2621,23 @@ msgstr ""
 msgid "COLLECTIONS"
 msgstr ""
 
-#: app/src/libview.rs:62 app/src/libview.rs:271
+#: app/src/libview.rs:62 app/src/libview.rs:302
 msgid "Rated"
 msgstr ""
 
-#: app/src/libview.rs:63 app/src/libview.rs:270
+#: app/src/libview.rs:63 app/src/libview.rs:301
 msgid "Most played"
 msgstr ""
 
-#: app/src/libview.rs:64 app/src/libview.rs:272
+#: app/src/libview.rs:64 app/src/libview.rs:303
 msgid "Recently added music"
 msgstr ""
 
-#: app/src/libview.rs:65 app/src/libview.rs:273
+#: app/src/libview.rs:65 app/src/libview.rs:304
 msgid "History"
 msgstr ""
 
-#: app/src/libview.rs:66 app/src/libview.rs:274
+#: app/src/libview.rs:66 app/src/libview.rs:305
 msgid "Duplicates"
 msgstr ""
 
@@ -2645,257 +2645,297 @@ msgstr ""
 msgid "SMART PLAYLISTS"
 msgstr ""
 
-#: app/src/libview.rs:77
+#: app/src/libview.rs:76
+msgid "PODCASTS"
+msgstr ""
+
+#: app/src/libview.rs:80
+msgid "Add podcast…"
+msgstr ""
+
+#: app/src/libview.rs:82
 msgid "FOLDERS"
 msgstr ""
 
-#: app/src/libview.rs:200 app/src/lists.rs:773
+#: app/src/libview.rs:175
+msgid "Podcast feed address (RSS)"
+msgstr ""
+
+#: app/src/libview.rs:209
+msgid "Check for new episodes"
+msgstr ""
+
+#: app/src/libview.rs:211
+msgid "Unsubscribe"
+msgstr ""
+
+#: app/src/libview.rs:218 app/src/lists.rs:773
 msgid "Rename…"
 msgstr ""
 
-#: app/src/libview.rs:201
+#: app/src/libview.rs:219
 msgid "Edit filters…"
 msgstr ""
 
-#: app/src/libview.rs:203
+#: app/src/libview.rs:221
 msgid "Delete smart playlist"
 msgstr ""
 
-#: app/src/libview.rs:210
+#: app/src/libview.rs:228
 msgid "Library folders…"
 msgstr ""
 
-#: app/src/libview.rs:221
+#: app/src/libview.rs:239
 msgid "Smart playlist name"
 msgstr ""
 
-#: app/src/libview.rs:223
+#: app/src/libview.rs:241
 msgid "Filters, e.g. rating>=4 year:1990-1999 genre:rock"
 msgstr ""
 
-#: app/src/libview.rs:267
+#: app/src/libview.rs:298
 msgid "Folders"
 msgstr ""
 
-#: app/src/libview.rs:276
+#: app/src/libview.rs:307
 msgid "Video folders"
 msgstr ""
 
-#: app/src/libview.rs:278
+#: app/src/libview.rs:309
 msgid "Recently added videos"
 msgstr ""
 
-#: app/src/libview.rs:304
+#: app/src/libview.rs:335
 msgid "No videos in the library.\nAdd video folders (network drives work too) in Settings → Library."
 msgstr ""
 
-#: app/src/libview.rs:306
+#: app/src/libview.rs:337
 msgid "The library is empty.\nAdd music folders (network drives work too) in Settings → Library."
 msgstr ""
 
-#: app/src/libview.rs:312
+#: app/src/libview.rs:343
 msgid "Results: “{}”"
 msgstr ""
 
-#: app/src/libview.rs:314
+#: app/src/libview.rs:345
 msgid "Nothing found.\nFilters: rating>=4, year:1990-1999, genre:rock, artist:…, album:…, plays>=10, format:flac, added<30, length>6"
 msgstr ""
 
-#: app/src/libview.rs:325 app/src/libview.rs:403
+#: app/src/libview.rs:356 app/src/libview.rs:434
 msgid "{n} album"
 msgid_plural "{n} albums"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:325 app/src/libview.rs:374 app/src/libview.rs:397 app/src/libview.rs:403 app/src/libview.rs:600 app/src/libview.rs:616
+#: app/src/libview.rs:356 app/src/libview.rs:405 app/src/libview.rs:428 app/src/libview.rs:434 app/src/libview.rs:712 app/src/libview.rs:728
 msgid "{n} track"
 msgid_plural "{n} tracks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:365
+#: app/src/libview.rs:396
 msgid "Empty."
 msgstr ""
 
-#: app/src/libview.rs:397 app/src/libview.rs:600 app/src/libview.rs:1117
+#: app/src/libview.rs:428 app/src/libview.rs:712 app/src/libview.rs:1229
 msgid "{n} video"
 msgid_plural "{n} videos"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:398
+#: app/src/libview.rs:429
 msgid "{n} folder"
 msgid_plural "{n} folders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:418
+#: app/src/libview.rs:449
 msgid "By file date"
 msgstr ""
 
-#: app/src/libview.rs:424
+#: app/src/libview.rs:455
 msgid "Movies stopped midway – they will start where you left off"
 msgstr ""
 
-#: app/src/libview.rs:425
+#: app/src/libview.rs:456
 msgid "No unfinished movies."
 msgstr ""
 
-#: app/src/libview.rs:431
+#: app/src/libview.rs:462
 msgid "the heart next to a track adds it here"
 msgstr ""
 
-#: app/src/libview.rs:432
+#: app/src/libview.rs:463
 msgid "No favorites. Click the heart next to a track or press Ctrl+D."
 msgstr ""
 
-#: app/src/libview.rs:439
+#: app/src/libview.rs:470
 msgid "Ctrl+1…5 rates the selection"
 msgstr ""
 
-#: app/src/libview.rs:440
+#: app/src/libview.rs:471
 msgid "Nothing is rated yet. Select tracks and press Ctrl+1…5."
 msgstr ""
 
-#: app/src/libview.rs:446
+#: app/src/libview.rs:477
 msgid "{n} group"
 msgid_plural "{n} groups"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:446
+#: app/src/libview.rs:477
 msgid "the same artist and title, similar length"
 msgstr ""
 
-#: app/src/libview.rs:447
+#: app/src/libview.rs:478
 msgid "No duplicates in the music library."
 msgstr ""
 
-#: app/src/libview.rs:453
+#: app/src/libview.rs:484
 msgid "By play count"
 msgstr ""
 
-#: app/src/libview.rs:454
+#: app/src/libview.rs:485
 msgid "Nothing has been played yet."
 msgstr ""
 
-#: app/src/libview.rs:482
-msgid "Nothing matches this playlist."
-msgstr ""
-
-#: app/src/libview.rs:488
-msgid "Recently played"
-msgstr ""
-
-#: app/src/libview.rs:489
-msgid "History is empty."
-msgstr ""
-
-#: app/src/libview.rs:511
-msgid "{n} subfolder – expand in the panel"
-msgid_plural "{n} subfolders – expand in the panel"
-msgstr[0] ""
-msgstr[1] ""
-
-#: app/src/libview.rs:516
-msgid "No files in this folder, or the folder is unavailable (e.g. the NAS server is off)."
-msgstr ""
-
-#: app/src/libview.rs:518
-msgid "This folder only has subfolders – expand it with the arrow in the panel on the left."
-msgstr ""
-
-#: app/src/libview.rs:602
-msgid "Files in this folder"
-msgstr ""
-
-#: app/src/libview.rs:671
-msgid "watched {}"
-msgstr ""
-
-#: app/src/libview.rs:703
-msgid "Season {}"
-msgstr ""
-
-#: app/src/libview.rs:704
+#: app/src/libview.rs:511 app/src/libview.rs:816
 msgid "{n} episode"
 msgid_plural "{n} episodes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/src/libview.rs:835 app/src/libview.rs:979
+#: app/src/libview.rs:512
+msgid "No episodes – the feed could not be loaded or is empty."
+msgstr ""
+
+#: app/src/libview.rs:516 app/src/libview.rs:517
+msgid "Loading episodes…"
+msgstr ""
+
+#: app/src/libview.rs:533
+msgid "Nothing matches this playlist."
+msgstr ""
+
+#: app/src/libview.rs:539
+msgid "Recently played"
+msgstr ""
+
+#: app/src/libview.rs:540
+msgid "History is empty."
+msgstr ""
+
+#: app/src/libview.rs:562
+msgid "{n} subfolder – expand in the panel"
+msgid_plural "{n} subfolders – expand in the panel"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app/src/libview.rs:567
+msgid "No files in this folder, or the folder is unavailable (e.g. the NAS server is off)."
+msgstr ""
+
+#: app/src/libview.rs:569
+msgid "This folder only has subfolders – expand it with the arrow in the panel on the left."
+msgstr ""
+
+#: app/src/libview.rs:609
+msgid "Subscribed to “{}”"
+msgstr ""
+
+#: app/src/libview.rs:621
+msgid "Could not load the podcast: {}"
+msgstr ""
+
+#: app/src/libview.rs:634
+msgid "Loading the podcast…"
+msgstr ""
+
+#: app/src/libview.rs:714
+msgid "Files in this folder"
+msgstr ""
+
+#: app/src/libview.rs:783
+msgid "watched {}"
+msgstr ""
+
+#: app/src/libview.rs:815
+msgid "Season {}"
+msgstr ""
+
+#: app/src/libview.rs:947 app/src/libview.rs:1091
 msgid "Add to the current list"
 msgstr ""
 
-#: app/src/libview.rs:836
+#: app/src/libview.rs:948
 msgid "New list from this"
 msgstr ""
 
-#: app/src/libview.rs:838
+#: app/src/libview.rs:950
 msgid "Open"
 msgstr ""
 
-#: app/src/libview.rs:912
+#: app/src/libview.rs:1024
 msgid "Added {} to the list “{}”"
 msgstr ""
 
-#: app/src/libview.rs:980 app/src/lists.rs:749
+#: app/src/libview.rs:1092 app/src/lists.rs:749
 msgid "New list from selection"
 msgstr ""
 
-#: app/src/libview.rs:982
+#: app/src/libview.rs:1094
 msgid "Favorite (toggle)"
 msgstr ""
 
-#: app/src/libview.rs:983 app/src/lists.rs:745
+#: app/src/libview.rs:1095 app/src/lists.rs:745
 msgid "Edit tags…"
 msgstr ""
 
-#: app/src/libview.rs:984 app/src/lists.rs:747
+#: app/src/libview.rs:1096 app/src/lists.rs:747
 msgid "Show in Explorer"
 msgstr ""
 
-#: app/src/libview.rs:986
+#: app/src/libview.rs:1098
 msgid "Forget the resume position"
 msgstr ""
 
-#: app/src/libview.rs:987
+#: app/src/libview.rs:1099
 msgid "Watched / unwatched (toggle)"
 msgstr ""
 
-#: app/src/libview.rs:988
+#: app/src/libview.rs:1100
 msgid "Fix TMDB match…"
 msgstr ""
 
-#: app/src/libview.rs:989
+#: app/src/libview.rs:1101
 msgid "Save search as a smart playlist"
 msgstr ""
 
-#: app/src/libview.rs:1038
+#: app/src/libview.rs:1150
 msgid "Smart playlist “{}” saved"
 msgstr ""
 
-#: app/src/libview.rs:1044
+#: app/src/libview.rs:1156
 msgid "Movie title on TMDB (with the year, e.g. Angels & Demons 2009)"
 msgstr ""
 
-#: app/src/libview.rs:1059
+#: app/src/libview.rs:1171
 msgid "Marked as unwatched"
 msgstr ""
 
-#: app/src/libview.rs:1059
+#: app/src/libview.rs:1171
 msgid "Marked as watched"
 msgstr ""
 
-#: app/src/libview.rs:1095
+#: app/src/libview.rs:1207
 msgid "Looking for files…"
 msgstr ""
 
-#: app/src/libview.rs:1117
+#: app/src/libview.rs:1229
 msgid "Library: {}, {}"
 msgstr ""
 
-#: app/src/libview.rs:1163
+#: app/src/libview.rs:1275
 msgid "Scanning library: {} / {}"
 msgstr ""
 
@@ -3023,15 +3063,15 @@ msgstr ""
 msgid "Unavailable: {}. Movies and radio need the libmpv-2.dll file next to OpenMP.exe."
 msgstr ""
 
-#: app/src/main.rs:685
+#: app/src/main.rs:686
 msgid "Radio stream URL"
 msgstr ""
 
-#: app/src/main.rs:741
+#: app/src/main.rs:742
 msgid "Equalizer preset name"
 msgstr ""
 
-#: app/src/main.rs:741
+#: app/src/main.rs:742
 msgid "Mine"
 msgstr ""
 
@@ -3666,11 +3706,15 @@ msgstr ""
 msgid "This is not an OpenMP backup"
 msgstr ""
 
-#: core/src/settings.rs:299
+#: core/src/podcast.rs:32
+msgid "This is not a podcast feed (RSS)"
+msgstr ""
+
+#: core/src/settings.rs:302
 msgid "Top rated"
 msgstr ""
 
-#: core/src/settings.rs:300
+#: core/src/settings.rs:303
 msgid "Played often"
 msgstr ""
 
