@@ -155,6 +155,20 @@ export component NowInfo inherits VerticalLayout {
         font-size: root.small ? Theme.fs-sm : Theme.fs-md;
         overflow: elide;
     }
+    if !root.small && Player.credits != "": Text {
+        text: Player.credits;
+        color: Theme.text3;
+        font-size: Theme.fs-sm;
+        overflow: elide;
+    }
+    if !root.small && Player.overview != "": Text {
+        text: Player.overview;
+        color: Theme.text2;
+        font-size: Theme.fs;
+        wrap: word-wrap;
+        overflow: elide;
+        max-height: 3 * 1.4 * Theme.fs;
+    }
     if !Player.idle: Rectangle {
         height: root.small ? 2px : 8px;
     }
@@ -308,7 +322,7 @@ component HeroLyrics inherits Rectangle {
 
 // Film w miejscu okładki (okno muzyki): obraz z poświatą, przyciski po najechaniu.
 component HeroVideo inherits Rectangle {
-    in property <length> radius: 14px;
+    in property <length> radius: 0;
     // Poświata w kolorze przewodnim (który przy filmie podąża za obrazem).
     Rectangle {
         border-radius: root.radius;
@@ -400,7 +414,8 @@ export component Hero inherits Rectangle {
         if Video.active: HeroVideo {
             // Tylko z wysokości – szerokość Hero zależy od tej szerokości (pętla wiązań).
             width: self.height * clamp(Video.ratio, 0.5, 2);
-            radius: root.small ? 10px : Theme.radius-lg;
+            // Proste rogi: zaokrąglone przycięcie Slint rysuje z bufora i obraz stałby w miejscu.
+            radius: 0;
         }
         NowInfo {
             horizontal-stretch: 1;

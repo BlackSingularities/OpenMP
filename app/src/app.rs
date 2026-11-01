@@ -67,6 +67,8 @@ pub enum RenameCtx {
     None,
     Tab(usize),
     EqPreset,
+    /// Ręczny tytuł do wyszukania w TMDB dla pliku.
+    Tmdb(String),
     RadioUrl,
     /// Ścieżka sieciowa: 0 – muzyka, 1 – wideo.
     NetFolder(i32),
@@ -155,6 +157,8 @@ pub struct App {
     pub osd_until: Option<Instant>,
     pub last_mouse: Instant,
     pub hover_controls: bool,
+    /// Odliczanie do następnego odcinka anulowane dla bieżącego filmu.
+    pub next_cancelled: bool,
     pub ab: (Option<f64>, Option<f64>),
     pub lyrics: Vec<(f64, String)>,
     pub lyrics_text: String,

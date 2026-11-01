@@ -79,7 +79,37 @@ pub fn create(s: &Settings) -> Result<Mpv, String> {
     ];
     let m = Mpv::new(&opts)?;
     apply_all(&m, s);
+    ytdlp(&m);
     Ok(m)
+}
+
+/// yt-dlp dla linków z serwisów wideo: z systemu (PATH), a gdy go nie ma – własna kopia
+/// w pamięci podręcznej programu, pobierana z oficjalnych wydań i odświeżana co tydzień.
+fn ytdlp(m: &Mpv) {
+    let in_path = std::env::var_os("PATH").is_some_and(|p| std::env::split_paths(&p).any(|d| d.join("yt-dlp.exe").exists()));
+    if in_path {
+        return;
+    }
+    let exe = openmp_core::paths::cache().join("yt-dlp.exe");
+    if exe.exists() {
+        m.set("script-opts", &format!("ytdl_hook-ytdl_path={}", exe.display()));
+    }
+    let stale = std::fs::metadata(&exe).and_then(|x| x.modified()).ok().and_then(|t| t.elapsed().ok()).map(|e| e > Duration::from_secs(7 * 86_400)).unwrap_or(true);
+    if !stale {
+        return;
+    }
+    let m = m.clone();
+    std::thread::spawn(move || {
+        use std::io::Read;
+        let url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+        let Ok(resp) = ureq::get(url).set("User-Agent", "OpenMP").call() else { return };
+        let mut buf = Vec::new();
+        if resp.into_reader().take(64 << 20).read_to_end(&mut buf).is_err() || buf.len() < 1 << 20 || !buf.starts_with(b"MZ") {
+            return;
+        }
+        openmp_core::paths::write_atomic(&exe, &buf);
+        m.set("script-opts", &format!("ytdl_hook-ytdl_path={}", exe.display()));
+    });
 }
 
 /// Drugi, niewidoczny odtwarzacz – klatki do podglądu nad paskiem przewijania.
@@ -584,6 +614,16 @@ pub fn on_loaded(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     let v = ui.global::<Video>();
     v.set_loading(false);
+    // Ustawienia zapamiętane dla tego filmu: ścieżki dźwięku i napisów, przesunięcia, proporcje.
+    let saved = app.cur.as_ref().filter(|c| c.video).map(|c| app.stats.get(&c.info.path));
+    if let Some(st) = &saved {
+        if !st.aid.is_empty() {
+            m.set("aid", &st.aid);
+        }
+        if !st.sid.is_empty() {
+            m.set("sid", &st.sid);
+        }
+    }
     let tracks = m.tracks();
     let has_video = tracks.iter().any(|t| t.kind == "video" && !t.title.contains("cover"));
     let is_video = app.cur.as_ref().is_some_and(|c| c.video);
@@ -611,10 +651,14 @@ pub fn on_loaded(app: &mut App) {
     }
     info_line(app);
     v.set_speed(m.get_f64("speed").unwrap_or(1.0) as f32);
-    v.set_sub_delay(0.0);
-    v.set_audio_delay(0.0);
-    m.set_f64("sub-delay", 0.0);
-    m.set_f64("audio-delay", 0.0);
+    let (sd, ad, aspect) = saved.as_ref().map(|s| (s.sub_delay, s.audio_delay, s.aspect)).unwrap_or((0.0, 0.0, 0));
+    v.set_sub_delay(sd as f32);
+    v.set_audio_delay(ad as f32);
+    m.set_f64("sub-delay", sd);
+    m.set_f64("audio-delay", ad);
+    if v.get_aspect() != aspect {
+        set_aspect(app, aspect);
+    }
     crate::player::apply_volume(app);
     if let Some(c) = &mut app.cur {
         if c.info.duration <= 0.0 && dur > 0.0 {
@@ -807,6 +851,19 @@ pub fn apply_audio_filters(app: &App) {
         f.push(format!("lavfi=[firequalizer=gain_entry='{}']", entries.join(";")));
         if d.preamp.abs() > 0.05 {
             f.push(format!("lavfi=[volume={:.1}dB]", d.preamp));
+        }
+    }
+    if d.peq_on && !d.peq.is_empty() {
+        if d.peq_pre.abs() > 0.05 {
+            f.push(format!("lavfi=[volume={:.1}dB]", d.peq_pre));
+        }
+        for p in &d.peq {
+            let name = match p.kind {
+                1 => "lowshelf",
+                2 => "highshelf",
+                _ => "equalizer",
+            };
+            f.push(format!("lavfi=[{name}=f={:.1}:width_type=q:w={:.3}:g={:.2}]", p.f, p.q, p.db));
         }
     }
     if app.s.night_mode {
@@ -1090,6 +1147,32 @@ pub fn goto_chapter(app: &mut App, id: &str) {
     }
 }
 
+/// Polskie napisy z OpenSubtitles – w tle, potem dołączone do filmu.
+pub fn fetch_sub(app: &mut App) {
+    let Some(c) = app.cur.clone().filter(|c| c.video && !meta::is_url(&c.info.path)) else { return };
+    if !openmp_core::opensubs::has_key() {
+        app.osd("Wpisz klucz OpenSubtitles w Ustawieniach → Biblioteka");
+        return;
+    }
+    app.osd("Szukam napisów…");
+    let path = c.info.path.clone();
+    std::thread::spawn(move || {
+        let res = openmp_core::opensubs::fetch(std::path::Path::new(&path), "pl");
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| match res {
+                Ok(p) => {
+                    if let Some(m) = app.mpv.clone() {
+                        let _ = m.command(&["sub-add", &p.to_string_lossy(), "select"]);
+                        publish_tracks(app, &m.tracks());
+                    }
+                    app.osd("Napisy pobrane");
+                }
+                Err(e) => app.osd(e),
+            });
+        });
+    });
+}
+
 pub fn load_sub(app: &mut App) {
     let dir = app.cur.as_ref().and_then(|c| std::path::Path::new(&c.info.path).parent().map(|p| p.to_path_buf()));
     crate::dialogs::ask(
@@ -1233,6 +1316,56 @@ pub fn tick(app: &mut App) {
     }
 }
 
+/// Przycisk „Pomiń czołówkę / napisy końcowe”.
+pub fn skip(app: &mut App) {
+    let to = app.ui().map(|u| u.global::<Video>().get_skip_to()).unwrap_or(0.0);
+    if to < 0.0 {
+        crate::player::next(app);
+    } else {
+        crate::player::seek_abs(app, to as f64);
+    }
+}
+
+/// Czołówka i napisy końcowe (z nazw rozdziałów) oraz odliczanie do następnego odcinka.
+fn skip_tick(app: &mut App, pos: f64, dur: f64) {
+    let Some(ui) = app.ui() else { return };
+    let v = ui.global::<Video>();
+    let is_video = app.cur.as_ref().is_some_and(|c| c.video);
+    let (mut text, mut to) = (String::new(), 0.0f64);
+    if is_video {
+        if let Some(i) = app.chapters.iter().rposition(|c| c.0 <= pos + 0.5) {
+            let n = app.chapters[i].1.to_lowercase();
+            let has = |ks: &[&str]| ks.iter().any(|k| n.contains(k));
+            if has(&["intro", "opening", "czołówk", "czolowk"]) || n == "op" {
+                text = "Pomiń czołówkę".into();
+                to = app.chapters.get(i + 1).map(|c| c.0).unwrap_or(dur);
+            } else if has(&["credits", "ending", "outro", "napisy końcowe", "napisy koncowe"]) || n == "ed" {
+                text = "Pomiń napisy końcowe".into();
+                to = -1.0;
+            }
+        }
+    }
+    let (mut next, mut secs) = (String::new(), 0);
+    if is_video && app.s.video_autonext && !app.next_cancelled && dur > 60.0 && dur - pos <= 20.0 {
+        if let Some((l, i, _)) = crate::player::next_of(app, true, false) {
+            if let Some(t) = crate::player::track_at(app, l, i).filter(|t| t.video || meta::is_video(std::path::Path::new(&t.path))) {
+                next = t.display_title();
+                secs = (dur - pos).ceil().max(0.0) as i32;
+            }
+        }
+    }
+    if v.get_skip_text().as_str() != text {
+        v.set_skip_text(ss(&text));
+    }
+    v.set_skip_to(to as f32);
+    if v.get_next_text().as_str() != next {
+        v.set_next_text(ss(&next));
+    }
+    if v.get_next_secs() != secs {
+        v.set_next_secs(secs);
+    }
+}
+
 fn slow_tick(app: &mut App) {
     let Some(m) = app.mpv.clone() else { return };
     let Some(ui) = app.ui() else { return };
@@ -1248,6 +1381,7 @@ fn slow_tick(app: &mut App) {
             v.set_buffered(b);
         }
     }
+    skip_tick(app, pos, dur);
     let wide = app.s.video_ui == 1 && !v.get_fullscreen() && ui.global::<Ui>().get_mode() == 1;
     let visible = v.get_panel_page() == 4 && (v.get_panel() || (wide && v.get_side()));
     if visible {

@@ -375,6 +375,12 @@ component VideoPages inherits VerticalLayout {
                     compact: true;
                     clicked => { Video.load-sub(); }
                 }
+                Btn {
+                    text: "Pobierz polskie napisy (OpenSubtitles)";
+                    icon: Icons.download;
+                    compact: true;
+                    clicked => { Video.fetch-sub(); }
+                }
                 Rectangle {
                     height: 4px;
                 }
@@ -700,10 +706,33 @@ component StageInput inherits TouchArea {
     property <length> px;
     property <length> py;
     property <bool> dragged;
+    // Gest: 1 – jasność (lewa strona), 2 – głośność (prawa); wartości z chwili naciśnięcia.
+    property <int> gesture;
+    property <float> g0;
     mouse-cursor: Video.cursor || !Video.playing ? MouseCursor.default : MouseCursor.none;
     moved => {
         Video.mouse-moved();
-        if self.pressed && root.can-drag && !root.dragged && !Video.fullscreen && (abs(self.mouse-x - root.px) > 6px || abs(self.mouse-y - root.py) > 6px) {
+        // Pionowy ruch po bokach obrazu to gest (także w oknie – okno przesuwa się ze środka
+        // obrazu albo ruchem w poziomie).
+        if self.pressed && root.gesture == 0 && !root.dragged && abs(self.mouse-y - root.py) > 12px && abs(self.mouse-y - root.py) > 2 * abs(self.mouse-x - root.px) {
+            if root.px < self.width * 0.35 {
+                root.gesture = 1;
+                root.g0 = Video.brightness;
+            } else if root.px > self.width * 0.65 {
+                root.gesture = 2;
+                root.g0 = Player.volume;
+            }
+            root.dragged = root.gesture != 0;
+        }
+        if self.pressed && root.gesture == 1 {
+            Video.set-eq("brightness", clamp(root.g0 + (root.py - self.mouse-y) / self.height * 100, -100, 100));
+        }
+        if self.pressed && root.gesture == 2 {
+            Player.set-volume(clamp(root.g0 + (root.py - self.mouse-y) / self.height * 1.5, 0, 1));
+        }
+        // Okno przesuwa się ze środka obrazu albo ruchem w poziomie – boki zostają dla gestów.
+        let side = root.px < self.width * 0.35 || root.px > self.width * 0.65;
+        if self.pressed && root.can-drag && !root.dragged && !Video.fullscreen && (abs(self.mouse-x - root.px) > 6px || (!side && abs(self.mouse-y - root.py) > 6px)) {
             root.dragged = true;
             Ui.drag();
         }
@@ -716,6 +745,7 @@ component StageInput inherits TouchArea {
             root.px = self.mouse-x;
             root.py = self.mouse-y;
             root.dragged = false;
+            root.gesture = 0;
         }
         if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
             Video.menu();
@@ -856,12 +886,12 @@ component CinemaView inherits Rectangle {
             }
             IconBtn {
                 y: 4px;
-                icon: Icons.pin;
+                icon: Video.ontop ? Icons.pin : Icons.pin-off;
                 on-dark: true;
                 active: Video.ontop;
                 icon-color: Video.ontop ? Theme.tint-hi : root.c2;
                 hover-color: #ffffff;
-                tip: "Zawsze na wierzchu (T)";
+                tip: Video.ontop ? "Przypięte na wierzchu – odepnij (T)" : "Zawsze na wierzchu (T)";
                 clicked => { Video.toggle-ontop(); }
             }
             if !Video.fullscreen: WinButtons {
@@ -1102,6 +1132,86 @@ component CinemaView inherits Rectangle {
             }
         }
     }
+    // Pomiń czołówkę / napisy końcowe i następny odcinek – nad paskiem, po prawej.
+    if Video.skip-text != "" || Video.next-text != "": VerticalLayout {
+        x: root.width - self.width - 24px;
+        y: bar.y - self.height - (root.show ? 8px : -100px);
+        width: 320px;
+        spacing: 8px;
+        alignment: end;
+        if Video.next-text != "": Rectangle {
+            height: 86px;
+            border-radius: 10px;
+            background: #0e1014f0;
+            border-width: 1px;
+            border-color: #ffffff17;
+            drop-shadow-blur: 24px;
+            drop-shadow-color: #00000090;
+            VerticalLayout {
+                padding: 12px;
+                spacing: 8px;
+                Text {
+                    text: "Następny za " + Video.next-secs + " s";
+                    color: #ffffffa0;
+                    font-size: Theme.fs-xs;
+                }
+                Text {
+                    text: Video.next-text;
+                    color: #ffffff;
+                    font-size: Theme.fs-md;
+                    font-weight: 600;
+                    overflow: elide;
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Btn {
+                        text: "Odtwórz teraz";
+                        icon: Icons.play;
+                        primary: true;
+                        clicked => { Player.next(); }
+                    }
+                    Btn {
+                        text: "Anuluj";
+                        clicked => { Video.next-cancel(); }
+                    }
+                }
+            }
+        }
+        if Video.skip-text != "": HorizontalLayout {
+            alignment: end;
+            Rectangle {
+                width: skt.preferred-width + 48px;
+                height: 40px;
+                border-radius: 8px;
+                background: skta.has-hover ? #ffffffe8 : #ffffffd0;
+                drop-shadow-blur: 18px;
+                drop-shadow-color: #00000080;
+                HorizontalLayout {
+                    padding-left: 14px;
+                    spacing: 8px;
+                    alignment: start;
+                    Icon {
+                        y: (parent.height - self.height) / 2;
+                        icon: Icons.next;
+                        size: 16px;
+                        fill: #000000;
+                    }
+                    skt := Text {
+                        text: Video.skip-text;
+                        color: #000000;
+                        font-size: Theme.fs;
+                        font-weight: 700;
+                        vertical-alignment: center;
+                    }
+                }
+                skta := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { Video.skip(); }
+                }
+            }
+        }
+    }
     // Panel boczny: dźwięk, napisy, obraz, rozdziały, szczegóły.
     if Video.panel: Pill {
         x: root.width - self.width - 14px;
@@ -1197,9 +1307,9 @@ component WideView inherits Rectangle {
                 }
                 IconBtn {
                     y: (parent.height - self.height) / 2;
-                    icon: Icons.pin;
+                    icon: Video.ontop ? Icons.pin : Icons.pin-off;
                     active: Video.ontop;
-                    tip: "Zawsze na wierzchu (T)";
+                    tip: Video.ontop ? "Przypięte na wierzchu – odepnij (T)" : "Zawsze na wierzchu (T)";
                     clicked => { Video.toggle-ontop(); }
                 }
                 Rectangle {

@@ -78,6 +78,30 @@ pub fn show_track(app: &mut App) {
         album = Path::new(&t.path).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
     }
     p.set_album(ss(album));
+    p.set_overview(ss(""));
+    p.set_credits(ss(""));
+    // Film: polski tytuł, rok, gatunki, ocena i opis z TMDB (w tle, gdy jest klucz).
+    if c.video && !meta::is_url(&t.path) && !app.s.tmdb_key.is_empty() {
+        let path = t.path.clone();
+        std::thread::spawn(move || {
+            let Some(info) = openmp_core::tmdb::lookup(Path::new(&path)) else { return };
+            let _ = slint::invoke_from_event_loop(move || {
+                later(move |app| {
+                    if !app.cur.as_ref().is_some_and(|c| c.info.path == path) {
+                        return;
+                    }
+                    let Some(ui) = app.ui() else { return };
+                    let p = ui.global::<Player>();
+                    if !info.title.is_empty() {
+                        p.set_title(ss(&info.title));
+                    }
+                    p.set_album(ss(info.line()));
+                    p.set_overview(ss(&info.overview));
+                    p.set_credits(ss(info.credits()));
+                });
+            });
+        });
+    }
     p.set_badges(crate::app::strings(&badges(t, None)));
     p.set_idle(false);
     p.set_fav(app.stats.get(&t.path).rating >= 5);

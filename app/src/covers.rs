@@ -34,6 +34,9 @@ fn video_thumb(p: &Path) -> Option<Vec<u8>> {
             return Some(b);
         }
     }
+    if let Some(b) = openmp_core::tmdb::poster(p) {
+        return Some(b);
+    }
     let cache = openmp_core::paths::cache().join("thumbs");
     let _ = std::fs::create_dir_all(&cache);
     let mut h = std::collections::hash_map::DefaultHasher::new();

@@ -32,6 +32,9 @@ pub struct Settings {
     pub online_covers: bool,
     /// Token ListenBrainz – pusty wyłącza scrobbling.
     pub listenbrainz_token: String,
+    /// Klucze API: TMDB (plakaty i opisy po polsku) i OpenSubtitles (napisy).
+    pub tmdb_key: String,
+    pub opensubs_key: String,
     pub show_sidebar: bool,
     pub scroll_title: bool,
     /// Zasięg koloru przewodniego: 0 – tylko akcenty, 1 – też ikony, suwaki i znaczniki, 2 – cały interfejs.
@@ -191,6 +194,8 @@ impl Default for Settings {
             online_lyrics: true,
             online_covers: true,
             listenbrainz_token: String::new(),
+            tmdb_key: String::new(),
+            opensubs_key: String::new(),
             show_sidebar: true,
             scroll_title: true,
             accent_scope: 1,

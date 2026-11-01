@@ -80,7 +80,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
     );
     props!(v, Prefs:
         nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, nav_text,
-        live_style, live_span, live_glow,
+        live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
     );
     props!(v, Ui:
         about, equalizer, rename_dialog, rename_text, rename_title, settings, settings_page, tag_busy,

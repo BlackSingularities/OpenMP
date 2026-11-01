@@ -141,6 +141,12 @@ pub fn publish(app: &mut App) {
     p.set_sub_size(s.sub_size);
     p.set_sub_lang(ss(&s.sub_lang));
     p.set_lb_token(ss(&s.listenbrainz_token));
+    p.set_tmdb_key(ss(&s.tmdb_key));
+    p.set_peq_on(s.dsp.peq_on);
+    p.set_peq_name(ss(&s.dsp.peq_name));
+    p.set_os_key(ss(&s.opensubs_key));
+    openmp_core::tmdb::set_key(&s.tmdb_key);
+    openmp_core::opensubs::set_key(&s.opensubs_key);
     p.set_audio_lang(ss(&s.audio_lang));
     p.set_screenshot_dir(ss(&s.screenshot_dir));
     p.set_deinterlace(s.deinterlace);
@@ -442,6 +448,48 @@ pub fn changed(app: &mut App, key: &str) {
             openmp_core::coverart::set_enabled(app.s.online_covers);
         }
         "lb-token" => app.s.listenbrainz_token = p.get_lb_token().trim().to_string(),
+        "peq-on" => {
+            app.s.dsp.peq_on = p.get_peq_on();
+            app.engine.set_dsp(app.s.dsp.clone());
+            crate::video::apply_audio_filters(app);
+        }
+        "peq-load" => {
+            crate::dialogs::ask(
+                app,
+                |d| d.set_title("Profil AutoEQ (ParametricEQ.txt)").add_filter("Profil AutoEQ", &["txt"]).pick_file(),
+                |app, f| {
+                    let text = std::fs::read_to_string(&f).unwrap_or_default();
+                    match openmp_core::audio::dsp::parse_autoeq(&text) {
+                        Some((pre, filters)) => {
+                            let name = f.file_stem().map(|n| n.to_string_lossy().replace(" ParametricEQ", "")).unwrap_or_default();
+                            let n = filters.len();
+                            let d = &mut app.s.dsp;
+                            d.peq = filters;
+                            d.peq_pre = pre;
+                            d.peq_name = name.clone();
+                            d.peq_on = true;
+                            app.engine.set_dsp(app.s.dsp.clone());
+                            crate::video::apply_audio_filters(app);
+                            if let Some(ui) = app.ui() {
+                                ui.global::<Prefs>().set_peq_on(true);
+                                ui.global::<Prefs>().set_peq_name(ss(&name));
+                            }
+                            app.dirty = true;
+                            app.toast(format!("Wczytano „{name}” – {n} filtrów, przedwzmocnienie {pre:.1} dB"));
+                        }
+                        None => app.toast("To nie jest profil AutoEQ (ParametricEQ.txt)"),
+                    }
+                },
+            );
+        }
+        "tmdb-key" => {
+            app.s.tmdb_key = p.get_tmdb_key().trim().to_string();
+            openmp_core::tmdb::set_key(&app.s.tmdb_key);
+        }
+        "os-key" => {
+            app.s.opensubs_key = p.get_os_key().trim().to_string();
+            openmp_core::opensubs::set_key(&app.s.opensubs_key);
+        }
         "sub-lang" => {
             app.s.sub_lang = p.get_sub_lang().to_string();
             if let Some(m) = &app.mpv {

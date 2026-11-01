@@ -144,6 +144,15 @@ pub fn rename_accepted(app: &mut App, text: &str) {
             app.toast("Zapisano ustawienie korektora");
         }
         RenameCtx::RadioUrl => crate::radio::add_url(app, &text),
+        RenameCtx::Tmdb(path) => {
+            openmp_core::tmdb::set_query(std::path::Path::new(&path), &text);
+            crate::covers::forget(&path);
+            crate::libview::show(app);
+            if app.cur.as_ref().is_some_and(|c| c.info.path == path) {
+                crate::display::show_track(app);
+            }
+            app.toast(format!("Szukam w TMDB: „{text}”"));
+        }
         RenameCtx::NetFolder(kind) => crate::prefs::add_folder_path(app, kind, text),
         ctx @ (RenameCtx::SmartName(_) | RenameCtx::SmartQuery(_)) => {
             let (i, query) = match ctx {

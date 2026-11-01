@@ -23,6 +23,12 @@ pub struct Stat {
     /// Łączny czas słuchania / oglądania (s) i pierwsze odtworzenie.
     pub listened: f64,
     pub first: u64,
+    /// Film: wybrane ścieżki dźwięku i napisów, przesunięcia (s) i proporcje obrazu.
+    pub aid: String,
+    pub sid: String,
+    pub sub_delay: f64,
+    pub audio_delay: f64,
+    pub aspect: i32,
 }
 
 /// Czas odtwarzania jednego dnia (s): muzyka i filmy.

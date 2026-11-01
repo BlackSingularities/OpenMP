@@ -255,6 +255,21 @@ export component EqualizerDialog inherits Dialog {
                     toggled => { Prefs.changed("limiter"); }
                 }
                 SettingSwitch {
+                    title: "Korektor parametryczny";
+                    hint: Prefs.peq-name != "" ? "Profil: " + Prefs.peq-name : "Profil słuchawek z AutoEQ – wczytaj plik ParametricEQ.txt";
+                    checked <=> Prefs.peq-on;
+                    toggled => { Prefs.changed("peq-on"); }
+                }
+                HorizontalLayout {
+                    alignment: start;
+                    Btn {
+                        text: "Wczytaj profil AutoEQ…";
+                        icon: Icons.file;
+                        compact: true;
+                        clicked => { Prefs.changed("peq-load"); }
+                    }
+                }
+                SettingSwitch {
                     title: "Płynna pauza";
                     hint: "Wyciszanie przy pauzie i wznowieniu";
                     checked <=> Prefs.soft-pause;
@@ -1187,7 +1202,7 @@ export component SettingsDialog inherits Dialog {
                 }
                 SettingSwitch {
                     title: "Filmy z serwisów wideo (yt-dlp)";
-                    hint: "Adresy stron z filmami działają, gdy w systemie jest yt-dlp";
+                    hint: "Linki do YouTube i innych serwisów – program sam pobiera i odświeża yt-dlp";
                     checked <=> Prefs.ytdl;
                     toggled => { Prefs.changed("ytdl"); }
                 }
@@ -1407,6 +1422,26 @@ export component SettingsDialog inherits Dialog {
                     toggled => { Prefs.changed("online-covers"); }
                 }
                 SettingRow {
+                    title: "Klucz API TMDB";
+                    hint: "Polskie plakaty, opisy, gatunki i oceny filmów – darmowy klucz z themoviedb.org (Ustawienia → API)";
+                    LineEdit {
+                        width: 220px;
+                        input-type: password;
+                        text <=> Prefs.tmdb-key;
+                        edited => { Prefs.changed("tmdb-key"); }
+                    }
+                }
+                SettingRow {
+                    title: "Klucz API OpenSubtitles";
+                    hint: "Pobieranie polskich napisów jednym kliknięciem – klucz z opensubtitles.com (Konto → API)";
+                    LineEdit {
+                        width: 220px;
+                        input-type: password;
+                        text <=> Prefs.os-key;
+                        edited => { Prefs.changed("os-key"); }
+                    }
+                }
+                SettingRow {
                     title: "Token ListenBrainz";
                     hint: "Scrobbling wysłuchanych utworów – token z listenbrainz.org/settings; puste wyłącza";
                     LineEdit {
@@ -1603,7 +1638,7 @@ export component UrlDialog inherits Dialog {
         padding-top: 4px;
         spacing: 12px;
         Text {
-            text: "Strumień radia, plik w sieci albo lista odtwarzania (http, https, rtsp, m3u8). Filmy z serwisów wideo działają, gdy w systemie jest yt-dlp.";
+            text: "Strumień radia, plik w sieci albo lista odtwarzania (http, https, rtsp, m3u8). Działają też linki do YouTube i innych serwisów wideo.";
             color: Theme.text3;
             font-size: Theme.fs-sm;
             wrap: word-wrap;

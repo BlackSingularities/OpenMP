@@ -62,11 +62,20 @@ pub fn show(app: &mut App) {
         }
     };
     let is_video = |k: &str| meta::is_video(Path::new(k));
+    // Czas pliku: zmierzony, a dla starszych danych (sprzed pomiaru) – odtworzenia × długość.
+    let spent = |k: &str, s: &library::Stat| -> f64 {
+        if s.listened > 0.0 {
+            s.listened
+        } else {
+            lib.get(k).map(|t| t.duration.max(0.0) * s.plays as f64).unwrap_or(0.0)
+        }
+    };
 
     // Podsumowanie.
     let today = library::day(now());
-    let music: f64 = st.days.values().map(|d| d.music).sum();
-    let video: f64 = st.days.values().map(|d| d.video).sum();
+    // Łącznie: wg plików (z szacunkiem starszych danych), nie mniej niż wg dni.
+    let music: f64 = st.map.iter().filter(|(k, _)| !is_video(k)).map(|(k, s)| spent(k, s)).sum::<f64>().max(st.days.values().map(|d| d.music).sum());
+    let video: f64 = st.map.iter().filter(|(k, _)| is_video(k)).map(|(k, s)| spent(k, s)).sum::<f64>().max(st.days.values().map(|d| d.video).sum());
     let week: f64 = st.days.range(today.saturating_sub(6)..=today).map(|(_, d)| d.music + d.video).sum();
     let t = st.days.get(&today).copied().unwrap_or_default();
     let plays_m: u64 = st.map.iter().filter(|(k, _)| !is_video(k)).map(|(_, s)| s.plays as u64).sum();
@@ -116,7 +125,7 @@ pub fn show(app: &mut App) {
         }
         let e = by_artist.entry(a).or_default();
         e.0 += s.plays as u64;
-        e.1 += s.listened;
+        e.1 += spent(k, s);
     }
     let artists = top(by_artist.into_iter().map(|(a, (p, l))| (a, hm(l), p as f64, format!("{p}×"))).collect(), 12);
     let videos = top(
@@ -126,7 +135,8 @@ pub fn show(app: &mut App) {
             .map(|(k, s)| {
                 let (a, _) = name(k);
                 let sub = format!("{}{}", if s.watched { "obejrzany · " } else { "" }, if s.last > 0 { ago(s.last) } else { String::new() });
-                (a, sub, s.listened.max(s.plays as f64), hm(s.listened))
+                let t = spent(k, s);
+                (a, sub, t.max(s.plays as f64), hm(t))
             })
             .collect(),
         12,

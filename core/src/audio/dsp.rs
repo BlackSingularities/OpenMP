@@ -25,6 +25,50 @@ pub struct DspSettings {
     pub swap: bool,
     pub crossfeed: bool,
     pub limiter: bool,
+    /// Korektor parametryczny (np. profil słuchawek z AutoEQ): filtry, przedwzmocnienie, nazwa.
+    pub peq_on: bool,
+    pub peq: Vec<Peq>,
+    pub peq_pre: f32,
+    pub peq_name: String,
+}
+
+/// Filtr korektora parametrycznego: 0 – szczytowy, 1 – półkowy niski, 2 – półkowy wysoki.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct Peq {
+    pub kind: u8,
+    pub f: f32,
+    pub q: f32,
+    pub db: f32,
+}
+
+/// Profil AutoEQ („ParametricEQ.txt”): „Preamp: -6.2 dB” i „Filter 1: ON PK Fc 105 Hz Gain -3.2 dB Q 0.70”.
+pub fn parse_autoeq(text: &str) -> Option<(f32, Vec<Peq>)> {
+    let mut pre = 0.0;
+    let mut v = Vec::new();
+    for line in text.lines() {
+        let w: Vec<&str> = line.split_whitespace().collect();
+        if w.first().is_some_and(|x| x.eq_ignore_ascii_case("preamp:")) {
+            pre = w.get(1).and_then(|x| x.parse().ok()).unwrap_or(0.0);
+            continue;
+        }
+        if !w.first().is_some_and(|x| x.eq_ignore_ascii_case("filter")) || !w.iter().any(|x| x.eq_ignore_ascii_case("on")) {
+            continue;
+        }
+        let after = |k: &str| w.iter().position(|x| x.eq_ignore_ascii_case(k)).and_then(|i| w.get(i + 1)).and_then(|x| x.parse::<f32>().ok());
+        let kind = if w.iter().any(|x| x.eq_ignore_ascii_case("LSC") || x.eq_ignore_ascii_case("LS")) {
+            1
+        } else if w.iter().any(|x| x.eq_ignore_ascii_case("HSC") || x.eq_ignore_ascii_case("HS")) {
+            2
+        } else if w.iter().any(|x| x.eq_ignore_ascii_case("PK") || x.eq_ignore_ascii_case("PEQ")) {
+            0
+        } else {
+            continue;
+        };
+        let (Some(f), Some(db)) = (after("Fc"), after("Gain")) else { continue };
+        v.push(Peq { kind, f, q: after("Q").unwrap_or(0.707).max(0.05), db });
+    }
+    (!v.is_empty()).then_some((pre, v))
 }
 
 impl Default for DspSettings {
@@ -39,6 +83,10 @@ impl Default for DspSettings {
             swap: false,
             crossfeed: false,
             limiter: true,
+            peq_on: false,
+            peq: Vec::new(),
+            peq_pre: 0.0,
+            peq_name: String::new(),
         }
     }
 }
@@ -163,6 +211,8 @@ pub struct Dsp {
     pub settings: DspSettings,
     rate: f32,
     bands: Vec<(Biquad, bool)>,
+    pbands: Vec<Biquad>,
+    ppre: f32,
     pre: f32,
     lim_gain: f32,
     xf: [f32; 2],
@@ -170,7 +220,7 @@ pub struct Dsp {
 
 impl Dsp {
     pub fn new(rate: u32) -> Dsp {
-        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pre: 1.0, lim_gain: 1.0, xf: [0.0; 2] };
+        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pbands: Vec::new(), ppre: 1.0, pre: 1.0, lim_gain: 1.0, xf: [0.0; 2] };
         d.apply(DspSettings::default());
         d
     }
@@ -199,6 +249,19 @@ impl Dsp {
             *active = db.abs() > 0.01;
         }
         self.pre = 10f32.powf(s.preamp.clamp(-20.0, 20.0) / 20.0);
+        // Filtry parametryczne – stan zostaje, gdy liczba filtrów się nie zmienia.
+        if self.pbands.len() != s.peq.len() {
+            self.pbands = vec![Biquad::default(); s.peq.len()];
+        }
+        for (bq, p) in self.pbands.iter_mut().zip(s.peq.iter()) {
+            let kind = match p.kind {
+                1 => Kind::LowShelf,
+                2 => Kind::HighShelf,
+                _ => Kind::Peak,
+            };
+            bq.set(kind, p.f.clamp(10.0, 22_000.0), p.q.clamp(0.05, 20.0), p.db.clamp(-30.0, 30.0), self.rate);
+        }
+        self.ppre = 10f32.powf(s.peq_pre.clamp(-30.0, 10.0) / 20.0);
         self.settings = s;
     }
 
@@ -215,6 +278,14 @@ impl Dsp {
         let lim_release = (-1.0 / (0.15 * self.rate)).exp();
         for f in buf.chunks_exact_mut(2) {
             let (mut l, mut r) = if s.swap { (f[1], f[0]) } else { (f[0], f[1]) };
+            if s.peq_on && !self.pbands.is_empty() {
+                l *= self.ppre;
+                r *= self.ppre;
+                for bq in self.pbands.iter_mut() {
+                    l = bq.run(0, l);
+                    r = bq.run(1, r);
+                }
+            }
             if eq {
                 l *= pre;
                 r *= pre;

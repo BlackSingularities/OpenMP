@@ -5,6 +5,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, Cover } from "widgets.slint";
 import { TrackRow } from "types.slint";
+import { Ui } from "state.slint";
 
 export component TrackList inherits Rectangle {
     in property <[TrackRow]> rows;
@@ -57,6 +58,8 @@ export component TrackList inherits Rectangle {
     // kafelków – tysiące utworów nie spowalniają przewijania.
     if root.grid && root.rows.length > 0: sv := ScrollView {
         property <int> cols: max(1, floor((self.visible-width - 16px) / root.tile));
+        init => { Ui.grid-cols = self.cols; }
+        changed cols => { Ui.grid-cols = self.cols; }
         property <length> cell: (self.visible-width - 16px) / cols;
         property <length> cell-h: cell + 44px;
         content-height: ceil(root.rows.length / cols) * cell-h + 16px;
@@ -70,6 +73,12 @@ export component TrackList inherits Rectangle {
         function band-move(x: length, y: length, ctrl: bool) {
             self.mx = x;
             self.my = y;
+            // Kursor przy krawędzi – siatka przewija się za nim.
+            if y > -self.content-y + self.visible-height - 30px {
+                self.content-y = max(self.content-y - 24px, min(0px, self.visible-height - self.content-height));
+            } else if y < -self.content-y + 30px {
+                self.content-y = min(self.content-y + 24px, 0px);
+            }
             if !self.band-on && abs(x - self.ax) + abs(y - self.ay) < 8px {
                 return;
             }
@@ -452,6 +461,14 @@ export component TrackList inherits Rectangle {
                         }
                     }
                     double-clicked => { root.double(r.idx); }
+                    // Ctrl + kółko – z listy do okładek (ten sam suwak widoku).
+                    scroll-event(e) => {
+                        if e.modifiers.control {
+                            root.zoom(e.delta-y > 0 ? 10 : -10);
+                            return accept;
+                        }
+                        reject
+                    }
                 }
             }
         }

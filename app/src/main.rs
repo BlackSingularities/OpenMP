@@ -133,6 +133,7 @@ fn main() {
         osd_until: None,
         last_mouse: Instant::now(),
         hover_controls: false,
+        next_cancelled: false,
         ab: (None, None),
         lyrics: Vec::new(),
         lyrics_text: String::new(),
@@ -619,6 +620,8 @@ fn wire(ui: &AppWindow) {
     v.on_show_picture(|| later(video::open_view));
     v.on_hover_seek(|f| later(move |app| video::hover_seek(app, f)));
     v.on_set_zoom(|z| later(move |app| video::set(app, "zoom", z)));
+    v.on_skip(|| later(video::skip));
+    v.on_next_cancel(|| later(|app| app.next_cancelled = true));
     v.on_rotate_view(|| later(video::rotate));
     v.on_reset_view(|| later(video::reset_view));
     v.on_set_layout(|l| later(move |app| video::set_layout(app, l)));
@@ -632,6 +635,7 @@ fn wire(ui: &AppWindow) {
     v.on_select_audio(|id| later(move |app| video::select(app, "aid", &id)));
     v.on_select_sub(|id| later(move |app| video::select(app, "sid", &id)));
     v.on_load_sub(|| later(video::load_sub));
+    v.on_fetch_sub(|| later(video::fetch_sub));
     v.on_goto_chapter(|id| later(move |app| video::goto_chapter(app, &id)));
     v.on_set_speed(|s| later(move |app| video::set(app, "speed", s)));
     v.on_set_sub_delay(|s| later(move |app| video::set(app, "sub-delay", s)));

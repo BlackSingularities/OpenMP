@@ -340,6 +340,7 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         UP | DOWN => move_cursor(app, if c == UP { -1 } else { 1 }, shift),
         HOME => crate::player::seek_abs(app, 0.0),
         ENTER if video => crate::video::toggle_fullscreen(app),
+        ENTER if app.ui().is_some_and(|u| u.global::<Lib>().get_view() == 1) => crate::libview::command(app, "l-play"),
         ENTER => {
             if let Some(&i) = crate::lists::selected_sorted(app).first() {
                 let id = app.active_id();
@@ -427,6 +428,20 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
 }
 
 fn move_cursor(app: &mut App, d: i32, shift: bool) {
+    let (lib, cols) = app.ui().map(|u| (u.global::<Lib>().get_view() == 1, u.global::<Ui>().get_grid_cols().max(1))).unwrap_or((false, 1));
+    // Siatka okładek: w górę/dół o cały wiersz.
+    let d = if app.s.track_grid { d * cols } else { d };
+    if lib {
+        let n = app.libv.tracks.len() as i32;
+        if n == 0 {
+            return;
+        }
+        let cur = app.libv.anchor.or_else(|| app.libv.sel.iter().max().copied()).map(|c| c as i32).unwrap_or(-1);
+        let i = (cur + d).clamp(0, n - 1) as usize;
+        crate::libview::row_clicked(app, i, false, shift);
+        app.libv.anchor = Some(i);
+        return;
+    }
     let mut visible: Vec<usize> = app.row_of.keys().copied().collect();
     visible.sort();
     if visible.is_empty() {

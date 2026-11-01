@@ -174,22 +174,49 @@ export component AppWindow inherits Window {
         }
 
 
-        // Krótki komunikat u dołu okna.
+        // Krótki komunikat u dołu okna – karta jak komunikaty na obrazie filmu.
         if Ui.mode != 1: Rectangle {
-            y: parent.height - self.height - (Ui.mode == 2 ? 70px : Prefs.compact ? 160px : 210px);
+            y: parent.height - self.height - (Ui.mode == 2 ? 70px : Prefs.compact ? 160px : 210px) + (Ui.toast-visible ? 0 : 10px);
             x: (parent.width - self.width) / 2;
-            width: tt.preferred-width + 30px;
-            height: 34px;
-            border-radius: 17px;
-            background: Theme.dark ? #2a303ce8 : #1c2028e8;
+            width: min(tl.preferred-width, parent.width - 32px);
+            height: tl.preferred-height;
+            border-radius: 12px;
+            background: @linear-gradient(180deg, #1a1d24f2 0%, #0e1014f2 100%);
+            border-width: 1px;
+            border-color: #ffffff17;
             opacity: Ui.toast-visible ? 1 : 0;
-            animate opacity { duration: 200ms; }
-            drop-shadow-blur: 14px;
-            drop-shadow-color: #00000060;
-            tt := Text {
-                text: Ui.toast;
-                color: #ffffff;
-                font-size: Theme.fs;
+            animate opacity { duration: 200ms; easing: ease-out; }
+            animate y { duration: 220ms; easing: ease-out; }
+            drop-shadow-blur: 26px;
+            drop-shadow-offset-y: 6px;
+            drop-shadow-color: #00000090;
+            tl := HorizontalLayout {
+                padding-left: 10px;
+                padding-right: 18px;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                spacing: 12px;
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 8px;
+                    background: Theme.tint.with-alpha(0.18);
+                    Icon {
+                        icon: Icons.info;
+                        size: 15px;
+                        fill: Theme.tint-hi;
+                    }
+                }
+                Text {
+                    text: Ui.toast;
+                    color: #ffffff;
+                    font-size: Theme.fs;
+                    font-weight: 600;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
+                    max-width: 520px;
+                }
             }
         }
     }

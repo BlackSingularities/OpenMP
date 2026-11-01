@@ -8,10 +8,12 @@ pub mod listenbrainz;
 pub mod lrclib;
 pub mod meta;
 pub mod mpv;
+pub mod opensubs;
 pub mod paths;
 pub mod playlist;
 pub mod radio;
 pub mod settings;
+pub mod tmdb;
 pub mod update;
 
 /// Wersja programu (CI podaje numer z tagu przy kompilacji).

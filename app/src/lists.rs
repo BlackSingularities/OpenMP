@@ -36,10 +36,50 @@ pub fn with_rating(r: &mut TrackRow, rating: u8) {
     }
 }
 
+/// Odcinek serialu z nazwy pliku: „S01E03”, „s1e3”, „1x03”.
+pub fn episode(name: &str) -> Option<(u32, u32)> {
+    let b = name.to_ascii_lowercase().into_bytes();
+    let num = |i: usize| -> (u32, usize) {
+        let mut j = i;
+        let mut v = 0u32;
+        while j < b.len() && b[j].is_ascii_digit() && j - i < 3 {
+            v = v * 10 + (b[j] - b'0') as u32;
+            j += 1;
+        }
+        (v, j)
+    };
+    for i in 0..b.len() {
+        let start = i == 0 || !b[i - 1].is_ascii_alphanumeric();
+        if start && b[i] == b's' {
+            let (s, j) = num(i + 1);
+            if j > i + 1 && j < b.len() && b[j] == b'e' {
+                let (e, k) = num(j + 1);
+                if k > j + 1 {
+                    return Some((s, e));
+                }
+            }
+        }
+        if start && b[i].is_ascii_digit() {
+            let (s, j) = num(i);
+            if j < b.len() && b[j] == b'x' && j - i <= 2 {
+                let (e, k) = num(j + 1);
+                if k >= j + 3 {
+                    return Some((s, e));
+                }
+            }
+        }
+    }
+    None
+}
+
 /// Postęp filmu na kafelku: obejrzana część i znacznik „obejrzany”.
 pub fn with_progress(r: &mut TrackRow, t: &TrackInfo, st: &openmp_core::library::Stat) {
     if !r.video {
         return;
+    }
+    // Serial: sezon i odcinek pod tytułem.
+    if let Some((s, e)) = Path::new(&t.path).file_stem().and_then(|n| episode(&n.to_string_lossy())) {
+        r.artist = ss(format!("Sezon {s} · Odcinek {e}"));
     }
     r.watched = st.watched;
     if st.resume > 0.0 && t.duration > 0.0 {

@@ -621,7 +621,42 @@ fn rows(app: &mut App) {
             r
         })
         .collect();
+    // Seriale (lista wierszy): nagłówek nad każdym sezonem – „Serial · Sezon 1 · 8 odcinków”.
+    let rows = if grid { rows } else { with_seasons(&app.libv.tracks, rows) };
     app.m.lib_rows.set_vec(rows);
+}
+
+fn with_seasons(tracks: &[TrackInfo], rows: Vec<TrackRow>) -> Vec<TrackRow> {
+    let season = |t: &TrackInfo| -> Option<(String, u32)> {
+        let p = std::path::Path::new(&t.path);
+        if !(t.video || meta::is_video(p)) {
+            return None;
+        }
+        let (s, _) = crate::lists::episode(&p.file_stem()?.to_string_lossy())?;
+        Some((openmp_core::tmdb::guess(p).0, s))
+    };
+    let keys: Vec<Option<(String, u32)>> = tracks.iter().map(season).collect();
+    if keys.iter().all(|k| k.is_none()) {
+        return rows;
+    }
+    let mut out = Vec::with_capacity(rows.len() + 8);
+    for (i, r) in rows.into_iter().enumerate() {
+        if let Some(k) = &keys[i] {
+            if i == 0 || keys[i - 1].as_ref() != Some(k) {
+                let n = keys[i..].iter().take_while(|x| x.as_ref() == Some(k)).count();
+                let name = if k.0.is_empty() { String::new() } else { format!("{}  ·  ", k.0) };
+                out.push(TrackRow {
+                    header: true,
+                    idx: -1,
+                    h_title: ss(format!("{name}Sezon {}", k.1)),
+                    h_sub: ss(format!("{n} {}", if n == 1 { "odcinek" } else if (2..5).contains(&(n % 10)) && !(12..15).contains(&(n % 100)) { "odcinki" } else { "odcinków" })),
+                    ..Default::default()
+                });
+            }
+        }
+        out.push(r);
+    }
+    out
 }
 
 pub fn refresh_playing(app: &mut App) {
@@ -894,6 +929,7 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::sep(),
         crate::menu::item("l-resume-reset", "Zapomnij miejsce wznowienia", "history", ""),
         crate::menu::item("l-watched", "Obejrzany / nieobejrzany (przełącz)", "check", ""),
+        crate::menu::item_en("l-tmdb", "Popraw dopasowanie TMDB…", "edit", "", n == 1 && !app.s.tmdb_key.is_empty()),
         crate::menu::item_en("l-save-smart", "Zapisz wyszukiwanie jako inteligentną listę", "playlist", "", !app.libv.search.trim().is_empty()),
     ];
     crate::menu::open(app, MenuCtx::Lib, items, x, y);
@@ -944,6 +980,12 @@ pub fn command(app: &mut App, cmd: &str) {
                 app.dirty = true;
                 rebuild_nav(app);
                 app.toast(format!("Zapisano inteligentną listę „{q}”"));
+            }
+        }
+        "l-tmdb" => {
+            if let Some(t) = sel.first() {
+                let q = openmp_core::tmdb::query_of(std::path::Path::new(&t.path));
+                crate::dialogs::rename(app, RenameCtx::Tmdb(t.path.clone()), "Tytuł filmu w TMDB (z rokiem, np. Anioły i demony 2009)", &q);
             }
         }
         "l-watched" => {

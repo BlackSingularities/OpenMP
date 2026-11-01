@@ -4,6 +4,9 @@ import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem
 
 // Odtwarzanie, wyświetlacz i analizator.
 export global Player {
+    // Opis filmu z TMDB (pusty – brak).
+    in-out property <string> overview;
+    in-out property <string> credits;
     in-out property <string> title;
     in-out property <string> artist;
     in-out property <string> album;
@@ -237,7 +240,16 @@ export global Video {
     callback select-audio(string);
     callback select-sub(string);
     callback load-sub();
+    callback fetch-sub();
     callback goto-chapter(string);
+    // Pomijanie czołówki / napisów końcowych (cel w sekundach, -1 – następny plik).
+    in-out property <string> skip-text;
+    in-out property <float> skip-to;
+    callback skip();
+    // Następny odcinek pod koniec filmu: tytuł i sekundy do przejścia.
+    in-out property <string> next-text;
+    in-out property <int> next-secs;
+    callback next-cancel();
     callback set-speed(float);
     callback set-sub-delay(float);
     callback set-audio-delay(float);
@@ -368,6 +380,10 @@ export global Prefs {
     in-out property <int> sub-size: 46;
     in-out property <string> sub-lang;
     in-out property <string> lb-token;
+    in-out property <string> tmdb-key;
+    in-out property <bool> peq-on;
+    in-out property <string> peq-name;
+    in-out property <string> os-key;
     in-out property <bool> online-covers: true;
     in-out property <string> audio-lang;
     in-out property <string> screenshot-dir;
@@ -422,6 +438,8 @@ export global Ui {
     in-out property <string> update-status;
     in-out property <bool> update-portable;
     in-out property <bool> rename-dialog;
+    // Kolumny siatki okładek (strzałki w górę/dół skaczą o wiersz).
+    in-out property <int> grid-cols: 1;
     in-out property <string> rename-text;
     in-out property <string> rename-title;
     in-out property <[MenuEntry]> menu;

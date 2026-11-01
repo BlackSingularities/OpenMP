@@ -69,6 +69,7 @@ pub fn track_at(app: &App, list: u64, idx: usize) -> Option<TrackInfo> {
 /// Uruchamia utwór z listy.
 pub fn play(app: &mut App, list: u64, idx: usize, start: Option<f64>) {
     let Some(t) = track_at(app, list, idx) else { return };
+    app.next_cancelled = false;
     if let Some(c) = &app.cur {
         if let Some(l) = c.list {
             if app.history.last() != Some(&(l, c.idx)) {
@@ -536,6 +537,18 @@ pub fn save_resume(app: &mut App) {
     // Film obejrzany prawie do końca.
     if c.video && dur > 0.0 && pos >= dur * 0.9 {
         st.watched = true;
+    }
+    // Ustawienia tego filmu na następny raz.
+    if c.video {
+        if let Some(m) = app.mpv.clone() {
+            let aspect = app.ui().map(|u| u.global::<Video>().get_aspect()).unwrap_or(0);
+            let st = app.stats.entry(&c.info.path);
+            st.aid = m.get_str("aid").unwrap_or_default();
+            st.sid = m.get_str("sid").unwrap_or_default();
+            st.sub_delay = m.get_f64("sub-delay").unwrap_or(0.0);
+            st.audio_delay = m.get_f64("audio-delay").unwrap_or(0.0);
+            st.aspect = aspect;
+        }
     }
     app.dirty = true;
 }
