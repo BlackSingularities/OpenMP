@@ -808,8 +808,8 @@ pub fn back(app: &mut App) {
     }
 }
 
-/// Granie z biblioteki: utwory (i filmy) trafiają na kartę „Kolejka” – bieżące odtwarzanie,
-/// żeby działały następny/poprzedni.
+/// Granie z biblioteki: utwory (i filmy) są dopisywane na koniec karty „Kolejka” – bieżące
+/// odtwarzanie – i od razu gra wybrany; następny/poprzedni idą dalej po kolejce.
 pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuffle: bool) {
     if tracks.is_empty() {
         return;
@@ -822,8 +822,9 @@ pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuf
     }
     let id = crate::lists::queue_list(app);
     let li = app.list_index(id).unwrap();
-    app.store.lists[li].items = tracks;
-    app.queue.retain(|q| q.0 != id);
+    // Dopisane na koniec – to, co już było w kolejce, zostaje.
+    let base = app.store.lists[li].items.len();
+    app.store.lists[li].items.extend(tracks);
     app.shuffle_len = 0;
     app.dirty = true;
     crate::lists::fix_current(app, id);
@@ -832,7 +833,7 @@ pub fn play_tracks(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, shuf
     }
     crate::lists::rebuild(app);
     rebuild_nav(app);
-    crate::player::play(app, id, start, None);
+    crate::player::play(app, id, base + start, None);
 }
 
 fn add_to_active(app: &mut App, tracks: Vec<TrackInfo>) {

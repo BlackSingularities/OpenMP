@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.5.1
+
+- Granie z biblioteki dopisuje utwory na koniec karty „Kolejka” zamiast ją zastępować – to, co już było w kolejce, zostaje.
+
 ## 1.5.0
 
 Porządek w trybach okna – są trzy: okno, pełny ekran i miniodtwarzacz.
