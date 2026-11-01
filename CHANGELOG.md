@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.5.5
+
+- **Okładka po prawej, tekst po lewej:** okładka, plakat albo obraz filmu stoi przy prawej krawędzi w prawdziwych proporcjach (pionowy plakat, kwadratowa płyta, szeroki kadr) – bez przycinania i bez zmiany układu tekstu.
+- **Ostrzejsze okładki:** zaznaczenie wczytuje okładkę w pełnej rozdzielczości (do 900 px) zamiast miniatury z listy; okładka odtwarzanego pliku też do 900 px; plakaty z TMDB w rozmiarze 780 px.
+
 ## 1.5.4
 
 - **Obejrzany i odsłuchany od progu** (Ustawienia → Film, domyślnie 80%): odtworzenie liczy się w statystykach dopiero po przejściu tej części długości, a film dostaje znacznik „obejrzany” od tego samego progu. Pominięte po chwili utwory nie nabijają odtworzeń.

@@ -611,14 +611,32 @@ export component Hero inherits Rectangle {
     property <bool> show-lyrics: !root.small && root.avail >= 1320px && (!Player.idle || Player.sel-mode) && Player.lyrics.length > 0;
     init => { Player.hero-lyrics = self.show-lyrics; }
     changed show-lyrics => { Player.hero-lyrics = self.show-lyrics; }
+    // Proporcje okładki (plakat filmu, okładka albumu, klatka) – bez przycinania.
+    property <float> cover-ratio: Player.has-cover ? clamp(Player.cover.width / max(1, Player.cover.height), 0.5, 2) : 1;
+    property <float> sel-ratio: Player.sel-has-cover ? clamp(Player.sel-cover.width / max(1, Player.sel-cover.height), 0.5, 2) : 1;
+    // Tekst wyrównany do lewej, okładka (albo obraz filmu) przy prawej krawędzi – w prawdziwych
+    // proporcjach, bez zmiany układu tekstu.
     HorizontalLayout {
         spacing: root.small ? 18px : 36px;
         padding-left: root.small ? 4px : 8px;
+        // Miejsce na przycisk zamknięcia pliku obok okładki.
+        padding-right: Player.idle ? 0px : 34px;
         padding-top: root.small ? 2px : 0px;
         padding-bottom: root.small ? 2px : 0px;
+        if !(Player.idle && Player.sel-mode): NowInfo {
+            horizontal-stretch: 1;
+            small: root.small;
+        }
+        if Player.idle && Player.sel-mode: SelInfo {
+            horizontal-stretch: 1;
+            small: root.small;
+        }
+        if root.show-lyrics: HeroLyrics {
+            width: min(root.avail * 0.27, 520px);
+        }
         // Tryb zaznaczenia: okładka zaznaczonego pliku / grupy.
         if Player.idle && Player.sel-mode: Cover {
-            width: self.height;
+            width: self.height * root.sel-ratio;
             border-radius: root.small ? 10px : 14px;
             source: Player.sel-cover;
             has: Player.sel-has-cover;
@@ -626,7 +644,7 @@ export component Hero inherits Rectangle {
             background: Theme.panel2;
         }
         if !Video.active && !(Player.idle && Player.sel-mode): CoverArt {
-            width: self.height;
+            width: self.height * root.cover-ratio;
             radius: root.small ? 10px : 14px;
             clicked => {
                 if Video.bg-audio {
@@ -643,17 +661,6 @@ export component Hero inherits Rectangle {
             width: self.height * clamp(Video.ratio, 0.5, 2);
             // Proste rogi: zaokrąglone przycięcie Slint rysuje z bufora i obraz stałby w miejscu.
             radius: 0;
-        }
-        if !(Player.idle && Player.sel-mode): NowInfo {
-            horizontal-stretch: 1;
-            small: root.small;
-        }
-        if Player.idle && Player.sel-mode: SelInfo {
-            horizontal-stretch: 1;
-            small: root.small;
-        }
-        if root.show-lyrics: HeroLyrics {
-            width: min(root.avail * 0.27, 520px);
         }
     }
     // Zamknięcie bieżącego pliku – odtwarzanie staje, a w tym miejscu pojawia się zaznaczenie.

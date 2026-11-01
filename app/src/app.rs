@@ -181,6 +181,8 @@ pub struct App {
     pub scrobbled: u64,
     /// Odtworzenie (id), które już zostało policzone jako odsłuchane / obejrzane.
     pub counted: u64,
+    /// Plik, którego duża okładka jest (albo będzie) w zaznaczeniu.
+    pub sel_cover_path: String,
     pub last_save: Instant,
     pub last_smtc: Instant,
     pub stations: Vec<Station>,

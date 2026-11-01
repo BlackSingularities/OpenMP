@@ -109,6 +109,21 @@ fn video_thumb(p: &Path) -> Option<Vec<u8>> {
     got
 }
 
+/// Obraz okładki w pełnej rozdzielczości (blokujące – poza wątkiem interfejsu).
+pub fn source(path: &str) -> Option<Vec<u8>> {
+    let p = Path::new(path);
+    if openmp_core::meta::is_video(p) {
+        video_thumb(p).or_else(|| openmp_core::meta::folder_cover(p).and_then(|c| std::fs::read(c).ok()))
+    } else {
+        // Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
+        openmp_core::meta::cover(p).or_else(|| {
+            let t = openmp_core::meta::read(p);
+            let artist = if t.album_artist.trim().is_empty() { &t.artist } else { &t.album_artist };
+            openmp_core::coverart::fetch(artist, &t.album)
+        })
+    }
+}
+
 pub fn decode(bytes: &[u8], size: u32) -> Option<SharedPixelBuffer<Rgba8Pixel>> {
     let img = image::load_from_memory(bytes).ok()?;
     let img = if img.width() > size || img.height() > size { img.thumbnail(size, size) } else { img };
@@ -124,17 +139,7 @@ fn worker() -> &'static crossbeam_channel::Sender<(String, String)> {
             let rx = rx.clone();
             std::thread::spawn(move || {
                 while let Ok((k, path)) = rx.recv() {
-                    let p = Path::new(&path);
-                    let bytes = if openmp_core::meta::is_video(p) {
-                        video_thumb(p).or_else(|| openmp_core::meta::folder_cover(p).and_then(|c| std::fs::read(c).ok()))
-                    } else {
-                        // Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
-                        openmp_core::meta::cover(p).or_else(|| {
-                            let t = openmp_core::meta::read(p);
-                            let artist = if t.album_artist.trim().is_empty() { &t.artist } else { &t.album_artist };
-                            openmp_core::coverart::fetch(artist, &t.album)
-                        })
-                    };
+                    let bytes = source(&path);
                     let buf = bytes.and_then(|b| decode_shared(&b));
                     let _ = slint::invoke_from_event_loop(move || {
                         let img = buf.map(Image::from_rgba8);

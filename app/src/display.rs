@@ -170,7 +170,7 @@ pub fn show_track(app: &mut App) {
         let decoded = bytes.as_ref().and_then(|b| image::load_from_memory(b).ok());
         let (big, back, tint, pal) = match &decoded {
             Some(img) => {
-                let big = img.thumbnail(600, 600).to_rgba8();
+                let big = img.thumbnail(900, 900).to_rgba8();
                 // Tło i szkło: większa miniatura i mocne rozmycie gaussowskie – po rozciągnięciu
                 // na okno gładkie przejścia barw zamiast kwadratów.
                 let small = img.thumbnail(160, 160).blur(12.0).to_rgba8();
@@ -946,15 +946,45 @@ pub fn sel_info(app: &mut App) {
     p.set_sel_title(ss(title));
     p.set_sel_sub(ss(sub));
     p.set_sel_rows(ModelRc::new(VecModel::from(opts)));
-    match crate::covers::get(&cover_path) {
-        Some(img) => {
-            p.set_sel_cover(img);
-            p.set_sel_has_cover(true);
+    // Ten sam plik – duża okładka już jest, bez podmiany na miniaturę.
+    if app.sel_cover_path != cover_path {
+        match crate::covers::get(&cover_path) {
+            Some(img) => {
+                p.set_sel_cover(img);
+                p.set_sel_has_cover(true);
+            }
+            None => p.set_sel_has_cover(false),
         }
-        None => p.set_sel_has_cover(false),
     }
+    sel_cover_large(app, cover_path);
     sel_extras(app, single);
     p.set_sel_mode(true);
+}
+
+/// Okładka zaznaczenia w pełnej rozdzielczości i proporcjach (miniatura z pamięci jest mała).
+fn sel_cover_large(app: &mut App, path: String) {
+    if app.sel_cover_path == path {
+        return;
+    }
+    app.sel_cover_path = path.clone();
+    if path.is_empty() || meta::is_url(&path) {
+        return;
+    }
+    std::thread::spawn(move || {
+        let Some(buf) = crate::covers::source(&path).and_then(|b| crate::covers::decode(&b, 900)) else { return };
+        let _ = slint::invoke_from_event_loop(move || {
+            later(move |app| {
+                if app.sel_cover_path != path {
+                    return;
+                }
+                if let Some(ui) = app.ui() {
+                    let p = ui.global::<Player>();
+                    p.set_sel_cover(Image::from_rgba8(buf));
+                    p.set_sel_has_cover(true);
+                }
+            });
+        });
+    });
 }
 
 /// Zaznaczony jeden plik: opis (film – z TMDB, muzyka – komentarz z tagów) i tekst piosenki

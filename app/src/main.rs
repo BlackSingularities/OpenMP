@@ -151,6 +151,7 @@ fn main() {
         dirty: false,
         scrobbled: 0,
         counted: 0,
+        sel_cover_path: String::new(),
         last_save: Instant::now(),
         last_smtc: Instant::now(),
         stations: Vec::new(),

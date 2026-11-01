@@ -208,11 +208,11 @@ pub fn poster(file: &Path) -> Option<Vec<u8>> {
     if info.poster.is_empty() {
         return None;
     }
-    let pfile = cache_dir().join(format!("{}.jpg", hash(&info.poster)));
+    let pfile = cache_dir().join(format!("{}-w780.jpg", hash(&info.poster)));
     if let Ok(b) = std::fs::read(&pfile) {
         return Some(b);
     }
-    let resp = ureq::get(&format!("https://image.tmdb.org/t/p/w342{}", info.poster)).timeout(std::time::Duration::from_secs(15)).call().ok()?;
+    let resp = ureq::get(&format!("https://image.tmdb.org/t/p/w780{}", info.poster)).timeout(std::time::Duration::from_secs(15)).call().ok()?;
     let mut buf = Vec::new();
     std::io::Read::read_to_end(&mut resp.into_reader(), &mut buf).ok()?;
     if buf.len() < 1000 {
