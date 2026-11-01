@@ -767,17 +767,28 @@ component StageInput inherits TouchArea {
             Video.toggle-fullscreen();
         }
     }
+    // Pojedynczy klik pauzuje dopiero po chwili – gdy przyjdzie drugi (dwuklik: pełny ekran,
+    // przewijanie), pauzy nie ma i film gra dalej bez zatrzymania.
+    property <bool> click-wait;
+    Timer {
+        interval: 250ms;
+        running: root.click-wait;
+        triggered => {
+            root.click-wait = false;
+            Player.play-pause();
+        }
+    }
     clicked => {
         if !root.dragged {
             if Video.panel {
                 Video.panel = false;
             } else {
-                Player.play-pause();
+                root.click-wait = true;
             }
         }
     }
     double-clicked => {
-        Player.play-pause();
+        root.click-wait = false;
         if Prefs.dblclick-seek && self.mouse-x < self.width * 0.25 {
             Player.seek-rel(-10);
         } else if Prefs.dblclick-seek && self.mouse-x > self.width * 0.75 {
