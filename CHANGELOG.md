@@ -1,8 +1,8 @@
 # Zmiany
 
-## 1.9.4
+## 1.9.5
 
-- Poprawka budowania: miękkie krawędzie żywej części taśmy (wydania 1.9.0–1.9.3 nie zbudowały się).
+- Poprawka budowania: miękkie krawędzie żywej części taśmy (wydania 1.9.0–1.9.4 nie zbudowały się).
 
 ## 1.9.2
 

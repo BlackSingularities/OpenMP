@@ -31,7 +31,7 @@ export component TrackList inherits Rectangle {
     callback columns-menu(length, length);
     // Proporcje szerokości kolumn i kolumny wyrównane do prawej (liczby).
     property <[float]> weight: [2, 2, 1.2, 0.6, 1.1, 0.8, 0.6, 0.7, 1.1, 1.1, 1.4, 2];
-    property <[bool]> right: [false, false, false, true, false, true, true, false, true, true, false, false];
+    property <[bool]> num-col: [false, false, false, true, false, true, true, false, true, true, false, false];
     // Na wąskiej liście zostają tylko pierwsze kolumny.
     property <int> fit: max(0, floor((root.width - 360px) / 130px));
     property <bool> head: !root.grid && root.rows.length > 0;
@@ -331,7 +331,7 @@ export component TrackList inherits Rectangle {
                 color: Theme.text3;
                 font-size: Theme.fs-xs;
                 vertical-alignment: center;
-                horizontal-alignment: root.right[c] ? right : left;
+                horizontal-alignment: root.num-col[c] ? right : left;
                 overflow: elide;
             }
             Text {
@@ -478,7 +478,7 @@ export component TrackList inherits Rectangle {
                         color: c == 0 ? Theme.text2 : Theme.text3;
                         font-size: c == 4 ? Theme.fs-xs : Theme.fs;
                         vertical-alignment: center;
-                        horizontal-alignment: root.right[c] ? right : left;
+                        horizontal-alignment: root.num-col[c] ? right : left;
                         overflow: elide;
                     }
                     Text {
