@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.9.1
+
+- Przycisk przypinania na wierzchu stoi w jednej grupie z przyciskami okna (minimalizuj, maksymalizuj, zamknij) i wygląda jak one – w oknie głównym i w widoku filmu.
+
 ## 1.9.0
 
 - **Kolumny do wyboru w każdym widoku listy**: wykonawca, album, gatunek, rok, format, rozmiar, liczba odtworzeń, ocena, ostatnio grane, data pliku, kompozytor i folder. Nad listą pasek z nazwami kolumn – prawy klik albo przycisk na jego końcu otwiera wybór. Osobny zestaw dla list odtwarzania, folderów, albumów, zbiorów, filmów i seriali, zapamiętany.

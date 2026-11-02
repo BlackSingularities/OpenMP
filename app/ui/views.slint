@@ -13,7 +13,41 @@ import { GlassFill } from "glass.slint";
 
 export component WinButtons inherits HorizontalLayout {
     in property <bool> on-dark;
+    // Przypinanie na wierzchu jako pierwszy z przycisków okna – ten sam kształt i podświetlenie.
+    in property <bool> pin;
+    in property <bool> pinned;
+    in property <string> pin-tip;
+    callback pin-toggled();
     spacing: 0;
+    if root.pin: Rectangle {
+        width: 44px;
+        height: 32px;
+        border-radius: 6px;
+        background: pta.has-hover ? (root.on-dark ? #ffffff1f : Theme.hover) : transparent;
+        Icon {
+            icon: root.pinned ? Icons.pin : Icons.pin-off;
+            size: 15px;
+            fill: root.pinned ? (root.on-dark ? Theme.tint-hi : Theme.tint) : root.on-dark ? #ffffffd0 : Theme.text2;
+        }
+        pta := TouchArea {
+            clicked => { root.pin-toggled(); }
+        }
+        if pta.has-hover: Rectangle {
+            y: parent.height + 4px;
+            x: parent.width - self.width;
+            width: ptt.preferred-width + 16px;
+            height: 24px;
+            border-radius: 6px;
+            background: Theme.panel2;
+            drop-shadow-blur: 8px;
+            drop-shadow-color: #00000060;
+            ptt := Text {
+                text: root.pin-tip;
+                color: Theme.text;
+                font-size: Theme.fs-sm;
+            }
+        }
+    }
     for b[i] in [
         { icon: Icons.minimize, id: 0 },
         { icon: Ui.maximized ? Icons.restore : Icons.maximize, id: 1 },
@@ -108,22 +142,15 @@ export component TitleBar inherits Rectangle {
             overflow: elide;
             horizontal-stretch: 1;
         }
-        IconBtn {
-            y: (parent.height - self.height) / 2;
-            icon: Prefs.ontop ? Icons.pin : Icons.pin-off;
-            active: Prefs.ontop;
-            size: 30px;
-            icon-size: 15px;
-            tip: Prefs.ontop ? @tr("Pinned on top – unpin (Ctrl+T)") : @tr("Always on top (Ctrl+T)");
-            clicked => {
+        WinButtons {
+            pin: true;
+            pinned: Prefs.ontop;
+            pin-tip: Prefs.ontop ? @tr("Pinned on top – unpin (Ctrl+T)") : @tr("Always on top (Ctrl+T)");
+            pin-toggled => {
                 Prefs.ontop = !Prefs.ontop;
                 Prefs.changed("ontop");
             }
         }
-        Rectangle {
-            width: 6px;
-        }
-        WinButtons { }
     }
 }
 

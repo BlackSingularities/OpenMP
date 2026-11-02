@@ -907,7 +907,15 @@ component FullView inherits Rectangle {
                 tip: @tr("Picture in picture (P)");
                 clicked => { Video.mini(); }
             }
-            IconBtn {
+            // Przypinanie razem z przyciskami okna (jak w oknie głównym); na pełnym ekranie – samo.
+            if !Video.fullscreen: WinButtons {
+                on-dark: true;
+                pin: true;
+                pinned: Video.ontop;
+                pin-tip: Video.ontop ? @tr("Pinned on top – unpin (T)") : @tr("Always on top (T)");
+                pin-toggled => { Video.toggle-ontop(); }
+            }
+            if Video.fullscreen: IconBtn {
                 y: 4px;
                 icon: Video.ontop ? Icons.pin : Icons.pin-off;
                 on-dark: true;
@@ -916,9 +924,6 @@ component FullView inherits Rectangle {
                 hover-color: #ffffff;
                 tip: Video.ontop ? @tr("Pinned on top – unpin (T)") : @tr("Always on top (T)");
                 clicked => { Video.toggle-ontop(); }
-            }
-            if !Video.fullscreen: WinButtons {
-                on-dark: true;
             }
         }
     }
