@@ -19,6 +19,56 @@ pub fn presets(app: &App) -> Vec<(String, Vec<f32>)> {
     v
 }
 
+/// Krzywa korektora nad suwakami (układ 1000×100, ±MAX_DB jak suwaki) i najwyższe wzmocnienie – ostrzeżenie
+/// o przesterowaniu. Oś X jak suwaki: logarytmicznie od pierwszego do ostatniego pasma.
+pub fn publish_curve(app: &App) {
+    let Some(ui) = app.ui() else { return };
+    let (lo, hi) = (dsp::BANDS[0], dsp::BANDS[dsp::BANDS.len() - 1]);
+    let n = 160;
+    let freqs: Vec<f32> = (0..n).map(|i| lo * (hi / lo).powf(i as f32 / (n - 1) as f32)).collect();
+    let db = dsp::response(&app.s.dsp, &freqs);
+    let y = |d: f32| 50.0 - d.clamp(-dsp::MAX_DB, dsp::MAX_DB) * 50.0 / dsp::MAX_DB;
+    let mut path = String::with_capacity(n * 16);
+    for (i, d) in db.iter().enumerate() {
+        let _ = std::fmt::Write::write_fmt(&mut path, format_args!("{}{:.1} {:.2}", if i == 0 { "M " } else { " L " }, i as f32 * 1000.0 / (n - 1) as f32, y(*d)));
+    }
+    // Wypełnienie pod krzywą (do linii 0 dB).
+    let fill = format!("{path} L 1000 50 L 0 50 Z");
+    let p = ui.global::<Prefs>();
+    p.set_eq_curve(ss(path));
+    p.set_eq_curve_fill(ss(fill));
+    p.set_eq_peak(db.iter().cloned().fold(f32::MIN, f32::max));
+}
+
+/// Przedwzmocnienie dobrane tak, by najwyższy punkt krzywej wypadał na 0 dB (bez przesterowań).
+pub fn eq_auto_gain(app: &mut App) {
+    let freqs: Vec<f32> = (0..200).map(|i| 20.0 * 1000f32.powf(i as f32 / 199.0)).collect();
+    let mut s = app.s.dsp.clone();
+    s.preamp = 0.0;
+    let peak = dsp::response(&s, &freqs).into_iter().fold(f32::MIN, f32::max);
+    app.s.dsp.preamp = ((-peak.max(0.0)) * 2.0).floor() / 2.0;
+    if let Some(ui) = app.ui() {
+        ui.global::<Prefs>().set_preamp(app.s.dsp.preamp);
+    }
+    app.engine.set_dsp(app.s.dsp.clone());
+    crate::video::apply_audio_filters(app);
+    publish_curve(app);
+    app.s.save();
+}
+
+/// Usunięcie bieżącego własnego presetu (gotowych nie da się usunąć).
+pub fn eq_delete_preset(app: &mut App) {
+    let name = app.s.eq_preset.clone();
+    let before = app.s.custom_eq.len();
+    app.s.custom_eq.retain(|(n, _)| *n != name);
+    if app.s.custom_eq.len() != before {
+        app.s.eq_preset = "Własne".into();
+        publish_presets(app);
+        app.s.save();
+        app.toast(tr!("Preset “{}” deleted", name));
+    }
+}
+
 pub fn publish_presets(app: &mut App) {
     let p = presets(app);
     let mut names: Vec<String> = p.iter().map(|x| dsp::preset_label(&x.0)).collect();
@@ -31,6 +81,7 @@ pub fn publish_presets(app: &mut App) {
         let pr = ui.global::<Prefs>();
         pr.set_presets(crate::app::strings(&names));
         pr.set_preset(idx.unwrap_or(0) as i32);
+        pr.set_preset_custom(app.s.custom_eq.iter().any(|(n, _)| *n == app.s.eq_preset));
     }
 }
 
@@ -81,6 +132,8 @@ pub fn publish(app: &mut App) {
     app.m.eq.set_vec(s.dsp.gains.clone());
     p.set_eq(model(&app.m.eq));
     p.set_preamp(s.dsp.preamp);
+    p.set_bass(s.dsp.bass);
+    p.set_treble(s.dsp.treble);
     p.set_balance(s.dsp.balance);
     p.set_width(s.dsp.width);
     p.set_mono(s.dsp.mono);
@@ -189,6 +242,7 @@ pub fn publish(app: &mut App) {
     pl.set_muted(s.muted);
     pl.set_speed_text(ss(speed_text(s.speed)));
     publish_presets(app);
+    publish_curve(app);
 }
 
 /// Wygląd całego programu (zasięg akcentu, zaokrąglenia, wielkość tekstu, czcionka, poświata).
@@ -377,10 +431,16 @@ pub fn changed(app: &mut App, key: &str) {
             app.engine.set_speed(app.s.speed);
             ui.global::<Player>().set_speed_text(ss(speed_text(app.s.speed)));
         }
-        "eq-on" | "preamp" | "balance" | "width" | "mono" | "swap" | "crossfeed" | "limiter" => {
+        "eq-on" | "preamp" | "balance" | "width" | "mono" | "swap" | "crossfeed" | "limiter" | "tone" => {
             let d = &mut app.s.dsp;
             d.eq_on = p.get_eq_on();
             d.preamp = (p.get_preamp() * 2.0).round() / 2.0;
+            d.bass = (p.get_bass() * 2.0).round() / 2.0;
+            d.treble = (p.get_treble() * 2.0).round() / 2.0;
+            if key == "tone" && !d.eq_on {
+                d.eq_on = true;
+                p.set_eq_on(true);
+            }
             d.balance = p.get_balance();
             d.width = p.get_width();
             d.mono = p.get_mono();
@@ -390,6 +450,7 @@ pub fn changed(app: &mut App, key: &str) {
             app.engine.set_dsp(app.s.dsp.clone());
             crate::video::apply_audio_filters(app);
             ui.global::<Player>().set_eq_on(app.s.dsp.eq_on);
+            publish_curve(app);
         }
         "device" => {
             let i = p.get_device();
@@ -594,6 +655,8 @@ pub fn changed(app: &mut App, key: &str) {
         "prevent-sleep" => app.s.prevent_sleep = p.get_prevent_sleep(),
         "check-updates" => app.s.check_updates = p.get_check_updates(),
         "rescan" => crate::libview::start_scan(app),
+        "eq-auto-gain" => eq_auto_gain(app),
+        "eq-delete-preset" => eq_delete_preset(app),
         _ => {}
     }
     app.s.save();
@@ -616,6 +679,7 @@ pub fn eq_band(app: &mut App, i: usize, v: f32) {
     app.engine.set_dsp(app.s.dsp.clone());
     crate::video::apply_audio_filters(app);
     publish_presets(app);
+    publish_curve(app);
     app.dirty = true;
 }
 
@@ -633,6 +697,7 @@ pub fn eq_preset(app: &mut App, i: usize) {
     app.engine.set_dsp(app.s.dsp.clone());
     crate::video::apply_audio_filters(app);
     publish_presets(app);
+    publish_curve(app);
     app.s.save();
 }
 
@@ -659,14 +724,20 @@ pub fn auto_eq(app: &mut App, announce: bool) {
 pub fn eq_reset(app: &mut App) {
     app.s.dsp.gains = vec![0.0; dsp::BANDS.len()];
     app.s.dsp.preamp = 0.0;
+    app.s.dsp.bass = 0.0;
+    app.s.dsp.treble = 0.0;
     app.s.eq_preset = "Płasko".into();
     app.m.eq.set_vec(app.s.dsp.gains.clone());
     if let Some(ui) = app.ui() {
-        ui.global::<Prefs>().set_preamp(0.0);
+        let p = ui.global::<Prefs>();
+        p.set_preamp(0.0);
+        p.set_bass(0.0);
+        p.set_treble(0.0);
     }
     app.engine.set_dsp(app.s.dsp.clone());
     crate::video::apply_audio_filters(app);
     publish_presets(app);
+    publish_curve(app);
     app.s.save();
 }
 

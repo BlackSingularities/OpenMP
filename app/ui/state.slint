@@ -170,6 +170,9 @@ export global Lib {
     // Radio
     in-out property <[Station]> stations;
     in-out property <int> radio-source;
+    // Filtr zbiorów: 0 – wszystko, 1 – muzyka, 2 – filmy; widoczny tylko w zbiorach.
+    in-out property <bool> kind-filter-shown;
+    in-out property <int> kind-filter;
     in-out property <string> radio-query;
     in-out property <bool> radio-busy;
     callback nav-clicked(string);
@@ -190,6 +193,7 @@ export global Lib {
     callback rescan();
     callback radio-search(string);
     callback radio-source-changed(int);
+    callback kind-filter-changed(int);
     callback radio-play(int);
     callback radio-save(int);
     callback radio-add-url();
@@ -416,6 +420,13 @@ export global Prefs {
     in-out property <bool> eq-on;
     in-out property <[float]> eq;
     in-out property <float> preamp;
+    // Barwa (półki basów i sopranów, dB) i krzywa korektora do narysowania (układ 1000×100, ±18 dB).
+    in-out property <float> bass;
+    in-out property <float> treble;
+    in-out property <string> eq-curve;
+    in-out property <string> eq-curve-fill;
+    in-out property <float> eq-peak;
+    in-out property <bool> preset-custom;
     in-out property <float> balance;
     in-out property <float> width: 1;
     in-out property <bool> mono;

@@ -709,6 +709,11 @@ fn wire(ui: &AppWindow) {
         app.libv.search = t.to_string();
         libview::show(app);
     }));
+    b.on_kind_filter_changed(|k| later(move |app| {
+        app.s.coll_kind = k;
+        app.s.save();
+        libview::show(app);
+    }));
     b.on_rescan(|| later(libview::start_scan));
     b.on_radio_search(|q| later(move |app| {
         let src = app.ui().map(|u| u.global::<Lib>().get_radio_source()).unwrap_or(0);

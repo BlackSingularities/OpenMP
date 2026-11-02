@@ -198,40 +198,64 @@ export component HSlider inherits Rectangle {
     accessible-value: round(root.value * 100) / 100;
     accessible-value-minimum: root.minimum;
     accessible-value-maximum: root.maximum;
+    // Dymek nad uchwytem przy przeciąganiu (puste – bez dymka).
+    in property <string> bubble;
     height: 18px;
     min-width: 60px;
     property <float> frac: (value - minimum) / (maximum - minimum);
+    property <bool> hot: ta.has-hover || ta.pressed || fs.has-focus;
+    // Ścieżka grubnie pod kursorem; wypełnienie z lekkim gradientem akcentu.
+    property <length> th: root.hot ? root.thickness + 2px : root.thickness;
+    animate th { duration: 140ms; easing: ease-out; }
     track := Rectangle {
-        height: root.thickness;
+        height: root.th;
         width: 100%;
         border-radius: self.height / 2;
         background: root.track-color;
     }
     if !root.centered: Rectangle {
         x: 0;
-        height: root.thickness;
-        width: root.width * clamp(root.frac, 0, 1);
+        height: root.th;
+        width: max(root.th, root.width * clamp(root.frac, 0, 1));
         border-radius: self.height / 2;
-        background: root.fill-color;
+        background: @linear-gradient(90deg, root.fill-color.darker(0.25) 0%, root.fill-color 100%);
+        opacity: root.frac <= 0 ? 0 : 1;
     }
     if root.centered: Rectangle {
         x: min(root.width / 2, root.width * root.frac);
-        height: root.thickness;
+        height: root.th;
         width: abs(root.width * root.frac - root.width / 2);
         border-radius: self.height / 2;
         background: root.fill-color;
     }
-    Rectangle {
+    // Uchwyt: jasna kropka z obwódką akcentu, większa pod kursorem.
+    knob := Rectangle {
         x: root.width * clamp(root.frac, 0, 1) - self.width / 2;
-        width: ta.has-hover || ta.pressed ? 14px : 10px;
+        width: ta.pressed ? 16px : root.hot ? 14px : 11px;
         height: self.width;
         border-radius: self.width / 2;
-        background: ta.has-hover || ta.pressed ? Theme.knob : root.fill-color;
-        border-width: fs.has-focus ? 2px : 0;
-        border-color: Theme.tint.brighter(0.4);
-        drop-shadow-blur: 4px;
-        drop-shadow-color: #00000066;
-        animate width { duration: 100ms; }
+        background: Theme.knob;
+        border-width: ta.pressed ? 3px : 2px;
+        border-color: root.fill-color;
+        drop-shadow-blur: 6px;
+        drop-shadow-color: #00000070;
+        animate width, border-width { duration: 120ms; easing: ease-out; }
+    }
+    if ta.pressed && root.bubble != "": Rectangle {
+        x: clamp(knob.x + knob.width / 2 - self.width / 2, -6px, root.width - self.width + 6px);
+        y: -self.height - 8px;
+        width: bt.preferred-width + 14px;
+        height: 22px;
+        border-radius: 7px;
+        background: root.fill-color;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: #00000060;
+        bt := Text {
+            text: root.bubble;
+            color: Theme.knob;
+            font-size: Theme.fs-sm;
+            font-weight: 600;
+        }
     }
     function pick(x: length) -> float {
         let v = root.minimum + clamp(x / root.width, 0, 1) * (root.maximum - root.minimum);
@@ -328,14 +352,18 @@ export component VSlider inherits Rectangle {
                 height: 1px;
                 background: Theme.text3.with-alpha(0.5);
             }
+            // Uchwyt jak w suwakach poziomych: jasny, z obwódką akcentu, większy pod kursorem.
             Rectangle {
                 y: parent.height * (1 - root.frac) - self.height / 2;
-                width: 16px;
-                height: 8px;
-                border-radius: 3px;
-                background: ta.pressed || ta.has-hover ? #ffffff : Theme.text;
-                drop-shadow-blur: 3px;
+                width: ta.pressed || ta.has-hover ? 18px : 16px;
+                height: ta.pressed || ta.has-hover ? 10px : 8px;
+                border-radius: self.height / 2;
+                background: Theme.knob;
+                border-width: ta.pressed || ta.has-hover ? 2px : 0;
+                border-color: Theme.tint;
+                drop-shadow-blur: 4px;
                 drop-shadow-color: #00000080;
+                animate width, height { duration: 120ms; easing: ease-out; }
             }
             ta := TouchArea {
                 mouse-cursor: pointer;

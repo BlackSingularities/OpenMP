@@ -767,28 +767,49 @@ export component BottomBar inherits Rectangle {
                 horizontal-stretch: 1;
                 alignment: start;
                 spacing: 4px;
-                IconBtn {
-                    tip-above: true;
+                // Głośność w kapsule: ikona wyciszenia, suwak z dymkiem i procent; kółko myszy zmienia głośność.
+                vol := Rectangle {
                     y: (parent.height - self.height) / 2;
-                    icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
-                    size: 32px;
-                    tip: @tr("Mute (M)");
-                    clicked => { Player.toggle-mute(); }
-                }
-                HSlider {
-                    y: (parent.height - self.height) / 2;
-                    width: root.width < 620px ? 70px : 120px;
-                    value: Player.volume;
-                    fill-color: Player.muted ? Theme.text3 : Theme.tint;
-                    moved(v) => { Player.set-volume(v); }
-                }
-                if root.width >= 620px: Text {
-                    width: 38px;
-                    text: round(Player.volume * 100) + "%";
-                    color: Theme.text3;
-                    font-size: Theme.fs-sm;
-                    vertical-alignment: center;
-                    horizontal-alignment: right;
+                    height: 34px;
+                    border-radius: 17px;
+                    background: vta.has-hover ? Theme.hover : transparent;
+                    animate background { duration: 140ms; }
+                    vta := TouchArea {
+                        scroll-event(e) => {
+                            Player.set-volume(clamp(Player.volume + (e.delta-y > 0 ? 0.05 : -0.05), 0, 1));
+                            accept
+                        }
+                    }
+                    HorizontalLayout {
+                        padding-right: 12px;
+                        spacing: 6px;
+                        IconBtn {
+                            tip-above: true;
+                            y: (parent.height - self.height) / 2;
+                            icon: Player.muted || Player.volume == 0 ? Icons.volume-off : Player.volume < 0.5 ? Icons.volume-low : Icons.volume;
+                            size: 34px;
+                            active: Player.muted;
+                            tip: @tr("Mute (M)");
+                            clicked => { Player.toggle-mute(); }
+                        }
+                        HSlider {
+                            y: (parent.height - self.height) / 2;
+                            width: root.width < 620px ? 70px : 120px;
+                            value: Player.volume;
+                            bubble: round(Player.volume * 100) + "%";
+                            fill-color: Player.muted ? Theme.text3 : Theme.tint;
+                            moved(v) => { Player.set-volume(v); }
+                        }
+                        if root.width >= 620px: Text {
+                            width: 34px;
+                            text: Player.muted ? @tr("off") : round(Player.volume * 100) + "%";
+                            color: vta.has-hover ? Theme.text2 : Theme.text3;
+                            font-size: Theme.fs-sm;
+                            font-weight: 600;
+                            vertical-alignment: center;
+                            horizontal-alignment: right;
+                        }
+                    }
                 }
                 Rectangle {
                     width: 6px;

@@ -83,6 +83,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
     );
     props!(v, Prefs:
+        bass, treble, eq_curve, eq_curve_fill, eq_peak, preset_custom,
         lyr_font, lyr_size, lyr_active_scale, lyr_spacing, lyr_color, lyr_active_color, lyr_bold, lyr_fade, lyr_align,
     );
     props!(v, Ui:

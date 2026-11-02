@@ -62,7 +62,7 @@ pub fn rebuild_nav(app: &mut App) {
         nav("fav", tr!("Favorites"), "heart", n(app.stats.map.values().filter(|s| s.rating >= 5).count())),
         nav("rated", tr!("Rated"), "heart", n(app.stats.map.values().filter(|s| s.rating > 0).count())),
         nav("top", tr!("Most played"), "trending", String::new()),
-        nav("recent", tr!("Recently added music"), "clock", String::new()),
+        nav("recent", tr!("Recently added"), "clock", String::new()),
         nav("history", tr!("History"), "history", String::new()),
         nav("dupes", tr!("Duplicates"), "file", String::new()),
         nav("radio", tr!("Internet radio"), "radio", String::new()),
@@ -301,7 +301,7 @@ fn title_for(kind: &str) -> &'static str {
         "fav" => tr!("Favorites"),
         "top" => tr!("Most played"),
         "rated" => tr!("Rated"),
-        "recent" => tr!("Recently added music"),
+        "recent" => tr!("Recently added"),
         "history" => tr!("History"),
         "dupes" => tr!("Duplicates"),
         "v-all" => tr!("All videos"),
@@ -327,11 +327,27 @@ fn other(app: &App, video_kind: bool) -> &[TrackInfo] {
     if video_kind { &app.lib.tracks } else { &app.lib.videos }
 }
 
+/// Zbiory z muzyką i filmami razem – w nich działa filtr „Wszystko / Muzyka / Filmy”.
+const MIXED: [&str; 6] = ["fav", "rated", "top", "recent", "history", "dupes"];
+
+/// Filtr zbiorów: zostawia muzykę, filmy albo jedno i drugie (`Settings::coll_kind`).
+fn by_kind(app: &App, mut t: Vec<TrackInfo>) -> Vec<TrackInfo> {
+    match app.s.coll_kind {
+        1 => t.retain(|t| !t.video),
+        2 => t.retain(|t| t.video),
+        _ => {}
+    }
+    t
+}
+
 fn show_with(app: &mut App, source: &[TrackInfo]) {
     let Some(ui) = app.ui() else { return };
     let l = ui.global::<Lib>();
     let kind = app.libv.kind.clone();
     let video_kind = kind.starts_with("v-");
+    let mixed = MIXED.contains(&kind.as_str()) && app.libv.search.trim().is_empty() && app.libv.stack.is_empty();
+    l.set_kind_filter_shown(mixed);
+    l.set_kind_filter(app.s.coll_kind);
     l.set_can_back(!app.libv.stack.is_empty());
     l.set_seasons(app.libv.search.trim().is_empty() && app.libv.stack.last().is_some_and(|g| g.0 == "v-show"));
     let empty_lib = if video_kind {
@@ -463,7 +479,8 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             set_tiles(app, groups, "v-show", true);
         }
         "recent" | "v-recent" => {
-            let mut t = source.to_vec();
+            // Zbiór „Ostatnio dodane” bierze obie części biblioteki i filtruje je jak inne zbiory.
+            let mut t = if kind == "recent" { by_kind(app, source.iter().chain(other(app, video_kind).iter()).cloned().collect()) } else { source.to_vec() };
             t.sort_by_key(|t| std::cmp::Reverse(t.modified));
             t.truncate(300);
             l.set_subtitle(ss(tr!("By file date")));
@@ -478,7 +495,7 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
         }
         "fav" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating >= 5).map(|(k, s)| (k.clone(), s.last)).collect();
-            let t = from_stats(source, other(app, video_kind), keys, 5000);
+            let t = by_kind(app, from_stats(source, other(app, video_kind), keys, 5000));
             l.set_subtitle(ss(format!("{} · {}", trn!("{n} item", "{n} items", t.len()), tr!("the heart next to a track adds it here"))));
             l.set_empty_text(ss(tr!("No favorites. Click the heart next to a track or press Ctrl+D.")));
             set_tracks(app, t);
@@ -486,13 +503,14 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
         "rated" => {
             // Najpierw wyższa ocena, w niej ostatnio odtwarzane.
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.rating > 0).map(|(k, s)| (k.clone(), ((s.rating as u64) << 40) | (s.last & 0xff_ffff_ffff))).collect();
-            let t = from_stats(source, other(app, video_kind), keys, 5000);
+            let t = by_kind(app, from_stats(source, other(app, video_kind), keys, 5000));
             l.set_subtitle(ss(format!("{} · {}", trn!("{n} item", "{n} items", t.len()), tr!("Ctrl+1…5 rates the selection"))));
             l.set_empty_text(ss(tr!("Nothing is rated yet. Select tracks and press Ctrl+1…5.")));
             set_tracks(app, t);
         }
         "dupes" => {
-            let t = duplicates(&app.lib.tracks);
+            let all: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).cloned().collect();
+            let t = duplicates(&by_kind(app, all));
             let groups = t.iter().map(|t| dupe_key(t).0).collect::<std::collections::HashSet<_>>().len();
             l.set_subtitle(ss(format!("{} · {}", trn!("{n} group", "{n} groups", groups), tr!("the same artist and title, similar length"))));
             l.set_empty_text(ss(tr!("No duplicates in the music library.")));
@@ -500,7 +518,8 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
         }
         "top" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.plays > 0).map(|(k, s)| (k.clone(), s.plays as u64)).collect();
-            let t = from_stats(source, other(app, video_kind), keys, 200);
+            let t = by_kind(app, from_stats(source, other(app, video_kind), keys, 2000));
+            let t: Vec<TrackInfo> = t.into_iter().take(200).collect();
             l.set_subtitle(ss(tr!("By play count")));
             l.set_empty_text(ss(tr!("Nothing has been played yet.")));
             set_tracks(app, t);
@@ -555,7 +574,8 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
         }
         "history" => {
             let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(_, s)| s.last > 0 && s.listened >= 5.0).map(|(k, s)| (k.clone(), s.last)).collect();
-            let t = from_stats(source, other(app, video_kind), keys, 300);
+            let t = by_kind(app, from_stats(source, other(app, video_kind), keys, 3000));
+            let t: Vec<TrackInfo> = t.into_iter().take(300).collect();
             l.set_subtitle(ss(tr!("Recently played")));
             l.set_empty_text(ss(tr!("History is empty.")));
             set_tracks(app, t);

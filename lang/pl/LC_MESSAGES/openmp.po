@@ -3726,8 +3726,6 @@ msgid "Bass and treble"
 msgstr "Bas i soprany"
 
 #: core/src/audio/dsp.rs:125
-msgid "Treble"
-msgstr "Soprany"
 
 #: core/src/audio/dsp.rs:126
 msgid "Rock"
@@ -3963,3 +3961,30 @@ msgstr "Śpiewana linia pogrubiona"
 
 msgid "Fade lines further from the sung one"
 msgstr "Przygaszaj linie dalsze od śpiewanej"
+
+msgid "All"
+msgstr "Wszystko"
+
+msgid "Videos"
+msgstr "Filmy"
+
+msgid "Bass"
+msgstr "Basy"
+
+msgid "Treble"
+msgstr "Soprany"
+
+msgid "Auto gain"
+msgstr "Dobierz wzmocnienie"
+
+msgid "Delete this preset"
+msgstr "Usuń to ustawienie"
+
+msgid "Preset “{}” deleted"
+msgstr "Usunięto ustawienie „{}”"
+
+msgid "The curve peaks at +{} dB – the limiter keeps it clean, but lowering the gain sounds more natural"
+msgstr "Krzywa sięga +{} dB – ogranicznik chroni przed przesterem, ale niższe wzmocnienie zabrzmi naturalniej"
+
+msgid "The curve peaks at +{} dB – loud passages may clip"
+msgstr "Krzywa sięga +{} dB – głośne fragmenty mogą przesterować"

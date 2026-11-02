@@ -92,7 +92,7 @@ export component Dialog inherits Rectangle {
 
 export component EqualizerDialog inherits Dialog {
     title: @tr("Equalizer and sound effects");
-    card-width: 860px;
+    card-width: 940px;
     close => { Ui.equalizer = false; }
     VerticalLayout {
         padding: 20px;
@@ -139,16 +139,23 @@ export component EqualizerDialog inherits Dialog {
                 icon: Icons.add;
                 clicked => { Prefs.eq-save-preset(); }
             }
+            if Prefs.preset-custom: IconBtn {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.delete;
+                tip: @tr("Delete this preset");
+                clicked => { Prefs.changed("eq-delete-preset"); }
+            }
             Btn {
                 text: @tr("Reset");
                 clicked => { Prefs.eq-reset(); }
             }
         }
         Rectangle {
-            height: 220px;
+            height: 250px;
             border-radius: Theme.radius;
             background: Theme.panel2;
             opacity: Prefs.eq-on ? 1 : 0.55;
+            animate opacity { duration: 160ms; }
             HorizontalLayout {
                 padding: 12px;
                 spacing: 6px;
@@ -165,11 +172,111 @@ export component EqualizerDialog inherits Dialog {
                     width: 1px;
                     background: Theme.line2;
                 }
-                for g[i] in Prefs.eq: VSlider {
+                // Pasma z krzywą charakterystyki w tle (wypadkowa pasm, barwy i wzmocnienia).
+                bands := Rectangle {
                     horizontal-stretch: 1;
-                    value: g;
-                    label: ["31", "63", "87", "125", "175", "250", "350", "500", "700", "1k", "1.4k", "2k", "2.8k", "4k", "5.6k", "8k", "11k", "16k"][i];
-                    moved(v) => { Prefs.eq-band(i, v); }
+                    // Obszar ścieżek suwaków: bez wartości u góry i etykiety u dołu.
+                    graph := Rectangle {
+                        x: bands.width / 36;
+                        y: 18px;
+                        width: bands.width * 17 / 18;
+                        height: bands.height - 36px;
+                        for d in [-12, -6, 6, 12]: Rectangle {
+                            y: parent.height * (0.5 - d / 30) - 0.5px;
+                            height: 1px;
+                            background: Theme.line;
+                            opacity: 0.6;
+                        }
+                        Rectangle {
+                            y: parent.height / 2 - 0.5px;
+                            height: 1px;
+                            background: Theme.line2;
+                        }
+                        Path {
+                            width: 100%;
+                            height: 100%;
+                            commands: Prefs.eq-curve-fill;
+                            viewbox-width: 1000;
+                            viewbox-height: 100;
+                            fit: fill;
+                            fill: Theme.tint.with-alpha(0.12);
+                            stroke-width: 0;
+                        }
+                        Path {
+                            width: 100%;
+                            height: 100%;
+                            commands: Prefs.eq-curve;
+                            viewbox-width: 1000;
+                            viewbox-height: 100;
+                            fit: fill;
+                            stroke: Prefs.eq-peak > 0.5 ? Theme.danger : Theme.tint;
+                            stroke-width: 2px;
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: 6px;
+                        for g[i] in Prefs.eq: VSlider {
+                            horizontal-stretch: 1;
+                            value: g;
+                            label: ["31", "63", "87", "125", "175", "250", "350", "500", "700", "1k", "1.4k", "2k", "2.8k", "4k", "5.6k", "8k", "11k", "16k"][i];
+                            moved(v) => { Prefs.eq-band(i, v); }
+                        }
+                    }
+                }
+                Rectangle {
+                    width: 1px;
+                    background: Theme.line2;
+                }
+                VSlider {
+                    label: @tr("Bass");
+                    range: 12;
+                    value: Prefs.bass;
+                    moved(v) => {
+                        Prefs.bass = v;
+                        Prefs.changed("tone");
+                    }
+                }
+                VSlider {
+                    label: @tr("Treble");
+                    range: 12;
+                    value: Prefs.treble;
+                    moved(v) => {
+                        Prefs.treble = v;
+                        Prefs.changed("tone");
+                    }
+                }
+            }
+        }
+        // Ostrzeżenie: wypadkowe wzmocnienie powyżej 0 dB może przesterować.
+        if Prefs.eq-on && Prefs.eq-peak > 0.5: Rectangle {
+            height: 36px;
+            border-radius: Theme.radius;
+            background: Theme.danger.with-alpha(0.12);
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 6px;
+                spacing: 8px;
+                Icon {
+                    y: (parent.height - self.height) / 2;
+                    icon: Icons.info;
+                    size: 16px;
+                    fill: Theme.danger;
+                }
+                Text {
+                    horizontal-stretch: 1;
+                    text: Prefs.limiter
+                        ? @tr("The curve peaks at +{} dB – the limiter keeps it clean, but lowering the gain sounds more natural", round(Prefs.eq-peak * 10) / 10)
+                        : @tr("The curve peaks at +{} dB – loud passages may clip", round(Prefs.eq-peak * 10) / 10);
+                    color: Theme.text;
+                    font-size: Theme.fs-sm;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                Btn {
+                    y: (parent.height - self.height) / 2;
+                    text: @tr("Auto gain");
+                    compact: true;
+                    clicked => { Prefs.changed("eq-auto-gain"); }
                 }
             }
         }

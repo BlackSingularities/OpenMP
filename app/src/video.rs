@@ -913,6 +913,12 @@ pub fn apply_audio_filters(app: &App) {
     if d.eq_on {
         let entries: Vec<String> = openmp_core::audio::dsp::BANDS.iter().zip(d.gains.iter()).map(|(f, g)| format!("entry({f},{g:.1})")).collect();
         f.push(format!("lavfi=[firequalizer=gain_entry='{}']", entries.join(";")));
+        if d.bass.abs() > 0.05 {
+            f.push(format!("lavfi=[lowshelf=f={}:width_type=q:w=0.7:g={:.1}]", openmp_core::audio::dsp::BASS_HZ, d.bass));
+        }
+        if d.treble.abs() > 0.05 {
+            f.push(format!("lavfi=[highshelf=f={}:width_type=q:w=0.7:g={:.1}]", openmp_core::audio::dsp::TREBLE_HZ, d.treble));
+        }
         if d.preamp.abs() > 0.05 {
             f.push(format!("lavfi=[volume={:.1}dB]", d.preamp));
         }

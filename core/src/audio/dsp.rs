@@ -30,7 +30,15 @@ pub struct DspSettings {
     pub peq: Vec<Peq>,
     pub peq_pre: f32,
     pub peq_name: String,
+    /// Barwa: półki basów (100 Hz) i sopranów (10 kHz) w dB – działają razem z korektorem.
+    pub bass: f32,
+    pub treble: f32,
 }
+
+/// Częstotliwości półek barwy i ich zakres w dB.
+pub const BASS_HZ: f32 = 100.0;
+pub const TREBLE_HZ: f32 = 10_000.0;
+pub const TONE_DB: f32 = 12.0;
 
 /// Filtr korektora parametrycznego: 0 – szczytowy, 1 – półkowy niski, 2 – półkowy wysoki.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -87,6 +95,8 @@ impl Default for DspSettings {
             peq: Vec::new(),
             peq_pre: 0.0,
             peq_name: String::new(),
+            bass: 0.0,
+            treble: 0.0,
         }
     }
 }
@@ -224,6 +234,16 @@ impl Biquad {
         self.a2 = a2 / a0;
     }
 
+    /// Wzmocnienie filtra w dB dla częstotliwości `f` (do rysowania krzywej).
+    fn gain_db(&self, f: f32, rate: f32) -> f32 {
+        let w = 2.0 * std::f32::consts::PI * (f / rate).min(0.4999);
+        let (s1, c1) = w.sin_cos();
+        let (s2, c2) = (2.0 * w).sin_cos();
+        let (nr, ni) = (self.b0 + self.b1 * c1 + self.b2 * c2, -(self.b1 * s1 + self.b2 * s2));
+        let (dr, di) = (1.0 + self.a1 * c1 + self.a2 * c2, -(self.a1 * s1 + self.a2 * s2));
+        10.0 * ((nr * nr + ni * ni) / (dr * dr + di * di).max(1e-12)).max(1e-12).log10()
+    }
+
     #[inline]
     fn run(&mut self, c: usize, x: f32) -> f32 {
         // Transposed Direct Form II – stabilna przy f32.
@@ -242,13 +262,14 @@ pub struct Dsp {
     pbands: Vec<Biquad>,
     ppre: f32,
     pre: f32,
+    tone: [(Biquad, bool); 2],
     lim_gain: f32,
     xf: [f32; 2],
 }
 
 impl Dsp {
     pub fn new(rate: u32) -> Dsp {
-        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pbands: Vec::new(), ppre: 1.0, pre: 1.0, lim_gain: 1.0, xf: [0.0; 2] };
+        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pbands: Vec::new(), ppre: 1.0, pre: 1.0, tone: [(Biquad::default(), false); 2], lim_gain: 1.0, xf: [0.0; 2] };
         d.apply(DspSettings::default());
         d
     }
@@ -277,6 +298,11 @@ impl Dsp {
             *active = db.abs() > 0.01;
         }
         self.pre = 10f32.powf(s.preamp.clamp(-20.0, 20.0) / 20.0);
+        for (i, (kind, f, db)) in [(Kind::LowShelf, BASS_HZ, s.bass), (Kind::HighShelf, TREBLE_HZ, s.treble)].into_iter().enumerate() {
+            let db = db.clamp(-TONE_DB, TONE_DB);
+            self.tone[i].0.set(kind, f, 0.7, db, self.rate);
+            self.tone[i].1 = db.abs() > 0.01;
+        }
         // Filtry parametryczne – stan zostaje, gdy liczba filtrów się nie zmienia.
         if self.pbands.len() != s.peq.len() {
             self.pbands = vec![Biquad::default(); s.peq.len()];
@@ -317,7 +343,7 @@ impl Dsp {
             if eq {
                 l *= pre;
                 r *= pre;
-                for (bq, active) in self.bands.iter_mut() {
+                for (bq, active) in self.bands.iter_mut().chain(self.tone.iter_mut()) {
                     if *active {
                         l = bq.run(0, l);
                         r = bq.run(1, r);
@@ -356,4 +382,12 @@ impl Dsp {
             f[1] = r;
         }
     }
+}
+
+/// Charakterystyka korektora (pasma, barwa i przedwzmocnienie) w dB dla podanych częstotliwości.
+pub fn response(s: &DspSettings, freqs: &[f32]) -> Vec<f32> {
+    let mut d = Dsp::new(48_000);
+    d.apply(s.clone());
+    let pre = s.preamp.clamp(-20.0, 20.0);
+    freqs.iter().map(|&f| pre + d.bands.iter().chain(d.tone.iter()).filter(|(_, a)| *a).map(|(bq, _)| bq.gain_db(f, d.rate)).sum::<f32>()).collect()
 }

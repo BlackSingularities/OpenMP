@@ -673,6 +673,16 @@ export component LibraryView inherits Rectangle {
             if !Lib.show-tiles: ViewSize {
                 y: (parent.height - self.height) / 2;
             }
+            // Zbiory (ulubione, historia…): muzyka, filmy albo jedno i drugie.
+            if Lib.kind-filter-shown: Segmented {
+                y: (parent.height - self.height) / 2;
+                options: [@tr("All"), @tr("Music"), @tr("Videos")];
+                selected: Lib.kind-filter;
+                changed(i) => {
+                    Lib.kind-filter = i;
+                    Lib.kind-filter-changed(i);
+                }
+            }
             Field {
                 y: (parent.height - self.height) / 2;
                 width: 200px;

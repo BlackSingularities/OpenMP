@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.8.0
+
+- **Korektor rozbudowany**: krzywa charakterystyki rysowana na żywo za suwakami (wypadkowa pasm, barwy i wzmocnienia, czerwona powyżej 0 dB), nowe suwaki basów (100 Hz) i sopranów (10 kHz) – także w filmach, ostrzeżenie o przesterowaniu z przyciskiem „Dobierz wzmocnienie” i usuwanie własnych ustawień.
+- **Filtr w zbiorach**: w ulubionych, ocenionych, najczęściej odtwarzanych, ostatnio dodanych, historii i duplikatach obok wyszukiwania jest przełącznik Wszystko / Muzyka / Filmy (zapamiętywany). „Ostatnio dodana muzyka” to teraz „Ostatnio dodane”.
+- **Ładniejsze suwaki**: ścieżka grubnie pod kursorem, wypełnienie z gradientem akcentu, jasny uchwyt z obwódką. Głośność w kapsule z dymkiem wartości przy przeciąganiu i obsługą kółka myszy.
+
 ## 1.7.3
 
 - **Wygląd tekstu piosenki w ustawieniach** (Napisy → „Tekst piosenki i napisy w panelu”): czcionka, wielkość, powiększenie śpiewanej linii, odstęp między liniami, osobne kolory śpiewanej i pozostałych linii, wyrównanie, pogrubienie i przygaszanie dalszych linii – z podglądem. Jedno ustawienie dla muzyki i filmów, przy okładce i w panelu bocznym.
