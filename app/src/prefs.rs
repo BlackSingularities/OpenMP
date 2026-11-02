@@ -140,6 +140,15 @@ pub fn publish(app: &mut App) {
     p.set_sub_bold(s.sub_bold);
     p.set_sub_override(s.sub_override);
     p.set_sub_auto(s.sub_auto);
+    p.set_lyr_font(ss(&s.lyr_font));
+    p.set_lyr_size(s.lyr_size);
+    p.set_lyr_active_scale(s.lyr_active_scale);
+    p.set_lyr_spacing(s.lyr_spacing);
+    p.set_lyr_color(s.lyr_color);
+    p.set_lyr_active_color(s.lyr_active_color);
+    p.set_lyr_bold(s.lyr_bold);
+    p.set_lyr_fade(s.lyr_fade);
+    p.set_lyr_align(s.lyr_align);
     p.set_autohide_ms(s.autohide_ms);
     p.set_sub_size(s.sub_size);
     p.set_sub_lang(ss(&s.sub_lang));
@@ -483,6 +492,17 @@ pub fn changed(app: &mut App, key: &str) {
             app.s.sub_override = p.get_sub_override();
             app.s.sub_auto = p.get_sub_auto();
             apply_mpv(app, key);
+        }
+        "lyr-style" => {
+            app.s.lyr_font = p.get_lyr_font().trim().to_string();
+            app.s.lyr_size = p.get_lyr_size();
+            app.s.lyr_active_scale = p.get_lyr_active_scale();
+            app.s.lyr_spacing = p.get_lyr_spacing();
+            app.s.lyr_color = p.get_lyr_color();
+            app.s.lyr_active_color = p.get_lyr_active_color();
+            app.s.lyr_bold = p.get_lyr_bold();
+            app.s.lyr_fade = p.get_lyr_fade();
+            app.s.lyr_align = p.get_lyr_align();
         }
         "video-resume" => app.s.video_resume = p.get_video_resume(),
         "autohide-ms" => app.s.autohide_ms = p.get_autohide_ms(),

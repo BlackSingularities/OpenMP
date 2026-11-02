@@ -1,10 +1,9 @@
 // Widok statystyk: podsumowanie, ostatnie 14 dni, najczęściej odtwarzane i historia.
 
-import { ScrollView } from "std-widgets.slint";
+import { ScrollView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Lib } from "state.slint";
 import { StatTop } from "types.slint";
-import { GlassFill } from "glass.slint";
 
 component Card inherits Rectangle {
     in property <string> label;
@@ -106,15 +105,13 @@ component TopList inherits VerticalLayout {
 }
 
 export component StatsView inherits Rectangle {
-    GlassFill {
-        border-radius: Theme.radius-lg;
-    }
     ScrollView {
         VerticalLayout {
             padding: 24px;
             spacing: 22px;
             Text {
                 text: @tr("Statistics");
+                horizontal-alignment: center;
                 color: Theme.heading;
                 font-size: Theme.fs-lg * 1.4;
                 font-weight: 700;

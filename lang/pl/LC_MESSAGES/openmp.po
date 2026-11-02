@@ -3918,3 +3918,48 @@ msgstr[2] "{n} seriali"
 
 msgid "No TV shows – episodes are recognized by S01E02 or 1x02 in the file name."
 msgstr "Brak seriali – odcinki są rozpoznawane po S01E02 albo 1x02 w nazwie pliku."
+
+msgid "LYRICS AND SUBTITLES IN THE PANEL"
+msgstr "TEKST PIOSENKI I NAPISY W PANELU"
+
+msgid "A line already sung"
+msgstr "Linia już zaśpiewana"
+
+msgid "The line being sung now"
+msgstr "Linia śpiewana teraz"
+
+msgid "The next line"
+msgstr "Następna linia"
+
+msgid "The name of a font installed in Windows; empty – the program's font"
+msgstr "Nazwa czcionki zainstalowanej w Windows; puste – czcionka programu"
+
+msgid "Current line enlarged"
+msgstr "Powiększenie śpiewanej linii"
+
+msgid "Line spacing"
+msgstr "Odstęp między liniami"
+
+msgid "Color of the other lines"
+msgstr "Kolor pozostałych linii"
+
+msgid "Color of the sung line"
+msgstr "Kolor śpiewanej linii"
+
+msgid "From the theme"
+msgstr "Z motywu"
+
+msgid "Alignment"
+msgstr "Wyrównanie"
+
+msgid "Left"
+msgstr "Do lewej"
+
+msgid "Center"
+msgstr "Do środka"
+
+msgid "Sung line in bold"
+msgstr "Śpiewana linia pogrubiona"
+
+msgid "Fade lines further from the sung one"
+msgstr "Przygaszaj linie dalsze od śpiewanej"

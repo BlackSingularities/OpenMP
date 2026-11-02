@@ -1,0 +1,135 @@
+// Przewijane widoki z własnym, cienkim paskiem w kolorach motywu – zamiast pasków stylu Fluent.
+// Te same nazwy i właściwości co w std-widgets, więc wystarczy zmienić import.
+
+import { Theme } from "theme.slint";
+
+// Pasek nad treścią: cienka kreska, po najechaniu szersza i jaśniejsza, bez strzałek.
+component Bar inherits Rectangle {
+    in property <bool> horizontal;
+    in property <bool> enabled: true;
+    in property <ScrollBarPolicy> policy: ScrollBarPolicy.as-needed;
+    in property <length> maximum;
+    in property <length> page-size;
+    in-out property <length> value;
+    callback scrolled();
+
+    property <bool> hot: ta.has-hover || ta.pressed;
+    property <length> track: (root.horizontal ? root.width : root.height) - 4px;
+    property <length> thumb-len: root.maximum <= 0 ? 0 : max(28px, root.track * root.page-size / (root.maximum + root.page-size));
+    property <length> thumb-pos: root.maximum <= 0 ? 0 : 2px + (root.track - root.thumb-len) * (-root.value / root.maximum);
+    property <length> thick: root.hot ? 7px : 3px;
+
+    visible: root.policy == ScrollBarPolicy.always-on || (root.policy == ScrollBarPolicy.as-needed && root.maximum > 0);
+
+    thumb := Rectangle {
+        x: root.horizontal ? root.thumb-pos : root.width - root.thick - 3px;
+        y: root.horizontal ? root.height - root.thick - 3px : root.thumb-pos;
+        width: root.horizontal ? root.thumb-len : root.thick;
+        height: root.horizontal ? root.thick : root.thumb-len;
+        border-radius: root.thick / 2;
+        background: ta.pressed ? Theme.tint : root.hot ? Theme.text3 : Theme.line2;
+        animate width, height, x, y { duration: 140ms; easing: ease-out; }
+        animate background { duration: 140ms; }
+    }
+
+    ta := TouchArea {
+        enabled: root.enabled;
+        property <length> start-value;
+        property <length> start-pos;
+        pointer-event(e) => {
+            if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                let p = root.horizontal ? self.mouse-x : self.mouse-y;
+                // Klik obok uchwytu – skok w to miejsce; potem przeciąganie od niego.
+                if p < root.thumb-pos || p > root.thumb-pos + root.thumb-len {
+                    root.value = -clamp((p - 2px - root.thumb-len / 2) / max(1px, root.track - root.thumb-len) * root.maximum, 0, root.maximum);
+                    root.scrolled();
+                }
+                self.start-value = -root.value;
+                self.start-pos = p;
+            }
+        }
+        moved => {
+            if self.pressed && root.maximum > 0 {
+                let p = root.horizontal ? self.mouse-x : self.mouse-y;
+                root.value = -clamp(self.start-value + (p - self.start-pos) * root.maximum / max(1px, root.track - root.thumb-len), 0, root.maximum);
+                root.scrolled();
+            }
+        }
+        scroll-event(e) => {
+            let d = root.horizontal ? (e.delta-x != 0 ? e.delta-x : e.delta-y) : e.delta-y;
+            if d == 0 {
+                return reject;
+            }
+            root.value = clamp(root.value + d, -root.maximum, 0);
+            root.scrolled();
+            accept
+        }
+    }
+}
+
+export component ScrollView {
+    in property <bool> enabled: true;
+    out property <length> visible-width <=> flickable.width;
+    out property <length> visible-height <=> flickable.height;
+    in-out property <length> content-width <=> flickable.content-width;
+    in-out property <length> content-height <=> flickable.content-height;
+    in-out property <length> content-x <=> flickable.content-x;
+    in-out property <length> content-y <=> flickable.content-y;
+    in-out property <length> viewport-width <=> content-width;
+    in-out property <length> viewport-height <=> content-height;
+    in-out property <length> viewport-x <=> content-x;
+    in-out property <length> viewport-y <=> content-y;
+    in property <ScrollBarPolicy> vertical-scrollbar-policy <=> vbar.policy;
+    in property <ScrollBarPolicy> horizontal-scrollbar-policy <=> hbar.policy;
+    in property <bool> mouse-drag-pan-enabled <=> flickable.mouse-drag-pan-enabled;
+    in-out property <bool> has-focus;
+    callback scrolled <=> flickable.flicked;
+
+    min-height: 50px;
+    min-width: 50px;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+    preferred-height: 100%;
+    preferred-width: 100%;
+
+    flickable := Flickable {
+        mouse-drag-pan-enabled: false;
+        content-y <=> vbar.value;
+        content-x <=> hbar.value;
+        width: parent.width;
+        height: parent.height;
+        @children
+    }
+
+    // Paski leżą nad treścią i nie zabierają jej miejsca.
+    vbar := Bar {
+        enabled: root.enabled;
+        horizontal: false;
+        x: parent.width - self.width;
+        y: 0;
+        width: 14px;
+        height: hbar.visible ? parent.height - 10px : parent.height;
+        maximum: flickable.content-height - flickable.height;
+        page-size: flickable.height;
+        scrolled => { root.scrolled(); }
+    }
+
+    hbar := Bar {
+        enabled: root.enabled;
+        horizontal: true;
+        x: 0;
+        y: parent.height - self.height;
+        width: vbar.visible ? parent.width - 10px : parent.width;
+        height: 14px;
+        maximum: flickable.content-width - flickable.width;
+        page-size: flickable.width;
+        scrolled => { root.scrolled(); }
+    }
+}
+
+// Lista z wirtualizacją (kompilator rozpoznaje „ListView” po nazwie i właściwościach content-*).
+export component ListView inherits ScrollView {
+    @children
+    accessible-role: list;
+    accessible-orientation: Orientation.vertical;
+}

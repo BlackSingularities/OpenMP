@@ -1,10 +1,11 @@
 // Okna dialogowe: korektor i efekty, ustawienia, edytor tagów, adres URL, o programie,
 // aktualizacja, zmiana nazwy.
 
-import { ScrollView, ComboBox, LineEdit, SpinBox } from "std-widgets.slint";
+import { ComboBox, LineEdit, SpinBox } from "std-widgets.slint";
+import { ScrollView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
-import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover } from "widgets.slint";
+import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover, LyricText, LyricStyle } from "widgets.slint";
 import { Player, Prefs, Ui } from "state.slint";
 import { GlassFill } from "glass.slint";
 
@@ -66,9 +67,11 @@ export component Dialog inherits Rectangle {
                         }
                     }
                 }
+                // Tytuł na środku całego okna (nie paska bez przycisku zamykania).
                 Text {
-                    x: 0;
-                    width: parent.width;
+                    x: max(0px, (root.width - self.width) / 2 - parent.x);
+                    width: min(self.preferred-width, parent.width);
+                    overflow: elide;
                     text: root.title;
                     color: Theme.text;
                     font-size: Theme.fs-lg;
@@ -322,6 +325,7 @@ component Page inherits ScrollView {
         spacing: 2px;
         Text {
             text: root.heading;
+            horizontal-alignment: center;
             color: Theme.text;
             font-size: Theme.fs-xl;
             font-weight: 600;
@@ -1542,6 +1546,146 @@ export component SettingsDialog inherits Dialog {
                         text <=> Prefs.sub-lang;
                         edited => { Prefs.changed("sub-lang"); }
                     }
+                }
+                Rectangle {
+                    height: 10px;
+                }
+                SectionTitle {
+                    text: @tr("LYRICS AND SUBTITLES IN THE PANEL");
+                }
+                // Podgląd: linia przed, bieżąca i po.
+                Rectangle {
+                    height: LyricStyle.line-h * 3 + 12px;
+                    border-radius: Theme.radius;
+                    background: Theme.hover;
+                    VerticalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        padding-top: 6px;
+                        for t[i] in [@tr("A line already sung"), @tr("The line being sung now"), @tr("The next line")]: LyricText {
+                            height: LyricStyle.line-h;
+                            text: t;
+                            synced: true;
+                            active: i == 1;
+                            dist: i == 1 ? 0 : 1;
+                            overflow: elide;
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Font");
+                    hint: @tr("The name of a font installed in Windows; empty – the program's font");
+                    LineEdit {
+                        width: 200px;
+                        text <=> Prefs.lyr-font;
+                        edited => { Prefs.changed("lyr-style"); }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Size");
+                    hint: Prefs.lyr-size + " px";
+                    HSlider {
+                        width: 180px;
+                        minimum: 10;
+                        maximum: 36;
+                        step: 1;
+                        value: Prefs.lyr-size;
+                        moved(v) => {
+                            Prefs.lyr-size = v;
+                            Prefs.changed("lyr-style");
+                        }
+                        reset => {
+                            Prefs.lyr-size = 16;
+                            Prefs.changed("lyr-style");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Current line enlarged");
+                    hint: Prefs.lyr-active-scale + "%";
+                    HSlider {
+                        width: 180px;
+                        minimum: 100;
+                        maximum: 180;
+                        step: 5;
+                        value: Prefs.lyr-active-scale;
+                        moved(v) => {
+                            Prefs.lyr-active-scale = v;
+                            Prefs.changed("lyr-style");
+                        }
+                        reset => {
+                            Prefs.lyr-active-scale = 125;
+                            Prefs.changed("lyr-style");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Line spacing");
+                    hint: Prefs.lyr-spacing + "%";
+                    HSlider {
+                        width: 180px;
+                        minimum: 120;
+                        maximum: 320;
+                        step: 10;
+                        value: Prefs.lyr-spacing;
+                        moved(v) => {
+                            Prefs.lyr-spacing = v;
+                            Prefs.changed("lyr-style");
+                        }
+                        reset => {
+                            Prefs.lyr-spacing = 200;
+                            Prefs.changed("lyr-style");
+                        }
+                    }
+                }
+                for row[r] in [@tr("Color of the other lines"), @tr("Color of the sung line")]: SettingRow {
+                    title: row;
+                    hint: (r == 0 ? Prefs.lyr-color : Prefs.lyr-active-color) == 0 ? @tr("From the theme") : "";
+                    HorizontalLayout {
+                        spacing: 6px;
+                        for c[i] in LyricStyle.palette: Rectangle {
+                            property <int> cur: r == 0 ? Prefs.lyr-color : Prefs.lyr-active-color;
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 11px;
+                            // Pierwsze kółko – kolor z motywu.
+                            background: i == 0 ? (r == 0 ? Theme.text2 : Theme.text) : c;
+                            border-width: self.cur == i ? 2px : 1px;
+                            border-color: self.cur == i ? Theme.tint : Theme.line2;
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    if r == 0 {
+                                        Prefs.lyr-color = i;
+                                    } else {
+                                        Prefs.lyr-active-color = i;
+                                    }
+                                    Prefs.changed("lyr-style");
+                                }
+                            }
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Alignment");
+                    Segmented {
+                        options: [@tr("Left"), @tr("Center")];
+                        selected: Prefs.lyr-align;
+                        changed(i) => {
+                            Prefs.lyr-align = i;
+                            Prefs.changed("lyr-style");
+                        }
+                    }
+                }
+                SettingSwitch {
+                    title: @tr("Sung line in bold");
+                    checked <=> Prefs.lyr-bold;
+                    toggled => { Prefs.changed("lyr-style"); }
+                }
+                SettingSwitch {
+                    title: @tr("Fade lines further from the sung one");
+                    checked <=> Prefs.lyr-fade;
+                    toggled => { Prefs.changed("lyr-style"); }
                 }
             }
             if Ui.settings-page == 7: Page {

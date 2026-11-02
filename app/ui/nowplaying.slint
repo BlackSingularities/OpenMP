@@ -4,7 +4,7 @@
 
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
-import { Icon, IconBtn, HSlider, Marquee, Cover } from "widgets.slint";
+import { Icon, IconBtn, HSlider, Marquee, Cover, LyricText, LyricStyle } from "widgets.slint";
 import { SeekBar, Visualizer, Fmt } from "display.slint";
 import { Player, Prefs, Ui, Video } from "state.slint";
 import { VideoStage } from "surface.slint";
@@ -364,7 +364,7 @@ export component NowInfo inherits VerticalLayout {
 component HeroLyrics inherits Rectangle {
     clip: true;
     lyr := Flickable {
-        property <length> line-h: 34px;
+        property <length> line-h: LyricStyle.line-h;
         content-height: Player.lyrics.length * line-h + (Player.lyrics-synced ? self.height : 32px);
         property <int> act: Player.lyrics-active;
         changed act => {
@@ -378,16 +378,14 @@ component HeroLyrics inherits Rectangle {
             y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px) + i * lyr.line-h;
             width: lyr.width;
             height: lyr.line-h;
-            Text {
+            LyricText {
                 width: parent.width;
                 height: parent.height;
                 text: l.text;
-                color: !Player.lyrics-synced ? Theme.text2 : l.active ? Theme.text : Theme.text2.with-alpha(max(0.22, 0.85 - abs(i - Player.lyrics-active) * 0.16));
-                font-size: l.active ? 22px : 17px;
-                font-weight: l.active ? 700 : 400;
-                vertical-alignment: center;
+                active: l.active;
+                synced: Player.lyrics-synced;
+                dist: abs(i - Player.lyrics-active);
                 overflow: elide;
-                animate color { duration: 250ms; }
             }
             // Klik – przewinięcie do tej linii (w zaznaczeniu: utwór zaczyna grać od niej).
             TouchArea {
@@ -895,30 +893,6 @@ export component BottomBar inherits Rectangle {
                     active: Player.sleep-text != "";
                     tip: @tr("Sleep timer");
                     clicked => { Ui.sleep-menu(self.absolute-position.x, self.absolute-position.y); }
-                }
-                if !root.small: IconBtn {
-                    tip-above: true;
-                    y: (parent.height - self.height) / 2;
-                    icon: Icons.menu;
-                    size: 34px;
-                    active: Prefs.show-sidebar;
-                    tip: @tr("Navigation panel");
-                    clicked => {
-                        Prefs.show-sidebar = !Prefs.show-sidebar;
-                        Prefs.changed("show-sidebar");
-                    }
-                }
-                IconBtn {
-                    tip-above: true;
-                    y: (parent.height - self.height) / 2;
-                    icon: Icons.queue;
-                    size: 34px;
-                    active: Prefs.side-panel > 0;
-                    tip: @tr("Lyrics, info, queue (L)");
-                    clicked => {
-                        Prefs.side-panel = Prefs.side-panel > 0 ? 0 : 3;
-                        Prefs.changed("side-panel");
-                    }
                 }
                 IconBtn {
                     tip-above: true;

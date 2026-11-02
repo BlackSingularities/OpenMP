@@ -82,6 +82,9 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, glass_tint, nav_text,
         live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
     );
+    props!(v, Prefs:
+        lyr_font, lyr_size, lyr_active_scale, lyr_spacing, lyr_color, lyr_active_color, lyr_bold, lyr_fade, lyr_align,
+    );
     props!(v, Ui:
         about, equalizer, rename_dialog, rename_text, rename_title, settings, settings_page, tag_busy,
         tag_cover, tag_editor, tag_has_cover, tag_mixed, tag_title, tag_values, update_dialog,

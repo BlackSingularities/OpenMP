@@ -182,6 +182,8 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
     let half = [12i32, 22, 40][span.clamp(0, 2) as usize];
     let center = pos.clamp(0.0, 1.0) * 1000.0;
     let ck = (center / step) as i32;
+    // Ułamek kolumny, o który znacznik minął `ck` – efekt sunie płynnie zamiast skakać o kolumnę.
+    let frac = center / step - ck as f32;
     let bass = bars[..(bars.len() / 4).max(1)].iter().sum::<f32>() / (bars.len() / 4).max(1) as f32;
     // Obwiednia utworu w kolumnie `k` (jak w taśmie: najwyższa wartość przedziału).
     let col = |k: i32| {
@@ -191,20 +193,31 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
         w[a..e].iter().cloned().fold(0.0f32, f32::max).max(0.04)
     };
     // Pasmo widma dla odległości od znacznika: środek – niskie tony, dalej – wyższe.
-    let band = |j: i32| bars[(j.unsigned_abs() as usize * bars.len() / (half as usize + 1)).min(bars.len() - 1)];
-    let fall = |j: i32| 1.0 - (j.abs() as f32 / (half as f32 + 1.0)).powf(1.4);
+    // Odległość kolumny `ck + j` od znacznika w kolumnach (z ułamkiem).
+    let dist = |j: i32| (j as f32 - frac).abs();
+    // Pasmo interpolowane między sąsiednimi, żeby nie przeskakiwało przy zmianie kolumny.
+    let band_at = |d: f32| {
+        let f = (d * bars.len() as f32 / (half as f32 + 1.0)).min((bars.len() - 1) as f32);
+        let i = f as usize;
+        let n = (i + 1).min(bars.len() - 1);
+        bars[i] + (bars[n] - bars[i]) * (f - i as f32)
+    };
+    let fall_at = |d: f32| 1.0 - (d / (half as f32 + 1.0)).min(1.0).powf(1.4);
+    // Dla kolumn taśmy (`ck + j`) – liczone od ułamkowej pozycji znacznika.
+    let band = |j: i32| band_at(dist(j));
+    let fall = |j: i32| fall_at(dist(j));
     let inside = |x: f32| (0.0..=1000.0 - step).contains(&x);
     match kind {
         // Puls taśmy: kolumny taśmy wokół znacznika rosną z muzyką.
         1 => {
             let bw = step * 0.6;
-            for j in -half..=half {
+            for j in -half..=half + 1 {
                 let k = ck + j;
                 let x = k as f32 * step + (step - bw) / 2.0;
                 if !inside(x) {
                     continue;
                 }
-                let v = (col(k) * (1.0 + (band(j) * 0.7 + bass * 0.5) * fall(j))).min(1.08);
+                let v =(col(k) * (1.0 + (band(j) * 0.7 + bass * 0.5) * fall(j))).min(1.08);
                 let h = v * 46.0;
                 let _ = write!(s, "M {x:.2} {:.1} h {bw:.2} v {:.1} h {:.2} Z ", 50.0 - h, h * 2.0, -bw);
             }
@@ -217,7 +230,8 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
                     continue;
                 }
                 let base = col((x / step) as i32).max(0.08);
-                let v = (base * (0.45 + band(j) * 1.1)).min(1.0) * fall(j);
+                let d = j.abs() as f32;
+                let v = (base * (0.45 + band_at(d) * 1.1)).min(1.0) * fall_at(d);
                 let h = v * 40.0;
                 let _ = write!(s, "M {:.2} {:.1} h 1.4 v {:.1} h -1.4 Z ", x - 0.7, 50.0 - h, h * 2.0);
             }
@@ -225,7 +239,7 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
         // Fala widma: gładki, lustrzany kształt.
         3 => {
             let pts: Vec<(f32, f32)> = (-half..=half)
-                .map(|j| (center + j as f32 * step, (band(j) * 0.9 + 0.1) * fall(j) * 44.0))
+                .map(|j| (center + j as f32 * step, (band_at(j.abs() as f32) * 0.9 + 0.1) * fall_at(j.abs() as f32) * 44.0))
                 .filter(|(x, _)| (0.0..=1000.0).contains(x))
                 .collect();
             for (i, (x, h)) in pts.iter().enumerate() {
@@ -241,7 +255,7 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
         // Kropki szczytów nad i pod taśmą.
         4 => {
             let d = step * 0.7;
-            for j in -half..=half {
+            for j in -half..=half + 1 {
                 let k = ck + j;
                 let x = k as f32 * step + (step - d) / 2.0;
                 if !inside(x) {
@@ -258,7 +272,7 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
             for sign in [-1.0f32, 1.0] {
                 let mut first = true;
                 let mut back = Vec::new();
-                for j in -half..=half {
+                for j in -half..=half + 1 {
                     let k = ck + j;
                     let x = k as f32 * step + step / 2.0;
                     if !(0.0..=1000.0).contains(&x) {
@@ -282,8 +296,8 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
             let ring = (t * 1.6).fract();
             let reach = half as f32 * ring;
             let bw = step * 0.6;
-            for j in -half..=half {
-                let d = (j.abs() as f32 - reach).abs();
+            for j in -half..=half + 1 {
+                let d = (dist(j) - reach).abs();
                 if d > 3.0 {
                     continue;
                 }

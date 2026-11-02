@@ -158,6 +158,21 @@ pub struct Settings {
     pub sub_override: bool,
     /// Wczytywanie napisów obok filmu: 0 – nie, 1 – ta sama nazwa, 2 – podobna nazwa, 3 – wszystkie z folderu.
     pub sub_auto: i32,
+    // Tekst piosenki i napisy w panelu – wspólny wygląd dla muzyki, filmów, okładki i panelu bocznego.
+    /// Czcionka (pusta – czcionka programu).
+    pub lyr_font: String,
+    /// Wielkość zwykłych linii w px i powiększenie bieżącej w %.
+    pub lyr_size: i32,
+    pub lyr_active_scale: i32,
+    /// Wysokość linii w % wielkości czcionki.
+    pub lyr_spacing: i32,
+    /// Kolory z palety (0 – z motywu): pozostałe linie i bieżąca (śpiewana).
+    pub lyr_color: i32,
+    pub lyr_active_color: i32,
+    /// Bieżąca linia pogrubiona, dalsze linie coraz bledsze, wyrównanie (0 – do lewej, 1 – do środka).
+    pub lyr_bold: bool,
+    pub lyr_fade: bool,
+    pub lyr_align: i32,
     // System
     pub single_instance: bool,
     /// Ikona w zasobniku systemowym; zamknięcie okna chowa je tam.
@@ -289,6 +304,15 @@ impl Default for Settings {
             sub_bold: false,
             sub_override: false,
             sub_auto: 2,
+            lyr_font: String::new(),
+            lyr_size: 16,
+            lyr_active_scale: 125,
+            lyr_spacing: 200,
+            lyr_color: 0,
+            lyr_active_color: 0,
+            lyr_bold: true,
+            lyr_fade: true,
+            lyr_align: 0,
             single_instance: true,
             tray: false,
             custom_keys: Vec::new(),

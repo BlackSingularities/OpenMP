@@ -1,5 +1,15 @@
 # Zmiany
 
+## 1.7.3
+
+- **Wygląd tekstu piosenki w ustawieniach** (Napisy → „Tekst piosenki i napisy w panelu”): czcionka, wielkość, powiększenie śpiewanej linii, odstęp między liniami, osobne kolory śpiewanej i pozostałych linii, wyrównanie, pogrubienie i przygaszanie dalszych linii – z podglądem. Jedno ustawienie dla muzyki i filmów, przy okładce i w panelu bocznym.
+- **Fala utworu na pasku przewijania** pokazuje głośność (RMS) w skali dopasowanej do każdego utworu – koniec z płaską taśmą przy głośno masterowanych piosenkach.
+- Żywa część taśmy przy znaczniku sunie płynnie zamiast skakać o kolumnę.
+- Cienkie paski przewijania w kolorach motywu we wszystkich listach, siatkach i ustawieniach.
+- Widoki biblioteki, listy, radia i statystyk bez dodatkowego tła i obrysu.
+- Nagłówki stron i okien wyśrodkowane; strzałka przy nagłówku sekcji w panelu nawigacji wyrównana z tekstem.
+- Z paska odtwarzania zniknęły przyciski panelu nawigacji i „Tekst, informacje, kolejka” (panel boczny dalej pod klawiszem L).
+
 ## 1.7.2
 
 - **Kolejka uporządkowana**: karta „Kolejka” to teraz bieżące odtwarzanie – granie z folderu, serialu czy albumu zastępuje jej zawartość (od klikniętego pliku), zamiast doklejać kolejne foldery. „Następny” to kolejny plik z folderu albo kolejny odcinek. Pozycje dodane ręcznie przez „Dodaj do kolejki” (jeszcze niezagrane) zostają i grają w swojej kolejności. Film kliknięty we „Wszystkich filmach”, ostatnio dodanych czy wynikach wyszukiwania gra sam.

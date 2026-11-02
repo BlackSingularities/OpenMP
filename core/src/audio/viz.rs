@@ -186,7 +186,9 @@ pub fn waveform(path: &std::path::Path, n: usize, cancel: &dyn Fn() -> bool) -> 
     let mut tmp = Vec::new();
     let mut idx = 0usize;
     let mut cnt = 0usize;
-    let mut peak = 0.0f32;
+    // Głośność (RMS), nie szczyty – szczyty w mocno masterowanych utworach prawie zawsze sięgają
+    // maksimum i fala wychodzi płaska.
+    let mut sum = 0.0f64;
     let mut packets = 0u32;
     while src.read(&mut tmp) {
         packets += 1;
@@ -194,19 +196,29 @@ pub fn waveform(path: &std::path::Path, n: usize, cancel: &dyn Fn() -> bool) -> 
             return None;
         }
         for f in tmp.chunks_exact(2) {
-            peak = peak.max(f[0].abs().max(f[1].abs()));
+            let m = (f[0] * f[0] + f[1] * f[1]) as f64 * 0.5;
+            sum += m;
             cnt += 1;
             if cnt >= per {
                 if idx < n {
-                    out[idx] = peak;
+                    out[idx] = (sum / cnt as f64).sqrt() as f32;
                 }
                 idx += 1;
                 cnt = 0;
-                peak = 0.0;
+                sum = 0.0;
             }
         }
         tmp.clear();
     }
-    let mx = out.iter().cloned().fold(0.0f32, f32::max).max(1e-3);
-    Some(out.into_iter().map(|v| (v / mx).sqrt()).collect())
+    // Skala w decybelach dopasowana do utworu: od jego cichych fragmentów (5. percentyl,
+    // bez ciszy) do najgłośniejszego – różnice w głośności są widoczne zamiast płaskiej taśmy.
+    let db: Vec<f32> = out.iter().map(|&v| 20.0 * v.max(1e-5).log10()).collect();
+    let mut sorted: Vec<f32> = db.iter().cloned().filter(|&d| d > -70.0).collect();
+    if sorted.is_empty() {
+        return Some(vec![0.0; n]);
+    }
+    sorted.sort_by(|a, b| a.total_cmp(b));
+    let hi = sorted[sorted.len() - 1];
+    let lo = sorted[sorted.len() / 20].min(hi - 12.0);
+    Some(db.into_iter().map(|d| ((d - lo) / (hi - lo)).clamp(0.0, 1.0).powf(1.3)).collect())
 }
