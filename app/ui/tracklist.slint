@@ -3,13 +3,15 @@
 import { ListView, ScrollView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
-import { Icon, Cover } from "widgets.slint";
+import { Icon, IconBtn, Cover } from "widgets.slint";
 import { TrackRow } from "types.slint";
 import { Ui, Prefs } from "state.slint";
 
 export component TrackList inherits Rectangle {
     in property <[TrackRow]> rows;
-    in property <bool> show-album;
+    // Dodatkowe kolumny tego widoku (numery z `columns.rs`) i nazwy wszystkich kolumn.
+    in property <[int]> columns;
+    in property <[string]> col-names;
     in property <length> scroll-y;
     in property <int> scroll-gen;
     in property <string> empty-text;
@@ -25,6 +27,14 @@ export component TrackList inherits Rectangle {
     callback fav(int);
     callback empty-clicked();
     callback zoom(float);
+    // Menu wyboru kolumn (prawy klik na pasku kolumn albo przycisk na jego końcu).
+    callback columns-menu(length, length);
+    // Proporcje szerokości kolumn i kolumny wyrównane do prawej (liczby).
+    property <[float]> weight: [2, 2, 1.2, 0.6, 1.1, 0.8, 0.6, 0.7, 1.1, 1.1, 1.4, 2];
+    property <[bool]> right: [false, false, false, true, false, true, true, false, true, true, false, false];
+    // Na wąskiej liście zostają tylko pierwsze kolumny.
+    property <int> fit: max(0, floor((root.width - 360px) / 130px));
+    property <bool> head: !root.grid && root.rows.length > 0;
     // Zaznaczenie prostokątem w siatce: wiersze r0..r1, kolumny c0..c1, liczba kolumn, Ctrl.
     callback band(int, int, int, int, int, bool);
     changed scroll-gen => {
@@ -282,7 +292,83 @@ export component TrackList inherits Rectangle {
             border-color: Theme.tint.with-alpha(0.7);
         }
     }
+    // Pasek nazw kolumn nad wierszami – prawy klik albo przycisk wybiera kolumny.
+    if root.head: Rectangle {
+        y: 0;
+        height: 26px;
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 10px;
+            spacing: 10px;
+            Text {
+                width: 30px;
+                text: "#";
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                width: 14px;
+            }
+            Text {
+                horizontal-stretch: 3;
+                preferred-width: 0px;
+                min-width: 80px;
+                text: @tr("Title");
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            for c[k] in root.columns: Text {
+                visible: k < root.fit;
+                horizontal-stretch: k < root.fit ? root.weight[c] : 0;
+                preferred-width: 0px;
+                min-width: k < root.fit ? 40px : 0px;
+                max-width: k < root.fit ? 10000px : 0px;
+                text: root.col-names[c];
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+                horizontal-alignment: root.right[c] ? right : left;
+                overflow: elide;
+            }
+            Text {
+                width: 46px;
+                text: @tr("Length");
+                color: Theme.text3;
+                font-size: Theme.fs-xs;
+                vertical-alignment: center;
+                horizontal-alignment: right;
+                overflow: elide;
+            }
+        }
+        Rectangle {
+            y: parent.height - 1px;
+            height: 1px;
+            background: Theme.line;
+        }
+        TouchArea {
+            pointer-event(e) => {
+                if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                    root.columns-menu(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                }
+            }
+        }
+        IconBtn {
+            x: parent.width - self.width - 4px;
+            y: (parent.height - self.height) / 2;
+            size: 22px;
+            icon-size: 13px;
+            icon: Icons.tune;
+            tip: @tr("Columns");
+            clicked => { root.columns-menu(self.absolute-position.x, self.absolute-position.y + self.height); }
+        }
+    }
     lv := ListView {
+        y: root.head ? 28px : 0px;
+        height: root.height - self.y;
         visible: root.rows.length > 0 && !root.grid;
         for r[i] in root.rows: Rectangle {
             height: r.header ? Theme.head-h : Theme.row-h;
@@ -360,11 +446,14 @@ export component TrackList inherits Rectangle {
                             width: 100%;
                         }
                     }
-                    if r.video: Icon {
-                        y: (parent.height - self.height) / 2;
-                        icon: Icons.movie;
-                        size: 14px;
-                        fill: Theme.text3;
+                    // Miejsce na ikonę filmu zawsze – kolumny trzymają pion w listach mieszanych.
+                    Rectangle {
+                        width: 14px;
+                        if r.video: Icon {
+                            icon: Icons.movie;
+                            size: 14px;
+                            fill: Theme.text3;
+                        }
                     }
                     Text {
                         horizontal-stretch: 3;
@@ -375,32 +464,21 @@ export component TrackList inherits Rectangle {
                         vertical-alignment: center;
                         overflow: elide;
                         min-width: 80px;
+                        // Szerokość tylko z proporcji – kolumny równe we wszystkich wierszach.
+                        preferred-width: 0px;
                     }
-                    if root.width > 520px: Text {
-                        horizontal-stretch: 2;
-                        text: r.artist;
-                        color: Theme.text2;
-                        font-size: Theme.fs;
+                    for c[k] in root.columns: Text {
+                        visible: k < root.fit;
+                        horizontal-stretch: k < root.fit ? root.weight[c] : 0;
+                        preferred-width: 0px;
+                        min-width: k < root.fit ? 40px : 0px;
+                        max-width: k < root.fit ? 10000px : 0px;
+                        text: r.cols[c];
+                        // Wykonawca jaśniej, reszta przygaszona; liczby do prawej.
+                        color: c == 0 ? Theme.text2 : Theme.text3;
+                        font-size: c == 4 ? Theme.fs-xs : Theme.fs;
                         vertical-alignment: center;
-                        overflow: elide;
-                        min-width: 60px;
-                    }
-                    if root.show-album && root.width > 760px: Text {
-                        horizontal-stretch: 2;
-                        text: r.album;
-                        color: Theme.text3;
-                        font-size: Theme.fs;
-                        vertical-alignment: center;
-                        overflow: elide;
-                        min-width: 60px;
-                    }
-                    if root.width > 640px: Text {
-                        width: 92px;
-                        text: r.info;
-                        color: Theme.text3;
-                        font-size: Theme.fs-xs;
-                        vertical-alignment: center;
-                        horizontal-alignment: right;
+                        horizontal-alignment: root.right[c] ? right : left;
                         overflow: elide;
                     }
                     Text {

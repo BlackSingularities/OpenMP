@@ -759,6 +759,7 @@ pub fn frame(app: &mut App) {
     if app.s.show_waveform && app.s.live_style > 0 && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {
         let pos = p.get_pos() / p.get_duration();
         let t = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0) % 1000.0) as f32;
+        p.set_live_span(crate::wave::live_span(app.s.wave_style, app.s.live_span));
         p.set_wave_live(ss(crate::wave::live(&app.wave_raw, pos, &app.analyzer.bars, app.s.live_style, app.s.wave_style, app.s.live_span, t)));
     } else if !p.get_wave_live().is_empty() {
         p.set_wave_live(ss(""));

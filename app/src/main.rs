@@ -10,6 +10,7 @@ slint::include_modules!();
 
 mod app;
 mod cast;
+mod columns;
 mod covers;
 mod dialogs;
 mod dialogwin;
@@ -630,6 +631,7 @@ fn wire(ui: &AppWindow) {
         player::play(app, id, i as usize, None);
     }));
     l.on_row_menu(|_, x, y| later(move |app| lists::row_menu(app, x, y)));
+    l.on_columns_menu(|x, y| later(move |app| columns::menu(app, true, x, y)));
     l.on_header_clicked(|i| later(move |app| {
         // Klik w nagłówek zaznacza cały album.
         let li = app.store.active;
@@ -705,6 +707,7 @@ fn wire(ui: &AppWindow) {
     }));
     b.on_row_double(|i| later(move |app| libview::row_double(app, i as usize)));
     b.on_row_menu(|_, x, y| later(move |app| libview::row_menu(app, x, y)));
+    b.on_columns_menu(|x, y| later(move |app| columns::menu(app, false, x, y)));
     b.on_search_changed(|t| later(move |app| {
         app.libv.search = t.to_string();
         libview::show(app);

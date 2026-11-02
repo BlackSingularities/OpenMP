@@ -203,6 +203,7 @@ pub fn rebuild(app: &mut App) {
         app.row_of.insert(i, rows.len());
         let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
         r.in_queue = qpaths.contains(&t.path.to_lowercase());
+        r.cols = crate::columns::values(t, &st, &r.artist, &r.info);
         with_rating(&mut r, rating);
         with_progress(&mut r, t, &st);
         if grid {

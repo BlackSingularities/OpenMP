@@ -582,7 +582,9 @@ export component PlaylistView inherits Rectangle {
             zoom(d) => {
                 Prefs.set-view(clamp(Prefs.view-size + d, 90, 280));
             }
-            show-album: !Lists.grouped;
+            columns: Lists.columns;
+            col-names: Lib.col-names;
+            columns-menu(x, y) => { Lists.columns-menu(x, y); }
             scroll-y: Lists.scroll-y;
             scroll-gen: Lists.scroll-gen;
             empty-text: Lists.filter != "" ? @tr("Nothing matches “{}”", Lists.filter) : @tr("The list is empty.\nDrag files or folders here, or double-click to choose them.");
@@ -839,7 +841,9 @@ export component LibraryView inherits Rectangle {
             zoom(d) => {
                 Prefs.set-view(clamp(Prefs.view-size + d, 90, 280));
             }
-            show-album: true;
+            columns: Lib.columns;
+            col-names: Lib.col-names;
+            columns-menu(x, y) => { Lib.columns-menu(x, y); }
             empty-text: Lib.empty-text;
             empty-icon: Icons.library;
             clicked(i, c, s) => { Lib.row-clicked(i, c, s); }

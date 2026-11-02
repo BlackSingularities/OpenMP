@@ -26,6 +26,8 @@ export component SeekBar inherits Rectangle {
     in property <string> wave2;
     in property <int> wave2-kind;
     in property <string> wave-live;
+    // Zasięg żywej części w obie strony od znacznika (ułamek długości) – do miękkich krawędzi.
+    in property <float> live-span: 0.05;
     in property <bool> live-glow: true;
     in property <bool> show-wave;
     in property <[float]> chapters;
@@ -124,8 +126,11 @@ export component SeekBar inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            fill: @linear-gradient(0deg, Theme.tint.brighter(0.3) 0%, Theme.knob 100%);
-            opacity: 0.75;
+            // Krawędzie wtapiają się w taśmę: przejrzyste na skrajach zasięgu, pełne przy znaczniku.
+            property <float> c: clamp(root.shown, 0, 1);
+            property <color> lit: Theme.tint.brighter(0.45);
+            fill: @linear-gradient(90deg, root.lit.transparentize(1) (self.c - root.live-span) * 100%, root.lit (self.c - root.live-span * 0.35) * 100%, Theme.knob self.c * 100%, root.lit (self.c + root.live-span * 0.35) * 100%, root.lit.transparentize(1) (self.c + root.live-span) * 100%);
+            opacity: 0.8;
             stroke-width: 0;
         }
         // Podgląd miejsca pod kursorem.

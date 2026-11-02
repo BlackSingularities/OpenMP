@@ -175,6 +175,8 @@ pub struct Settings {
     pub lyr_align: i32,
     /// Zbiory (ulubione, historia…): 0 – muzyka i filmy, 1 – tylko muzyka, 2 – tylko filmy.
     pub coll_kind: i32,
+    /// Dodatkowe kolumny list dla każdego widoku (klucz z `columns::key`).
+    pub columns: std::collections::HashMap<String, Vec<i32>>,
     // System
     pub single_instance: bool,
     /// Ikona w zasobniku systemowym; zamknięcie okna chowa je tam.
@@ -316,6 +318,7 @@ impl Default for Settings {
             lyr_fade: true,
             lyr_align: 0,
             coll_kind: 0,
+            columns: Default::default(),
             single_instance: true,
             tray: false,
             custom_keys: Vec::new(),

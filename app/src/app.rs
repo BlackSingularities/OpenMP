@@ -59,6 +59,8 @@ pub enum MenuCtx {
     Sleep,
     Video,
     Device,
+    /// Wybór kolumn: listy odtwarzania (true) albo bieżący widok biblioteki.
+    Columns(bool),
 }
 
 #[derive(Clone, Debug, Default)]

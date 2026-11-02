@@ -3988,3 +3988,18 @@ msgstr "Krzywa sięga +{} dB – ogranicznik chroni przed przesterem, ale niższ
 
 msgid "The curve peaks at +{} dB – loud passages may clip"
 msgstr "Krzywa sięga +{} dB – głośne fragmenty mogą przesterować"
+
+msgid "Rating"
+msgstr "Ocena"
+
+msgid "Last played"
+msgstr "Ostatnio grane"
+
+msgid "File date"
+msgstr "Data pliku"
+
+msgid "Columns"
+msgstr "Kolumny"
+
+msgid "Default columns"
+msgstr "Domyślne kolumny"

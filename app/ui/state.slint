@@ -54,6 +54,7 @@ export global Player {
     in-out property <string> wave2;
     in-out property <int> wave2-kind;
     in-out property <string> wave-live;
+    in-out property <float> live-span: 0.05;
     // Tekst piosenki i informacje
     in-out property <[LyricLine]> lyrics;
     in-out property <bool> lyrics-synced;
@@ -122,6 +123,9 @@ export global Lists {
     in-out property <string> summary;
     in-out property <string> filter;
     in-out property <bool> grouped: true;
+    // Dodatkowe kolumny list odtwarzania (wspólne dla wszystkich list).
+    in-out property <[int]> columns: [0, 1, 4];
+    callback columns-menu(length, length);
     in-out property <length> scroll-y;
     in-out property <int> scroll-gen;
     callback tab-clicked(int);
@@ -170,6 +174,10 @@ export global Lib {
     // Radio
     in-out property <[Station]> stations;
     in-out property <int> radio-source;
+    // Dodatkowe kolumny bieżącego widoku biblioteki i nazwy wszystkich kolumn.
+    in-out property <[int]> columns: [0, 1, 4];
+    in-out property <[string]> col-names;
+    callback columns-menu(length, length);
     // Filtr zbiorów: 0 – wszystko, 1 – muzyka, 2 – filmy; widoczny tylko w zbiorach.
     in-out property <bool> kind-filter-shown;
     in-out property <int> kind-filter;

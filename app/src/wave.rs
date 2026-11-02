@@ -168,6 +168,11 @@ fn columns(style: i32) -> usize {
     }
 }
 
+/// Zasięg żywej części w obie strony od znacznika jako ułamek długości taśmy.
+pub fn live_span(style: i32, span: i32) -> f32 {
+    ([12.0f32, 22.0, 40.0][span.clamp(0, 2) as usize] + 1.0) / columns(style) as f32
+}
+
 /// Żywa część taśmy przy znaczniku, poruszająca się z muzyką.
 /// `pos` 0..1, `bars` 0..1 z analizatora, `kind` – numer z `LIVE_NAMES`, `span` 0..2 – zasięg,
 /// `t` – czas w sekundach (fala uderzeniowa).

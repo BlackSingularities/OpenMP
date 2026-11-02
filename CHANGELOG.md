@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.9.0
+
+- **Kolumny do wyboru w każdym widoku listy**: wykonawca, album, gatunek, rok, format, rozmiar, liczba odtworzeń, ocena, ostatnio grane, data pliku, kompozytor i folder. Nad listą pasek z nazwami kolumn – prawy klik albo przycisk na jego końcu otwiera wybór. Osobny zestaw dla list odtwarzania, folderów, albumów, zbiorów, filmów i seriali, zapamiętany.
+- Kolumny listy trzymają równy pion we wszystkich wierszach (wcześniej długi tytuł przesuwał resztę, np. „Sezon · Odcinek” w serialach).
+- Żywa część taśmy przy znaczniku zaczyna się i kończy łagodnym przejściem zamiast ostrej krawędzi.
+
 ## 1.8.0
 
 - **Korektor rozbudowany**: krzywa charakterystyki rysowana na żywo za suwakami (wypadkowa pasm, barwy i wzmocnienia, czerwona powyżej 0 dB), nowe suwaki basów (100 Hz) i sopranów (10 kHz) – także w filmach, ostrzeżenie o przesterowaniu z przyciskiem „Dobierz wzmocnienie” i usuwanie własnych ustawień.

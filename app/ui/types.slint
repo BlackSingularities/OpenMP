@@ -24,6 +24,8 @@ export struct TrackRow {
     // Film: obejrzana część (0..1, -1 – brak) i obejrzany do końca.
     progress: float,
     watched: bool,
+    // Wartości wszystkich dodatkowych kolumn (numery z `columns.rs`).
+    cols: [string],
 }
 
 export struct StatCard {
