@@ -129,7 +129,13 @@ export component SeekBar inherits Rectangle {
             // Krawędzie wtapiają się w taśmę: przejrzyste na skrajach zasięgu, pełne przy znaczniku.
             property <float> c: clamp(root.shown, 0, 1);
             property <color> lit: Theme.tint.brighter(0.45);
-            fill: @linear-gradient(90deg, self.lit.transparentize(1) (self.c - root.live-span) * 100%, self.lit (self.c - root.live-span * 0.35) * 100%, Theme.knob self.c * 100%, self.lit (self.c + root.live-span * 0.35) * 100%, self.lit.transparentize(1) (self.c + root.live-span) * 100%);
+            property <color> clear: Theme.tint.brighter(0.45).transparentize(1);
+            // Pozycje przejść (ułamki szerokości) – liczone osobno, bo w gradiencie „kolor (…)” to wywołanie.
+            property <float> p0: self.c - root.live-span;
+            property <float> p1: self.c - root.live-span * 0.35;
+            property <float> p3: self.c + root.live-span * 0.35;
+            property <float> p4: self.c + root.live-span;
+            fill: @linear-gradient(90deg, self.clear self.p0, self.lit self.p1, Theme.knob self.c, self.lit self.p3, self.clear self.p4);
             opacity: 0.8;
             stroke-width: 0;
         }
