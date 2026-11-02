@@ -430,16 +430,7 @@ component Page inherits ScrollView {
         padding: 22px;
         padding-top: 16px;
         spacing: 2px;
-        Text {
-            text: root.heading;
-            horizontal-alignment: center;
-            color: Theme.text;
-            font-size: Theme.fs-xl;
-            font-weight: 600;
-        }
-        Rectangle {
-            height: 10px;
-        }
+        // Bez nagłówka strony – jej nazwa jest już zaznaczona na liście po lewej.
         @children
     }
 }
@@ -1545,6 +1536,18 @@ export component SettingsDialog inherits Dialog {
             }
             if Ui.settings-page == 6: Page {
                 heading: @tr("Subtitles");
+                SectionTitle {
+                    text: @tr("SUBTITLES ON THE MOVIE PICTURE");
+                }
+                Text {
+                    text: @tr("Subtitles drawn over the video while a movie plays – in the window and in full screen.");
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+                Rectangle {
+                    height: 6px;
+                }
                 SettingRow {
                     title: @tr("Subtitle size");
                     hint: Prefs.sub-size + "";
@@ -1659,6 +1662,15 @@ export component SettingsDialog inherits Dialog {
                 }
                 SectionTitle {
                     text: @tr("LYRICS AND SUBTITLES IN THE PANEL");
+                }
+                Text {
+                    text: @tr("Text shown as a scrolling list: song lyrics next to the cover and in the side panel, and movie subtitles in the side panel. The picture's subtitles above are not affected.");
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+                Rectangle {
+                    height: 6px;
                 }
                 // Podgląd: linia przed, bieżąca i po.
                 Rectangle {

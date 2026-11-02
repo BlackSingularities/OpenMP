@@ -4003,3 +4003,12 @@ msgstr "Kolumny"
 
 msgid "Default columns"
 msgstr "Domyślne kolumny"
+
+msgid "SUBTITLES ON THE MOVIE PICTURE"
+msgstr "NAPISY NA OBRAZIE FILMU"
+
+msgid "Subtitles drawn over the video while a movie plays – in the window and in full screen."
+msgstr "Napisy wyświetlane na obrazie podczas odtwarzania filmu – w oknie i na pełnym ekranie."
+
+msgid "Text shown as a scrolling list: song lyrics next to the cover and in the side panel, and movie subtitles in the side panel. The picture's subtitles above are not affected."
+msgstr "Tekst przewijany jako lista: tekst piosenki przy okładce i w panelu bocznym oraz napisy filmu w panelu bocznym. Nie zmienia napisów na obrazie (powyżej)."

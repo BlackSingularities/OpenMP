@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.9.2
+
+- Strony ustawień bez dużego nagłówka z nazwą strony (jest zaznaczona na liście po lewej).
+- Strona „Napisy” podzielona na dwie opisane części: napisy na obrazie filmu (w oknie i na pełnym ekranie) oraz tekst piosenki i napisy w panelu.
+
 ## 1.9.1
 
 - Przycisk przypinania na wierzchu stoi w jednej grupie z przyciskami okna (minimalizuj, maksymalizuj, zamknij) i wygląda jak one – w oknie głównym i w widoku filmu.
