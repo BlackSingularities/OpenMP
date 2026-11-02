@@ -1,5 +1,9 @@
 # Zmiany
 
+## 1.9.3
+
+- Poprawka budowania: miękkie krawędzie żywej części taśmy (wydania 1.9.0–1.9.2 nie zbudowały się).
+
 ## 1.9.2
 
 - Strony ustawień bez dużego nagłówka z nazwą strony (jest zaznaczona na liście po lewej).
