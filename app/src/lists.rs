@@ -114,6 +114,7 @@ pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected
         h_sub: ss(""),
         h_cover: Image::default(),
         h_has_cover: false,
+        cols: Default::default(),
     }
 }
 
