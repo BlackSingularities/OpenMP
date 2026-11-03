@@ -471,6 +471,11 @@ export component AuthorCard inherits Rectangle {
                 clicked => { Prefs.open-url("https://redzikowski.com"); }
             }
             Btn {
+                text: "kontakt@redzikowski.com";
+                icon: Icons.mail;
+                clicked => { Prefs.open-url("mailto:kontakt@redzikowski.com"); }
+            }
+            Btn {
                 text: @tr("Buy me a coffee");
                 icon: Icons.coffee;
                 primary: true;
