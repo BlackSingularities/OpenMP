@@ -1,7 +1,8 @@
 # Zmiany
 
-## 1.12.1
+## 1.12.2
 
+- Okno aktualizacji pokazuje się zawsze na ekranie – także gdy okno programu jest zminimalizowane albo schowane w zasobniku – a po instalacji OpenMP uruchamia się ponownie w nowej wersji.
 - „Pokaż w Eksploratorze” zaznacza plik w jego folderze, zamiast otwierać Dokumenty (ścieżki ze spacjami).
 - Wyszukiwanie w sekcji Muzyka pokazuje tylko muzykę, a w sekcji Wideo tylko filmy; z kolekcji, list odtwarzania i folderów – obie.
 - Podczas odtwarzania wideo od razu działają strzałki i inne skróty klawiatury.

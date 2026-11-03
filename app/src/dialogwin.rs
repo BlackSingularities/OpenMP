@@ -222,6 +222,11 @@ fn settings_search(q: &str) -> Vec<(i32, String, String)> {
 
 /// Okno główne otworzyło albo zamknęło dialog.
 pub fn shown(app: &mut App, on: bool) {
+    // Dialog (np. o aktualizacji przy starcie) przy zminimalizowanym albo schowanym do zasobnika
+    // oknie programu lądował poza ekranem – kliknięcie przywracało samo okno, bez dialogu.
+    if on && !app.dialogs.as_ref().is_some_and(|d| d.open) {
+        crate::win::raise(app);
+    }
     let Some(ui) = app.ui() else { return };
     if app.dialogs.is_none() {
         app.dialogs = create(&ui);
