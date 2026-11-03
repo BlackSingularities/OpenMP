@@ -4090,3 +4090,6 @@ msgstr "Wszystkie utwory mają uzupełnione tagi."
 
 msgid "No watched movies yet."
 msgstr "Nie ma jeszcze obejrzanych filmów."
+
+msgid "Several files in a row cannot be played – check whether the drive or folder is available."
+msgstr "Kilku plików z rzędu nie da się odtworzyć – sprawdź, czy dysk lub folder jest dostępny."

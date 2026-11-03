@@ -233,6 +233,7 @@ fn main() {
         pause_after_load: false,
         last_pos: -1.0,
         last_dur: -1.0,
+        fail_streak: 0,
     };
     APP.with(|a| *a.borrow_mut() = Some(app));
 

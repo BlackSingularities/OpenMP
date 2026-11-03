@@ -228,6 +228,8 @@ pub struct App {
     pub pause_after_load: bool,
     pub last_pos: f64,
     pub last_dur: f64,
+    /// Pliki z rzędu, których nie dało się odtworzyć – po kilku stop zamiast przewijania całej kolejki.
+    pub fail_streak: u32,
 }
 
 thread_local! {

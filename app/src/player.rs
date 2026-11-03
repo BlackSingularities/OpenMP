@@ -356,6 +356,19 @@ pub fn on_end(app: &mut App) {
     }
 }
 
+/// Błąd odtwarzania: dalej do następnego, ale po kilku nieudanych z rzędu (np. odłączony dysk
+/// albo przeniesione pliki) zatrzymanie – inaczej kolejka przeskakuje do końca w sekundę.
+fn end_after_error(app: &mut App) {
+    app.fail_streak += 1;
+    if app.fail_streak >= 5 {
+        app.fail_streak = 0;
+        stop(app);
+        app.toast(tr!("Several files in a row cannot be played – check whether the drive or folder is available."));
+        return;
+    }
+    on_end(app);
+}
+
 pub fn stop(app: &mut App) {
     save_resume(app);
     app.engine.stop();
@@ -589,7 +602,7 @@ pub fn tick(app: &mut App) {
                         }
                     }
                     app.toast(tr!("Cannot play: {} ({})", name, msg));
-                    on_end(app);
+                    end_after_error(app);
                 } else if app.pending.as_ref().is_some_and(|p| p.item == id) {
                     app.pending = None;
                 }
@@ -647,6 +660,7 @@ pub fn tick(app: &mut App) {
         for ev in m.poll() {
             match ev {
                 MpvEvent::FileLoaded => {
+                    app.fail_streak = 0;
                     m.set("start", "none");
                     crate::video::on_loaded(app);
                 }
@@ -663,7 +677,9 @@ pub fn tick(app: &mut App) {
                                 app.toast(tr!("Cannot play: {}", name));
                             }
                         }
-                        if eof || error {
+                        if error {
+                            end_after_error(app);
+                        } else if eof {
                             on_end(app);
                         }
                     }
@@ -681,6 +697,9 @@ pub fn tick(app: &mut App) {
     // Stan na ekranie
     let (pos, dur) = position(app);
     let playing = is_playing(app);
+    if pos > 0.5 {
+        app.fail_streak = 0;
+    }
     if let Some(ui) = app.ui() {
         let p = ui.global::<Player>();
         if (pos - app.last_pos).abs() > 0.01 || (dur - app.last_dur).abs() > 0.01 {

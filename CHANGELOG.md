@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.12.3
+
+- Po cichej aktualizacji OpenMP uruchamia się znowu jako zwykły użytkownik, a nie administrator – wracają dyski sieciowe, odtwarzanie i okładki.
+- Gdy kilku plików z rzędu nie da się odtworzyć, odtwarzanie się zatrzymuje z komunikatem, zamiast przeskakiwać przez całą kolejkę.
+- Nową kolekcję z filtrów tworzy przycisk „+” przy nagłówku Kolekcje.
+
 ## 1.12.2
 
 - Okno aktualizacji pokazuje się zawsze na ekranie – także gdy okno programu jest zminimalizowane albo schowane w zasobniku – a po instalacji OpenMP uruchamia się ponownie w nowej wersji.

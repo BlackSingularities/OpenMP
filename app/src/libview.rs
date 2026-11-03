@@ -78,7 +78,6 @@ pub fn rebuild_nav(app: &mut App) {
         let label = if name.trim().is_empty() { tr!("New collection").to_string() } else { name.clone() };
         v.push(nav(&format!("smart:{i}"), &label, "playlist", String::new()));
     }
-    v.push(nav("smart-add", tr!("New collection from filters…"), "add", String::new()));
     v.push(nav("radio", tr!("Internet radio"), "radio", String::new()));
     v.push(nav("stats", tr!("Statistics"), "trending", String::new()));
     v.push(section("sec-podcasts", tr!("PODCASTS")));
@@ -1196,6 +1195,7 @@ pub fn play_tracks_at(app: &mut App, mut tracks: Vec<TrackInfo>, start: usize, s
     app.store.lists[li].items = items;
     let base = 0;
     app.shuffle_len = 0;
+    app.fail_streak = 0;
     app.dirty = true;
     crate::lists::fix_current(app, id);
     if app.store.active == li {

@@ -403,6 +403,13 @@ export component Sidebar inherits Rectangle {
                         tip: @tr("Add music folder");
                         clicked => { Prefs.add-folder(0); }
                     }
+                    if n.id == "sec-sets": IconBtn {
+                        icon: Icons.add;
+                        size: 24px;
+                        icon-size: 15px;
+                        tip: @tr("New collection from filters…");
+                        clicked => { Lib.nav-clicked("smart-add"); }
+                    }
                 }
                 if !n.section: Rectangle {
                     y: 2px;

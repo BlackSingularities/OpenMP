@@ -107,4 +107,4 @@ Root: HKA; Subkey: "Software\Classes\.mpg\OpenWithProgids"; ValueType: string; V
 [Run]
 Filename: "{app}\OpenMP.exe"; Description: "{cm:LaunchProgram,OpenMP}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 ; Aktualizacja z programu (instalator po cichu): OpenMP sam się zamyka, więc uruchamiamy go ponownie.
-Filename: "{app}\OpenMP.exe"; Flags: nowait; Check: WizardSilent
+Filename: "{app}\OpenMP.exe"; Flags: nowait runasoriginaluser; Check: WizardSilent
