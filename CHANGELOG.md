@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.12.1
+
+- „Pokaż w Eksploratorze” zaznacza plik w jego folderze, zamiast otwierać Dokumenty (ścieżki ze spacjami).
+- Wyszukiwanie w sekcji Muzyka pokazuje tylko muzykę, a w sekcji Wideo tylko filmy; z kolekcji, list odtwarzania i folderów – obie.
+- Podczas odtwarzania wideo od razu działają strzałki i inne skróty klawiatury.
+
 ## 1.12.0
 
 - **Kolekcje**: zbiory i inteligentne listy połączone w jedną sekcję panelu. Nowe kolekcje: Nowe odkrycia (pierwszy raz grane w ostatnich 30 dniach), Dawno niegrane, Nigdy niegrane, Długie utwory, Wysoka jakość (bezstratne i hi-res), Brakujące tagi i Obejrzane filmy. Własne kolekcje z filtrów tworzy pozycja „Nowa kolekcja z filtrów…”.

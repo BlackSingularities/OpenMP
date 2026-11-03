@@ -379,10 +379,13 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
     } else {
         tr!("The library is empty.\nAdd music folders (network drives work too) in Settings → Library.")
     };
-    // Wyszukiwanie obejmuje całą bibliotekę – muzykę i filmy.
+    // Wyszukiwanie w sekcji MUZYKA albo WIDEO dotyczy tylko jej rodzaju; z kolekcji, list
+    // odtwarzania i reszty – całej biblioteki, muzyki i filmów.
     if !app.libv.search.trim().is_empty() {
         let q = library::Query::parse(&app.libv.search);
-        let found: Vec<TrackInfo> = source.iter().chain(other(app, video_kind).iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(2000).cloned().collect();
+        let own_only = matches!(kind.as_str(), "artist" | "album" | "genre" | "year" | "all" | "v-all" | "v-shows" | "v-continue" | "v-recent");
+        let rest: &[TrackInfo] = if own_only { &[] } else { other(app, video_kind) };
+        let found: Vec<TrackInfo> = source.iter().chain(rest.iter()).filter(|t| q.matches(t, &app.stats.get(&t.path))).take(2000).cloned().collect();
         l.set_title(ss(tr!("Results: “{}”", app.libv.search.trim())));
         l.set_subtitle(ss(trn!("{n} item", "{n} items", found.len())));
         l.set_empty_text(ss(tr!("Nothing found.\nFilters: rating>=4, year:1990-1999, genre:rock, artist:…, album:…, plays>=10, format:flac, added<30, length>6")));

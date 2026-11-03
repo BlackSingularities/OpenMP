@@ -47,6 +47,13 @@ export component AppWindow inherits Window {
         keys.focus();
     }
 
+    // Przy zmianie widoku (np. start filmu z pola wyszukiwania albo z listy) element z fokusem
+    // znika razem ze starym widokiem i strzałki nigdzie nie trafiały – fokus wraca do skrótów.
+    property <int> view-mode: Ui.mode;
+    changed view-mode => {
+        keys.focus();
+    }
+
     keys := FocusScope {
         key-pressed(e) => {
             if e.text == Key.Escape {

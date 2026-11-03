@@ -170,7 +170,11 @@ pub fn keep_awake(app: &mut App, on: bool) {
 }
 
 pub fn reveal(path: &str) {
-    let _ = std::process::Command::new("explorer").arg(format!("/select,{path}")).spawn();
+    use std::os::windows::process::CommandExt;
+    // Explorer nie rozumie "/select,ścieżka" w całości wziętego w cudzysłów (tak robi .arg()
+    // przy spacjach) i otwiera wtedy Dokumenty — stąd raw_arg i cudzysłów tylko wokół ścieżki.
+    let p = path.replace('/', "\\");
+    let _ = std::process::Command::new("explorer").raw_arg(format!("/select,\"{p}\"")).spawn();
 }
 
 /// Panel multimediów Windows (SMTC): klawisze multimedialne, słuchawki, nakładka głośności.
