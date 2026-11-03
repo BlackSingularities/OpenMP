@@ -15,7 +15,7 @@ export global VizNames {
 
 // Okładka z poświatą w kolorze akcentu i wizualizacją na dolnej części obrazu.
 export component CoverArt inherits Rectangle {
-    in property <length> radius: 14px;
+    in property <length> radius: Theme.r(14px);
     in property <bool> show-chip: true;
     in property <bool> show-viz: true;
     callback clicked();
@@ -664,7 +664,7 @@ export component Hero inherits Rectangle {
         // Tryb zaznaczenia: okładka zaznaczonego pliku / grupy.
         if Player.idle && Player.sel-mode: Cover {
             width: self.height * root.sel-ratio;
-            border-radius: root.small ? 10px : 14px;
+            border-radius: Theme.r(root.small ? 10px : 14px);
             source: Player.sel-cover;
             has: Player.sel-has-cover;
             fallback: Icons.folder;
@@ -672,7 +672,7 @@ export component Hero inherits Rectangle {
         }
         if !Video.active && !(Player.idle && Player.sel-mode): CoverArt {
             width: self.height * root.cover-ratio;
-            radius: root.small ? 10px : 14px;
+            radius: Theme.r(root.small ? 10px : 14px);
             clicked => {
                 if Video.bg-audio {
                     Video.show-picture();

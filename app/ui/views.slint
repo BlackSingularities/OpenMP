@@ -22,7 +22,7 @@ export component WinButtons inherits HorizontalLayout {
     if root.pin: Rectangle {
         width: 44px;
         height: 32px;
-        border-radius: 6px;
+        border-radius: Theme.r(6px);
         background: pta.has-hover ? (root.on-dark ? #ffffff1f : Theme.hover) : transparent;
         Icon {
             icon: root.pinned ? Icons.pin : Icons.pin-off;
@@ -37,7 +37,7 @@ export component WinButtons inherits HorizontalLayout {
             x: parent.width - self.width;
             width: ptt.preferred-width + 16px;
             height: 24px;
-            border-radius: 6px;
+            border-radius: Theme.r(6px);
             background: Theme.panel2;
             drop-shadow-blur: 8px;
             drop-shadow-color: #00000060;
@@ -55,7 +55,7 @@ export component WinButtons inherits HorizontalLayout {
     ]: Rectangle {
         width: 44px;
         height: 32px;
-        border-radius: 6px;
+        border-radius: Theme.r(6px);
         background: wta.has-hover ? (b.id == 2 ? #e81123 : (root.on-dark ? #ffffff1f : Theme.hover)) : transparent;
         Icon {
             icon: b.icon;
@@ -411,7 +411,7 @@ export component Sidebar inherits Rectangle {
                 if !n.section: Rectangle {
                     y: 2px;
                     height: parent.height - 4px;
-                    border-radius: 10px;
+                    border-radius: Theme.r(10px);
                     background: Lib.nav-selected == n.id ? Theme.sel : nta.has-hover ? Theme.hover : transparent;
                     animate background { duration: 120ms; }
                     // Zaznaczenie: kropka akcentu po prawej.
@@ -1214,7 +1214,7 @@ export component SidePanel inherits Rectangle {
                     source: Player.cover;
                     has: Player.has-cover;
                     fallback: Icons.note;
-                    border-radius: 10px;
+                    border-radius: Theme.r(10px);
                     TouchArea {
                         mouse-cursor: pointer;
                         clicked => { Player.open-cover(); }

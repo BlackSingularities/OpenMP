@@ -153,7 +153,8 @@ export component Backdrop inherits Rectangle {
         image-fit: fill;
         opacity: min(root.o * (Prefs.ambient == 2 ? 2.2 : 1.4), 0.75);
     }
-    Rectangle {
+    // Wygaszenie ku dołowi – bez szkła; przy szkle zakryłoby to, co prześwituje zza okna.
+    if Theme.glass <= 0: Rectangle {
         background: @linear-gradient(180deg, Theme.bg.with-alpha(0) 0%, Theme.bg.with-alpha(0.35) 60%, Theme.bg.with-alpha(0.7) 100%);
     }
 }

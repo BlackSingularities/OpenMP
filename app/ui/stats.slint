@@ -63,7 +63,7 @@ component TopList inherits VerticalLayout {
         if !root.history: Rectangle {
             x: 0;
             width: parent.width * t.frac;
-            border-radius: 6px;
+            border-radius: Theme.r(6px);
             background: Theme.tint.with-alpha(0.09);
         }
         HorizontalLayout {
@@ -175,7 +175,7 @@ export component StatsView inherits Rectangle {
                             Rectangle {
                                 y: parent.height - self.height;
                                 height: max(2px, h * (d.music + d.video));
-                                border-radius: 4px;
+                                border-radius: Theme.r(4px);
                                 background: Theme.line;
                                 clip: true;
                                 Rectangle {

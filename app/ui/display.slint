@@ -60,7 +60,7 @@ export component SeekBar inherits Rectangle {
     if root.show-wave && root.wave != "": Rectangle {
         // Tło taśmy: delikatna płyta z linią środka.
         Rectangle {
-            border-radius: 6px;
+            border-radius: Theme.r(6px);
             background: @linear-gradient(180deg, #ffffff05 0%, #ffffff0a 50%, #ffffff03 100%);
         }
         // Reszta utworu: przygaszona.
@@ -207,7 +207,7 @@ export component SeekBar inherits Rectangle {
         y: -self.height - 6px;
         height: 20px;
         width: ht.preferred-width + 12px;
-        border-radius: 4px;
+        border-radius: Theme.r(4px);
         background: #000000d9;
         ht := Text {
             text: (root.preview-label != "" ? root.preview-label + "  ·  " : "") + Fmt.time(parent.at * root.duration);
@@ -222,7 +222,7 @@ export component SeekBar inherits Rectangle {
         y: -self.height - 10px;
         width: 196px;
         height: 196px / max(root.preview-ratio, 0.5) + 30px;
-        border-radius: 9px;
+        border-radius: Theme.r(9px);
         background: #000000e6;
         border-width: 1px;
         border-color: Theme.tint.with-alpha(0.45);
@@ -557,7 +557,7 @@ export component MusicDisplay inherits Rectangle {
                 source: root.cover;
                 has: root.has-cover;
                 fallback: Icons.note;
-                border-radius: 8px;
+                border-radius: Theme.r(8px);
                 drop-shadow-blur: 18px;
                 drop-shadow-color: #000000a0;
                 background: #ffffff0d;
@@ -696,7 +696,7 @@ export component MusicDisplay inherits Rectangle {
             // Analizator chowa się dopiero wtedy, gdy zabrakłoby miejsca na tytuł.
             if root.width >= 600px: Rectangle {
                 width: root.compact ? clamp(root.width * 0.3, 150px, 360px) : clamp(root.width * 0.34, 200px, 420px);
-                border-radius: 8px;
+                border-radius: Theme.r(8px);
                 background: #ffffff06;
                 border-width: 1px;
                 border-color: #ffffff0c;

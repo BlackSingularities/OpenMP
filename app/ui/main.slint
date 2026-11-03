@@ -84,8 +84,8 @@ export component AppWindow inherits Window {
         // panel boczny i dolny pasek.
         if Ui.mode == 0: Rectangle {
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
-            // Tło z okładki tylko bez szkła – przy szkle prześwituje to, co jest za oknem.
-            if Prefs.backdrop > 0 && Theme.glass <= 0: Backdrop { }
+            // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
+            if Prefs.backdrop > 0: Backdrop { }
             Rectangle {
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
@@ -184,7 +184,7 @@ export component AppWindow inherits Window {
             background: Theme.tint.with-alpha(0.12);
             border-width: 2px;
             border-color: Theme.tint;
-            border-radius: 10px;
+            border-radius: Theme.r(10px);
             Text {
                 text: @tr("Drop to add to the list");
                 color: Theme.text;
@@ -201,7 +201,7 @@ export component AppWindow inherits Window {
             x: (parent.width - self.width) / 2;
             width: min(tl.preferred-width, parent.width - 32px);
             height: tl.preferred-height;
-            border-radius: 12px;
+            border-radius: Theme.r(12px);
             background: @linear-gradient(180deg, #1a1d24f2 0%, #0e1014f2 100%);
             border-width: 1px;
             border-color: #ffffff17;
@@ -221,7 +221,7 @@ export component AppWindow inherits Window {
                     y: (parent.height - self.height) / 2;
                     width: 28px;
                     height: 28px;
-                    border-radius: 8px;
+                    border-radius: Theme.r(8px);
                     background: Theme.tint.with-alpha(0.18);
                     Icon {
                         icon: Icons.info;

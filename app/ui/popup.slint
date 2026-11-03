@@ -34,7 +34,7 @@ export component MenuWindow inherits Window {
         Rectangle {
             border-width: 1px;
             border-color: Theme.line2;
-            border-radius: 8px;
+            border-radius: Theme.r(8px);
         }
         lay := VerticalLayout {
             padding: 5px;
@@ -47,7 +47,7 @@ export component MenuWindow inherits Window {
                     background: Theme.line;
                 }
                 if !m.sep: Rectangle {
-                    border-radius: 6px;
+                    border-radius: Theme.r(6px);
                     background: mta.has-hover && m.enabled ? Theme.sel : transparent;
                     HorizontalLayout {
                         padding-left: 9px;

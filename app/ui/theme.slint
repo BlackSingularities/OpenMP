@@ -95,6 +95,10 @@ export global Theme {
 
     out property <length> radius: corners == 0 ? 3px : corners == 2 ? 12px : 8px;
     out property <length> radius-lg: corners == 0 ? 5px : corners == 2 ? 22px : 14px;
+    // Promień elementu przeskalowany ustawieniem zaokrągleń (ostre – mniejszy, mocne – większy).
+    pure public function r(l: length) -> length {
+        return corners == 0 ? l * 0.35 : corners == 2 ? l * 1.6 : l;
+    }
     out property <length> fs-xs: 10.5px * text-scale;
     out property <length> fs-sm: 11.5px * text-scale;
     out property <length> fs: 12.5px * text-scale;

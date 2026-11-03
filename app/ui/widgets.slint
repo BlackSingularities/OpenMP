@@ -110,7 +110,7 @@ export component IconBtn inherits Rectangle {
         height: 22px;
         width: tipt.preferred-width + 14px;
         x: (parent.width - self.width) / 2;
-        border-radius: 5px;
+        border-radius: Theme.r(5px);
         background: #000000e0;
         opacity: 0;
         animate opacity { duration: 150ms; delay: 600ms; }
@@ -246,7 +246,7 @@ export component HSlider inherits Rectangle {
         y: -self.height - 8px;
         width: bt.preferred-width + 14px;
         height: 22px;
-        border-radius: 7px;
+        border-radius: Theme.r(7px);
         background: root.fill-color;
         drop-shadow-blur: 8px;
         drop-shadow-color: #00000060;
@@ -647,7 +647,7 @@ export component Badge inherits Rectangle {
     in property <bool> lit;
     height: 17px;
     width: bt.preferred-width + 10px;
-    border-radius: 4px;
+    border-radius: Theme.r(4px);
     background: lit ? Theme.tint.with-alpha(0.22) : #ffffff10;
     border-width: 1px;
     border-color: lit ? Theme.tint.with-alpha(0.55) : #ffffff14;
@@ -678,7 +678,7 @@ export component Cover inherits Rectangle {
     in property <image> source;
     in property <bool> has;
     in property <string> fallback: Icons.album;
-    border-radius: 6px;
+    border-radius: Theme.r(6px);
     clip: true;
     background: Theme.dark ? #ffffff0d : #0000000d;
     if !root.has: Icon {

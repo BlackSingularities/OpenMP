@@ -15,7 +15,7 @@ component KeyCapture inherits Rectangle {
     callback captured(string, bool, bool, bool);
     width: 180px;
     height: 26px;
-    border-radius: 5px;
+    border-radius: Theme.r(5px);
     background: fs.has-focus ? Theme.tint.with-alpha(0.15) : Theme.panel2;
     border-width: 1px;
     border-color: fs.has-focus ? Theme.tint : Theme.line2;
@@ -1959,7 +1959,7 @@ export component SettingsDialog inherits Dialog {
                                 y: (parent.height - self.height) / 2;
                                 height: 22px;
                                 width: kt.preferred-width + 14px;
-                                border-radius: 5px;
+                                border-radius: Theme.r(5px);
                                 background: Theme.panel2;
                                 border-width: 1px;
                                 border-color: Theme.line2;

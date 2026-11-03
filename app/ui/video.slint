@@ -203,7 +203,7 @@ component VideoPages inherits VerticalLayout {
         for r in Lists.rows: Rectangle {
             height: r.header ? 0px : 46px;
             visible: !r.header;
-            border-radius: 8px;
+            border-radius: Theme.r(8px);
             background: r.playing ? Theme.sel : lta.has-hover ? VInk.hov(root.themed) : transparent;
             HorizontalLayout {
                 padding-left: 8px;
@@ -668,7 +668,7 @@ component Osd inherits Rectangle {
     card := Rectangle {
         y: Video.osd-visible ? 0 : -10px;
         animate y { duration: 220ms; easing: ease-out; }
-        border-radius: 12px;
+        border-radius: Theme.r(12px);
         background: @linear-gradient(180deg, #1a1d24f0 0%, #0e1014f0 100%);
         border-width: 1px;
         border-color: #ffffff17;
@@ -685,7 +685,7 @@ component Osd inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 width: 32px;
                 height: 32px;
-                border-radius: 9px;
+                border-radius: Theme.r(9px);
                 background: Theme.tint.with-alpha(0.18);
                 Icon {
                     icon: Icons.get(Video.osd-icon);
@@ -1172,7 +1172,7 @@ component FullView inherits Rectangle {
         alignment: end;
         if Video.next-text != "": Rectangle {
             height: 86px;
-            border-radius: 10px;
+            border-radius: Theme.r(10px);
             background: #0e1014f0;
             border-width: 1px;
             border-color: #ffffff17;
@@ -1214,7 +1214,7 @@ component FullView inherits Rectangle {
             Rectangle {
                 width: skt.preferred-width + 48px;
                 height: 40px;
-                border-radius: 8px;
+                border-radius: Theme.r(8px);
                 background: skta.has-hover ? #ffffffe8 : #ffffffd0;
                 drop-shadow-blur: 18px;
                 drop-shadow-color: #00000080;
@@ -1571,7 +1571,7 @@ export component MiniView inherits Rectangle {
             height: self.width;
             x: parent.width - self.width - 48px;
             y: root.hover ? strip.y - self.height - 6px : strip.y - self.height + 6px;
-            radius: 8px;
+            radius: Theme.r(8px);
             show-chip: false;
             show-viz: false;
             opacity: root.hover && !Video.active ? 1 : 0;

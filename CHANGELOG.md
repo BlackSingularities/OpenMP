@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.13.1
+
+- Ustawienie „Zaokrąglenia” obejmuje też dużą okładkę, kafelki, menu, okna dialogowe, panele filmu i inne elementy; okrągłe przyciski i pigułki zostają okrągłe.
+- Tło z okładki (rozmyta okładka, gradient barw, ruch tła) działa także przy przezroczystym oknie – delikatne barwy okładki nad tym, co prześwituje zza okna.
+
 ## 1.13.0
 
 - Nowe wizualizacje: Fala, Plama, Puls i Kapsułki.
