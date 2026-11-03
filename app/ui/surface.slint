@@ -121,7 +121,7 @@ export component Backdrop inherits Rectangle {
     property <color> cc: Theme.grad-c;
     animate ca, cb, cc { duration: 900ms; easing: ease-in-out; }
     property <float> o: Prefs.backdrop-opacity;
-    property <float> t: Prefs.backdrop-motion ? animation-tick() / 30s : 0;
+    property <float> t: Prefs.backdrop-motion ? animation-tick() / 60s : 0;
     // Nowa okładka przenika płynnie ze starej.
     if Prefs.backdrop == 1 && Player.has-cover && !Video.active: FadeImage {
         source: Player.backdrop;
@@ -130,20 +130,28 @@ export component Backdrop inherits Rectangle {
     if Prefs.backdrop == 2 && !Player.idle && !Video.active: Rectangle {
         background: @linear-gradient(135deg, root.ca.with-alpha(root.o) 0%, root.cb.with-alpha(root.o * 0.5) 50%, root.cc.with-alpha(root.o * 0.85) 100%);
     }
-    // Powolny ruch: dwie plamy światła krążące po oknie.
+    // Powolny ruch: trzy duże, miękkie plamy barw okładki płynące po oknie – większe od okna
+    // i z łagodnym zanikiem, żeby całość czytała się jak ruchomy gradient, a nie punkty światła.
     if Prefs.backdrop-motion && Prefs.backdrop > 0 && !Player.idle: Rectangle {
-        x: root.width * (0.3 + 0.25 * sin(root.t * 360deg)) - self.width / 2;
-        y: root.height * (0.3 + 0.2 * cos(root.t * 360deg)) - self.height / 2;
-        width: root.width * 0.8;
-        height: root.height * 1.1;
-        background: @radial-gradient(circle, root.ca.with-alpha(root.o * 0.9) 0%, transparent 65%);
+        x: root.width * (0.25 + 0.3 * sin(root.t * 360deg)) - self.width / 2;
+        y: root.height * (0.3 + 0.25 * cos(root.t * 360deg)) - self.height / 2;
+        width: max(root.width, root.height) * 1.7;
+        height: self.width;
+        background: @radial-gradient(circle, root.ca.with-alpha(root.o * 0.7) 0%, root.ca.with-alpha(root.o * 0.45) 20%, root.ca.with-alpha(root.o * 0.2) 42%, root.ca.with-alpha(root.o * 0.06) 62%, transparent 80%);
     }
     if Prefs.backdrop-motion && Prefs.backdrop > 0 && !Player.idle: Rectangle {
-        x: root.width * (0.7 + 0.22 * cos(root.t * 300deg)) - self.width / 2;
-        y: root.height * (0.65 + 0.2 * sin(root.t * 300deg)) - self.height / 2;
-        width: root.width * 0.7;
-        height: root.height;
-        background: @radial-gradient(circle, root.cc.with-alpha(root.o * 0.8) 0%, transparent 65%);
+        x: root.width * (0.75 + 0.25 * cos(root.t * 280deg)) - self.width / 2;
+        y: root.height * (0.7 + 0.25 * sin(root.t * 280deg)) - self.height / 2;
+        width: max(root.width, root.height) * 1.5;
+        height: self.width;
+        background: @radial-gradient(circle, root.cc.with-alpha(root.o * 0.65) 0%, root.cc.with-alpha(root.o * 0.4) 20%, root.cc.with-alpha(root.o * 0.18) 42%, root.cc.with-alpha(root.o * 0.05) 62%, transparent 80%);
+    }
+    if Prefs.backdrop-motion && Prefs.backdrop > 0 && !Player.idle: Rectangle {
+        x: root.width * (0.5 + 0.35 * sin(root.t * 200deg + 120deg)) - self.width / 2;
+        y: root.height * (0.5 + 0.3 * cos(root.t * 240deg + 60deg)) - self.height / 2;
+        width: max(root.width, root.height) * 1.4;
+        height: self.width;
+        background: @radial-gradient(circle, root.cb.with-alpha(root.o * 0.5) 0%, root.cb.with-alpha(root.o * 0.3) 22%, root.cb.with-alpha(root.o * 0.12) 45%, root.cb.with-alpha(root.o * 0.03) 65%, transparent 82%);
     }
     // Film: tłem jest jego poświata.
     if Video.active && Prefs.ambient > 0 && Video.has-ambient && Prefs.backdrop > 0: Image {

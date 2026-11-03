@@ -107,7 +107,7 @@ export global Player {
     callback toggle-shuffle();
     callback cycle-repeat();
     callback cycle-viz();
-    callback step-viz(int);
+    callback set-viz(int);
     callback toggle-fav();
     callback reveal-current();
     callback show-current();
@@ -325,6 +325,8 @@ export global Prefs {
     in-out property <int> viz-bands: 48;
     in-out property <float> viz-sensitivity;
     in-out property <int> viz-color: 1;
+    // Miejsce wizualizacji: 0 – na okładce, 1 – w tle okna.
+    in-out property <int> viz-place;
     in-out property <float> viz-dim: 0.45;
     in-out property <int> viz-fps: 60;
     in-out property <float> viz-speed: 1;
@@ -568,4 +570,8 @@ export global Ui {
     // Przesunięcie okna dialogu o (dx, dy) – bez systemowej pętli przeciągania, która
     // zatrzymywała rysowanie filmu.
     callback dialog-move(length, length);
+}
+
+export global VizNames {
+    out property <[string]> names: [@tr("Bars"), @tr("Spectrum"), @tr("Oscilloscope"), @tr("VU meters"), @tr("glow" => "Off"), @tr("Mirror"), @tr("Circle"), @tr("3D spectrum"), @tr("LEDs"), @tr("Stereo"), @tr("Dots"), @tr("Wave"), @tr("Blob"), @tr("Pulse"), @tr("Capsules")];
 }

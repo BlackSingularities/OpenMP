@@ -317,6 +317,10 @@ component ViewSize inherits HorizontalLayout {
 
 export component Sidebar inherits Rectangle {
     width: Prefs.sidebar-width * 1px;
+    // Ciemny gradient od lewej krawędzi okna – panel zawsze odcina się od tła (okładki, szkła).
+    Rectangle {
+        background: @linear-gradient(90deg, #000000.with-alpha(Prefs.dark ? 0.42 : 0.12) 0%, #000000.with-alpha(Prefs.dark ? 0.26 : 0.07) 60%, #000000.with-alpha(Prefs.dark ? 0.16 : 0.04) 100%);
+    }
     VerticalLayout {
         padding: 10px;
         padding-top: 4px;
@@ -505,6 +509,12 @@ export component Sidebar inherits Rectangle {
                 }
             }
         }
+    }
+    // Separator między panelem a resztą okna.
+    Rectangle {
+        x: parent.width - 1px;
+        width: 1px;
+        background: Theme.line2.brighter(0.5);
     }
     // Prawa krawędź: przeciąganie zmienia szerokość panelu.
     TouchArea {

@@ -100,6 +100,7 @@ pub fn publish(app: &mut App) {
     p.set_viz_bands(s.viz_bands);
     p.set_viz_sensitivity(s.viz_sensitivity);
     p.set_viz_color(s.viz_color);
+    p.set_viz_place(s.viz_place);
     p.set_viz_dim(s.viz_dim);
     p.set_viz_fps(s.viz_fps);
     p.set_viz_speed(s.viz_speed);
@@ -358,6 +359,7 @@ pub fn changed(app: &mut App, key: &str) {
         "viz-bands" => app.s.viz_bands = p.get_viz_bands(),
         "viz-sensitivity" => app.s.viz_sensitivity = p.get_viz_sensitivity(),
         "viz-color" => app.s.viz_color = p.get_viz_color(),
+        "viz-place" => app.s.viz_place = p.get_viz_place(),
         "viz-dim" => app.s.viz_dim = p.get_viz_dim(),
         "viz-fps" => app.s.viz_fps = p.get_viz_fps(),
         "viz-speed" => app.s.viz_speed = p.get_viz_speed(),

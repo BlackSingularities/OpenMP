@@ -4151,3 +4151,24 @@ msgstr "Klatki na sekundę"
 
 msgid "Animation speed"
 msgstr "Szybkość animacji"
+
+msgid "VISUALIZATION"
+msgstr "WIZUALIZACJA"
+
+msgid "Visualization type"
+msgstr "Rodzaj wizualizacji"
+
+msgid "Show visualization"
+msgstr "Pokazuj wizualizację"
+
+msgid "On the bottom part of the cover"
+msgstr "Na dolnej części okładki"
+
+msgid "Large, behind the whole window – under the lists and panels"
+msgstr "Duża, w tle całego okna – pod listami i panelami"
+
+msgid "On the cover"
+msgstr "Na okładce"
+
+msgid "In the background"
+msgstr "W tle okna"

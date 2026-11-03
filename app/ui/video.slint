@@ -1572,7 +1572,6 @@ export component MiniView inherits Rectangle {
             x: parent.width - self.width - 48px;
             y: root.hover ? strip.y - self.height - 6px : strip.y - self.height + 6px;
             radius: Theme.r(8px);
-            show-chip: false;
             show-viz: false;
             opacity: root.hover && !Video.active ? 1 : 0;
             visible: self.opacity > 0.01;

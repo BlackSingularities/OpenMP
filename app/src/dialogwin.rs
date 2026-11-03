@@ -76,8 +76,9 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
         soft_pause, speed, sub_lang, sub_size, swap, version, video_folders, video_resume,
-        viz_bands, viz_sensitivity, wave_style, width,
+        viz_bands, viz_sensitivity, viz_color, viz_dim, viz_fps, viz_speed, viz_place, wave_style, width,
     );
+    props!(v, Player: viz_mode);
     props!(v, Prefs:
         nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, glass_tint, nav_text,
         live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
@@ -125,6 +126,7 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
         add_network_folder(i), remove_folder(i, j), pick_screenshot_dir(), backup_export(), backup_import(), custom_key(i, t, c, s, a), check_update(), open_url(u),
         associate(),
     );
+    fwd!(Player: set_viz(m));
     fwd!(Ui:
         url_accepted(t), tag_save(v), tag_pick_cover(), update_install(), update_skip(), rename_accepted(t),
     );

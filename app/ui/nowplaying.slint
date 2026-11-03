@@ -6,20 +6,17 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, HSlider, Marquee, Cover, LyricText, LyricStyle } from "widgets.slint";
 import { SeekBar, Visualizer, Fmt } from "display.slint";
-import { Player, Prefs, Ui, Video } from "state.slint";
+import { Player, Prefs, Ui, Video, VizNames } from "state.slint";
 import { VideoStage } from "surface.slint";
-
-export global VizNames {
-    out property <[string]> names: [@tr("Bars"), @tr("Spectrum"), @tr("Oscilloscope"), @tr("VU meters"), @tr("glow" => "Off"), @tr("Mirror"), @tr("Circle"), @tr("3D spectrum"), @tr("LEDs"), @tr("Stereo"), @tr("Dots"), @tr("Wave"), @tr("Blob"), @tr("Pulse"), @tr("Capsules")];
-}
 
 // Okładka z poświatą w kolorze akcentu i wizualizacją na dolnej części obrazu.
 export component CoverArt inherits Rectangle {
     in property <length> radius: Theme.r(14px);
-    in property <bool> show-chip: true;
     in property <bool> show-viz: true;
+    // Wizualizacja na okładce – chyba że w ustawieniach wybrano tło okna.
+    property <bool> viz-here: root.show-viz && Prefs.viz-place == 0 && Player.viz-mode != 4 && !Player.idle;
     callback clicked();
-    out property <bool> hovered: ta.has-hover || chip-ta.has-hover || viz-prev.hovered || viz-next.hovered;
+    out property <bool> hovered: ta.has-hover;
     // Poświata
     Rectangle {
         border-radius: root.radius;
@@ -36,12 +33,12 @@ export component CoverArt inherits Rectangle {
         fallback: Icons.note;
         background: Theme.panel2;
         // Przyciemnienie pod wizualizacją – siła z ustawień (0 – brak).
-        if root.show-viz && Player.viz-mode != 4 && !Player.idle && Prefs.viz-dim > 0.01: Rectangle {
+        if root.viz-here && Prefs.viz-dim > 0.01: Rectangle {
             y: parent.height * 0.36;
             height: parent.height * 0.64;
             background: @linear-gradient(180deg, transparent 0%, #000000.with-alpha(Prefs.viz-dim * 0.6) 55%, #000000.with-alpha(Prefs.viz-dim * 0.9) 100%);
         }
-        if root.show-viz && Player.viz-mode != 4 && !Player.idle: Visualizer {
+        if root.viz-here: Visualizer {
             x: parent.width * 0.06;
             width: parent.width * 0.88;
             y: parent.height * (Player.viz-mode == 3 ? 0.62 : 0.5);
@@ -69,67 +66,6 @@ export component CoverArt inherits Rectangle {
     ta := TouchArea {
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
-    }
-    // Przełącznik wizualizacji – szklana pigułka ze strzałkami, widoczna po najechaniu na okładkę.
-    chip := Rectangle {
-        visible: root.show-chip && root.width >= 150px;
-        x: parent.width - self.width - 10px;
-        y: 10px;
-        height: 30px;
-        width: chip-row.preferred-width;
-        border-radius: 15px;
-        background: Theme.glass-color.with-alpha(0.78);
-        border-width: 1px;
-        border-color: Theme.tint.with-alpha(0.35);
-        drop-shadow-blur: 12px;
-        drop-shadow-color: #00000066;
-        opacity: root.hovered ? 1 : 0;
-        animate opacity { duration: 160ms; }
-        chip-row := HorizontalLayout {
-            padding: 3px;
-            spacing: 2px;
-            viz-prev := IconBtn {
-                size: 24px;
-                icon-size: 16px;
-                icon: Icons.chevron-left;
-                tip: @tr("Previous visualization");
-                clicked => { Player.step-viz(-1); }
-            }
-            mid := Rectangle {
-                width: mid-row.preferred-width;
-                chip-ta := TouchArea {
-                    mouse-cursor: pointer;
-                    clicked => { Player.step-viz(1); }
-                }
-                mid-row := HorizontalLayout {
-                    spacing: 6px;
-                    padding-left: 2px;
-                    padding-right: 2px;
-                    Icon {
-                        y: (parent.height - self.height) / 2;
-                        icon: Icons.equalizer;
-                        size: 13px;
-                        fill: Theme.tint.brighter(0.4);
-                    }
-                    Text {
-                        text: VizNames.names[Player.viz-mode];
-                        color: Theme.text;
-                        font-size: Theme.fs-xs;
-                        font-weight: 600;
-                        vertical-alignment: center;
-                        min-width: 64px;
-                        horizontal-alignment: center;
-                    }
-                }
-            }
-            viz-next := IconBtn {
-                size: 24px;
-                icon-size: 16px;
-                icon: Icons.chevron-right;
-                tip: @tr("Next visualization");
-                clicked => { Player.step-viz(1); }
-            }
-        }
     }
 }
 
@@ -353,6 +289,14 @@ export component NowInfo inherits VerticalLayout {
                 Prefs.side-panel = Prefs.side-panel == 3 ? 0 : 3;
                 Prefs.changed("side-panel");
             }
+        }
+        // Zamknięcie bieżącego pliku – odtwarzanie staje, a w tym miejscu pojawia się zaznaczenie.
+        IconBtn {
+            icon: Icons.close;
+            size: 30px;
+            icon-size: 17px;
+            tip: @tr("Close file");
+            clicked => { Player.close-current(); }
         }
         Rectangle {
             width: 12px;
@@ -689,16 +633,6 @@ export component Hero inherits Rectangle {
             // Proste rogi: zaokrąglone przycięcie Slint rysuje z bufora i obraz stałby w miejscu.
             radius: 0;
         }
-    }
-    // Zamknięcie bieżącego pliku – odtwarzanie staje, a w tym miejscu pojawia się zaznaczenie.
-    if !Player.idle: IconBtn {
-        x: parent.width - self.width - 2px;
-        y: 2px;
-        icon: Icons.close;
-        size: 28px;
-        icon-size: 15px;
-        tip: @tr("Close file");
-        clicked => { Player.close-current(); }
     }
 }
 

@@ -6,7 +6,7 @@ import { ScrollView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, IconBtn, Btn, HSlider, VSlider, Switch, SettingRow, SettingSwitch, Segmented, Field, SectionTitle, Divider, Cover, LyricText, LyricStyle } from "widgets.slint";
-import { Player, Prefs, Ui } from "state.slint";
+import { Player, Prefs, Ui, VizNames } from "state.slint";
 import { GlassFill } from "glass.slint";
 
 // Pole nagrywania skrótu: kliknięcie, potem kombinacja klawiszy (Backspace usuwa skrót).
@@ -975,6 +975,30 @@ export component SettingsDialog inherits Dialog {
             if Ui.settings-page == 2: Page {
                 heading: @tr("Visualization");
                 SectionTitle {
+                    text: @tr("VISUALIZATION");
+                }
+                SettingRow {
+                    title: @tr("Visualization type");
+                    ComboBox {
+                        width: 240px;
+                        model: VizNames.names;
+                        current-index: Player.viz-mode;
+                        selected => { Player.set-viz(self.current-index); }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Show visualization");
+                    hint: Prefs.viz-place == 0 ? @tr("On the bottom part of the cover") : @tr("Large, behind the whole window – under the lists and panels");
+                    Segmented {
+                        options: [@tr("On the cover"), @tr("In the background")];
+                        selected: Prefs.viz-place;
+                        changed(i) => {
+                            Prefs.viz-place = i;
+                            Prefs.changed("viz-place");
+                        }
+                    }
+                }
+                SectionTitle {
                     text: @tr("ANALYZER");
                 }
                 SettingRow {
@@ -1019,7 +1043,7 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
-                SettingRow {
+                if Prefs.viz-place == 0: SettingRow {
                     title: @tr("Darken cover under visualization");
                     hint: Prefs.viz-dim < 0.01 ? @tr("short" => "Off") : round(Prefs.viz-dim * 100) + "%";
                     HSlider {

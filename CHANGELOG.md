@@ -1,5 +1,14 @@
 # Zmiany
 
+## 1.13.2
+
+- Wizualizację można pokazywać na okładce albo w tle całego okna (Ustawienia → Wizualizacja → Pokazuj wizualizację).
+- Rodzaj wizualizacji wybiera się w ustawieniach; przełącznik na okładce usunięty.
+- Naprawione: kolory wizualizacji, przyciemnienie okładki, FPS i szybkość animacji zmienione w ustawieniach nie działały w oknie programu.
+- Wyraźny separator między panelem bocznym a resztą okna. Panel ma też ciemniejsze tło – gradient od lewej krawędzi okna – więc jest dobrze widoczny na każdym tle.
+- Przycisk zamknięcia pliku przeniesiony z okładki na koniec rzędu ikon pod tytułem (serce, informacje, folder, kolejka).
+- Ruch tła to płynny, rozmyty gradient barw okładki zamiast wyraźnych plam światła.
+
 ## 1.13.1
 
 - Ustawienie „Zaokrąglenia” obejmuje też dużą okładkę, kafelki, menu, okna dialogowe, panele filmu i inne elementy; okrągłe przyciski i pigułki zostają okrągłe.

@@ -847,10 +847,14 @@ pub fn cycle_viz(app: &mut App) {
     app.toast(if n.is_empty() { tr!("Visualization off").to_string() } else { tr!("Visualization: {}", n) });
 }
 
-/// Następna (1) albo poprzednia (-1) wizualizacja – strzałki przełącznika na okładce
-/// (bez komunikatu: nazwa jest w przełączniku).
+/// Następna (1) albo poprzednia (-1) wizualizacja.
 pub fn step_viz(app: &mut App, dir: i32) {
-    app.s.viz = crate::vizpaths::step(app.s.viz, dir);
+    set_viz(app, crate::vizpaths::step(app.s.viz, dir));
+}
+
+/// Wybrana wizualizacja (lista w ustawieniach) – bez komunikatu.
+pub fn set_viz(app: &mut App, mode: i32) {
+    app.s.viz = mode.clamp(0, crate::vizpaths::ORDER.len() as i32 - 1);
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_viz_mode(app.s.viz);
     }

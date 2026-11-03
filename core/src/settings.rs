@@ -20,6 +20,8 @@ pub struct Settings {
     pub viz_sensitivity: f32,
     /// Kolory wizualizacji: 0 – akcent, 1 – barwy okładki, 2 – tęcza.
     pub viz_color: i32,
+    /// Miejsce wizualizacji: 0 – na okładce, 1 – w tle okna.
+    pub viz_place: i32,
     /// Przyciemnienie okładki pod wizualizacją (0..1).
     pub viz_dim: f32,
     /// Klatki na sekundę analizatora (15..60) i szybkość reakcji (0.5..2).
@@ -231,6 +233,7 @@ impl Default for Settings {
             viz_bands: 48,
             viz_sensitivity: 0.0,
             viz_color: 1,
+            viz_place: 0,
             viz_dim: 0.45,
             viz_fps: 60,
             viz_speed: 1.0,

@@ -9,6 +9,7 @@ import { Hero, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
 import { Backdrop } from "surface.slint";
+import { Visualizer } from "display.slint";
 import { StatsView } from "stats.slint";
 import { MenuWindow } from "popup.slint";
 import { DialogWindow } from "dialogwin.slint";
@@ -86,6 +87,28 @@ export component AppWindow inherits Window {
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
             // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
             if Prefs.backdrop > 0: Backdrop { }
+            // Wizualizacja w tle okna (ustawienie „Pokazuj wizualizację”): duża, przygaszona,
+            // pod listami i panelami – nie zasłania treści.
+            if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Visualizer {
+                x: parent.width * 0.04;
+                width: parent.width * 0.92;
+                y: parent.height * 0.4;
+                height: parent.height * 0.5;
+                opacity: 0.32;
+                overlay: true;
+                mode: Player.viz-mode;
+                bars: Player.bars;
+                peaks: Player.peaks;
+                scope-path: Player.scope-path;
+                spectrum-path: Player.spectrum-path;
+                viz-path: Player.viz-path;
+                vu-l: Player.vu-l;
+                vu-r: Player.vu-r;
+                vu-pl: Player.vu-pl;
+                vu-pr: Player.vu-pr;
+                active: Player.viz-active;
+                note: "";
+            }
             Rectangle {
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
