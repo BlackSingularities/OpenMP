@@ -1,4 +1,4 @@
-﻿; Instalator OpenMP – dla bieżącego użytkownika, bez uprawnień administratora.
+﻿; Instalator OpenMP – dla wszystkich użytkowników, wymaga uprawnień administratora.
 ; Wersję podaje workflow: ISCC /DAppVersion=1.2.3 installer\OpenMP.iss
 
 #ifndef AppVersion
@@ -18,8 +18,7 @@ DefaultDirName={localappdata}\Programs\OpenMP
 DefaultGroupName=OpenMP
 DisableProgramGroupPage=yes
 DisableDirPage=auto
-PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\out
@@ -40,10 +39,24 @@ VersionInfoDescription=OpenMP – odtwarzacz muzyki i wideo
 Name: "pl"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "en"; MessagesFile: "compiler:Default.isl"
 
+[CustomMessages]
+pl.AssocGroup=Skojarzenia plików:
+pl.AssocAudio=Otwieraj pliki muzyczne w OpenMP
+pl.AssocVideo=Otwieraj pliki wideo w OpenMP
+pl.AudioType=Plik muzyczny (OpenMP)
+pl.VideoType=Plik wideo (OpenMP)
+pl.Enqueue=Dodaj do listy OpenMP
+en.AssocGroup=File associations:
+en.AssocAudio=Open music files with OpenMP
+en.AssocVideo=Open video files with OpenMP
+en.AudioType=Music file (OpenMP)
+en.VideoType=Video file (OpenMP)
+en.Enqueue=Add to OpenMP playlist
+
 [Tasks]
-Name: "desktopicon"; Description: "Skrót na pulpicie"; GroupDescription: "Skróty:"
-Name: "assocaudio"; Description: "Otwieraj pliki muzyczne w OpenMP"; GroupDescription: "Skojarzenia plików:"
-Name: "assocvideo"; Description: "Otwieraj pliki wideo w OpenMP"; GroupDescription: "Skojarzenia plików:"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "assocaudio"; Description: "{cm:AssocAudio}"; GroupDescription: "{cm:AssocGroup}"
+Name: "assocvideo"; Description: "{cm:AssocVideo}"; GroupDescription: "{cm:AssocGroup}"; Flags: unchecked
 
 [Files]
 Source: "..\dist\OpenMP.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -55,12 +68,12 @@ Name: "{autodesktop}\OpenMP"; Filename: "{app}\OpenMP.exe"; Tasks: desktopicon
 
 [Registry]
 ; Klasy plików i „Otwórz za pomocą”.
-Root: HKA; Subkey: "Software\Classes\OpenMP.Audio"; ValueType: string; ValueData: "Plik muzyczny (OpenMP)"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\OpenMP.Audio"; ValueType: string; ValueData: "{cm:AudioType}"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\OpenMP.Audio\DefaultIcon"; ValueType: string; ValueData: "{app}\OpenMP.exe,0"
 Root: HKA; Subkey: "Software\Classes\OpenMP.Audio\shell\open\command"; ValueType: string; ValueData: """{app}\OpenMP.exe"" ""%1"""
-Root: HKA; Subkey: "Software\Classes\OpenMP.Audio\shell\enqueue"; ValueType: string; ValueData: "Dodaj do listy OpenMP"
+Root: HKA; Subkey: "Software\Classes\OpenMP.Audio\shell\enqueue"; ValueType: string; ValueData: "{cm:Enqueue}"
 Root: HKA; Subkey: "Software\Classes\OpenMP.Audio\shell\enqueue\command"; ValueType: string; ValueData: """{app}\OpenMP.exe"" --add ""%1"""
-Root: HKA; Subkey: "Software\Classes\OpenMP.Video"; ValueType: string; ValueData: "Plik wideo (OpenMP)"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\OpenMP.Video"; ValueType: string; ValueData: "{cm:VideoType}"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\OpenMP.Video\DefaultIcon"; ValueType: string; ValueData: "{app}\OpenMP.exe,0"
 Root: HKA; Subkey: "Software\Classes\OpenMP.Video\shell\open\command"; ValueType: string; ValueData: """{app}\OpenMP.exe"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\OpenMP.exe\shell\open\command"; ValueType: string; ValueData: """{app}\OpenMP.exe"" ""%1"""; Flags: uninsdeletekey
@@ -92,6 +105,6 @@ Root: HKA; Subkey: "Software\Classes\.flv\OpenWithProgids"; ValueType: string; V
 Root: HKA; Subkey: "Software\Classes\.mpg\OpenWithProgids"; ValueType: string; ValueName: "OpenMP.Video"; ValueData: ""; Flags: uninsdeletevalue; Tasks: assocvideo
 
 [Run]
-Filename: "{app}\OpenMP.exe"; Description: "Uruchom OpenMP"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\OpenMP.exe"; Description: "{cm:LaunchProgram,OpenMP}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 ; Aktualizacja z programu (instalator po cichu): OpenMP sam się zamyka, więc uruchamiamy go ponownie.
 Filename: "{app}\OpenMP.exe"; Flags: nowait; Check: WizardSilent
