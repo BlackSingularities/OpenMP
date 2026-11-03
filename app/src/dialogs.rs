@@ -163,6 +163,10 @@ pub fn rename_accepted(app: &mut App, text: &str) {
             };
             if let Some(s) = app.s.smart_lists.get_mut(i) {
                 if query {
+                    // Nowa kolekcja: dopóki bez nazwy – nazwą są filtry.
+                    if s.0.trim().is_empty() {
+                        s.0 = text.clone();
+                    }
                     s.1 = text;
                 } else {
                     s.0 = text;

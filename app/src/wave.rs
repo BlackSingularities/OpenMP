@@ -170,7 +170,8 @@ fn columns(style: i32) -> usize {
 
 /// Zasięg żywej części w obie strony od znacznika jako ułamek długości taśmy.
 pub fn live_span(style: i32, span: i32) -> f32 {
-    ([12.0f32, 22.0, 40.0][span.clamp(0, 2) as usize] + 1.0) / columns(style) as f32
+    // Z zapasem na skrajne kolumny – słupki nie wychodzą poza ten zasięg.
+    ([12.0f32, 22.0, 40.0][span.clamp(0, 2) as usize] + 2.5) / columns(style) as f32
 }
 
 /// Żywa część taśmy przy znaczniku, poruszająca się z muzyką.
@@ -315,6 +316,14 @@ pub fn live(w: &[f32], pos: f32, bars: &[f32], kind: i32, style: i32, span: i32,
                 let h = (col(k) * (1.0 + a * 0.6) * 46.0).min(49.0);
                 let _ = write!(s, "M {x:.2} {:.1} h {bw:.2} v {:.1} h {:.2} Z ", 50.0 - h, h * 2.0, -bw);
             }
+        }
+    }
+    // Kotwice na skrajach zasięgu, jadące płynnie ze znacznikiem: obszar ścieżki (a z nim
+    // gradient jasności) nie skacze o kolumnę, gdy słupki dochodzą i znikają na brzegach.
+    if !s.is_empty() {
+        let r = live_span(style, span) * 1000.0;
+        for x in [(center - r).max(0.0), (center + r).min(1000.0) - 0.01] {
+            let _ = write!(s, "M {x:.2} 50 h 0.01 v 0.01 h -0.01 Z ");
         }
     }
     s

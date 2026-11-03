@@ -451,7 +451,7 @@ msgstr "Panel: wideo"
 
 #: app/ui/dialogs.slint:817
 msgid "Panel: collections"
-msgstr "Panel: zbiory"
+msgstr "Panel: kolekcje"
 
 #: app/ui/dialogs.slint:822
 msgid "Panel: smart playlists"
@@ -4021,3 +4021,72 @@ msgstr "domyślnie"
 
 msgid "{}% – all windows, menus and panels are real glass: what is behind the window shows through blurred"
 msgstr "{}% – wszystkie okna, menu i panele są prawdziwym szkłem: prześwituje rozmyte to, co jest za oknem"
+
+msgid "SMART COLLECTIONS"
+msgstr "KOLEKCJE"
+
+msgid "New discoveries"
+msgstr "Nowe odkrycia"
+
+msgid "Not played for a long time"
+msgstr "Dawno niegrane"
+
+msgid "Never played"
+msgstr "Nigdy niegrane"
+
+msgid "Long tracks"
+msgstr "Długie utwory"
+
+msgid "High quality"
+msgstr "Wysoka jakość"
+
+msgid "Missing tags"
+msgstr "Brakujące tagi"
+
+msgid "Watched movies"
+msgstr "Obejrzane filmy"
+
+msgid "New collection"
+msgstr "Nowa kolekcja"
+
+msgid "New collection from filters…"
+msgstr "Nowa kolekcja z filtrów…"
+
+msgid "First played in the last 30 days"
+msgstr "Pierwszy raz odtworzone w ostatnich 30 dniach"
+
+msgid "Nothing new in the last 30 days."
+msgstr "Nic nowego w ostatnich 30 dniach."
+
+msgid "Played before, not in the last 3 months"
+msgstr "Grane wcześniej, ale nie w ostatnich 3 miesiącach"
+
+msgid "Everything has been played recently."
+msgstr "Wszystko było ostatnio grane."
+
+msgid "Not played even once"
+msgstr "Ani razu nieodtworzone"
+
+msgid "Everything has been played at least once."
+msgstr "Wszystko było odtworzone choć raz."
+
+msgid "Over 8 minutes"
+msgstr "Ponad 8 minut"
+
+msgid "No tracks longer than 8 minutes."
+msgstr "Brak utworów dłuższych niż 8 minut."
+
+msgid "Lossless or above CD quality"
+msgstr "Bezstratne albo powyżej jakości płyty CD"
+
+msgid "No lossless or high-resolution tracks."
+msgstr "Brak utworów bezstratnych ani wysokiej rozdzielczości."
+
+msgid "Without a title, artist or album in the tags"
+msgstr "Bez tytułu, wykonawcy albo albumu w tagach"
+
+msgid "All tracks have their tags filled in."
+msgstr "Wszystkie utwory mają uzupełnione tagi."
+
+msgid "No watched movies yet."
+msgstr "Nie ma jeszcze obejrzanych filmów."

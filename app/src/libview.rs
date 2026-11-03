@@ -58,22 +58,29 @@ pub fn rebuild_nav(app: &mut App) {
         nav("v-shows", tr!("TV shows"), "library", n(shows(&app.lib.videos).len())),
         nav("v-continue", tr!("Continue watching"), "history", String::new()),
         nav("v-recent", tr!("Recently added"), "clock", String::new()),
-        section("sec-sets", tr!("COLLECTIONS")),
+        // Kolekcje: gotowe zbiory i własne (inteligentne – z filtrów) w jednym miejscu.
+        section("sec-sets", tr!("SMART COLLECTIONS")),
         nav("fav", tr!("Favorites"), "heart", n(app.stats.map.values().filter(|s| s.rating >= 5).count())),
         nav("rated", tr!("Rated"), "heart", n(app.stats.map.values().filter(|s| s.rating > 0).count())),
         nav("top", tr!("Most played"), "trending", String::new()),
         nav("recent", tr!("Recently added"), "clock", String::new()),
         nav("history", tr!("History"), "history", String::new()),
+        nav("discover", tr!("New discoveries"), "trending", String::new()),
+        nav("forgotten", tr!("Not played for a long time"), "history", String::new()),
+        nav("never", tr!("Never played"), "note", String::new()),
+        nav("long", tr!("Long tracks"), "clock", String::new()),
+        nav("hires", tr!("High quality"), "equalizer", String::new()),
+        nav("untagged", tr!("Missing tags"), "tag", String::new()),
+        nav("v-watched", tr!("Watched movies"), "check", String::new()),
         nav("dupes", tr!("Duplicates"), "file", String::new()),
-        nav("radio", tr!("Internet radio"), "radio", String::new()),
-        nav("stats", tr!("Statistics"), "trending", String::new()),
     ];
-    if !app.s.smart_lists.is_empty() {
-        v.push(section("sec-smart", tr!("SMART PLAYLISTS")));
-        for (i, (name, _)) in app.s.smart_lists.iter().enumerate() {
-            v.push(nav(&format!("smart:{i}"), name, "playlist", String::new()));
-        }
+    for (i, (name, _)) in app.s.smart_lists.iter().enumerate() {
+        let label = if name.trim().is_empty() { tr!("New collection").to_string() } else { name.clone() };
+        v.push(nav(&format!("smart:{i}"), &label, "playlist", String::new()));
     }
+    v.push(nav("smart-add", tr!("New collection from filters…"), "add", String::new()));
+    v.push(nav("radio", tr!("Internet radio"), "radio", String::new()));
+    v.push(nav("stats", tr!("Statistics"), "trending", String::new()));
     v.push(section("sec-podcasts", tr!("PODCASTS")));
     for (i, (_, title)) in app.s.podcasts.iter().enumerate() {
         v.push(nav(&format!("pod:{i}"), title, "radio", String::new()));
@@ -170,6 +177,14 @@ pub fn nav_clicked(app: &mut App, id: &str) {
     }
     if id == "playlist" {
         l.set_view(0);
+        return;
+    }
+    if id == "smart-add" {
+        // Nowa kolekcja: najpierw filtry, nazwa z nich (do zmiany w menu kolekcji).
+        app.s.smart_lists.push((String::new(), String::new()));
+        let i = app.s.smart_lists.len() - 1;
+        rebuild_nav(app);
+        crate::dialogs::rename(app, RenameCtx::SmartQuery(i), tr!("Filters, e.g. rating>=4 year:1990-1999 genre:rock"), "");
         return;
     }
     if id == "pod-add" {
@@ -300,6 +315,13 @@ fn title_for(kind: &str) -> &'static str {
         "all" => tr!("All tracks"),
         "fav" => tr!("Favorites"),
         "top" => tr!("Most played"),
+        "discover" => tr!("New discoveries"),
+        "forgotten" => tr!("Not played for a long time"),
+        "never" => tr!("Never played"),
+        "long" => tr!("Long tracks"),
+        "hires" => tr!("High quality"),
+        "untagged" => tr!("Missing tags"),
+        "v-watched" => tr!("Watched movies"),
         "rated" => tr!("Rated"),
         "recent" => tr!("Recently added"),
         "history" => tr!("History"),
@@ -328,7 +350,7 @@ fn other(app: &App, video_kind: bool) -> &[TrackInfo] {
 }
 
 /// Zbiory z muzyką i filmami razem – w nich działa filtr „Wszystko / Muzyka / Filmy”.
-const MIXED: [&str; 6] = ["fav", "rated", "top", "recent", "history", "dupes"];
+const MIXED: [&str; 12] = ["fav", "rated", "top", "recent", "history", "dupes", "discover", "forgotten", "never", "long", "hires", "untagged"];
 
 /// Filtr zbiorów: zostawia muzykę, filmy albo jedno i drugie (`Settings::coll_kind`).
 fn by_kind(app: &App, mut t: Vec<TrackInfo>) -> Vec<TrackInfo> {
@@ -572,6 +594,66 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             l.set_title(ss(&name));
             l.set_subtitle(ss(format!("{}  ·  {query}", trn!("{n} item", "{n} items", t.len()))));
             l.set_empty_text(ss(tr!("Nothing matches this playlist.")));
+            set_tracks(app, t);
+        }
+        "discover" | "forgotten" | "never" | "long" | "hires" | "untagged" => {
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let all: Vec<TrackInfo> = by_kind(app, source.iter().chain(other(app, video_kind).iter()).cloned().collect());
+            let day = 86_400u64;
+            let (mut t, sub, empty): (Vec<TrackInfo>, String, String) = match kind.as_str() {
+                // Pierwszy raz odtworzone w ostatnich 30 dniach – najnowsze odkrycia na górze.
+                "discover" => {
+                    let mut t: Vec<(TrackInfo, u64)> = all
+                        .into_iter()
+                        .filter_map(|t| {
+                            let s = app.stats.get(&t.path);
+                            (s.first > 0 && now.saturating_sub(s.first) <= 30 * day).then_some((t, s.first))
+                        })
+                        .collect();
+                    t.sort_by_key(|x| std::cmp::Reverse(x.1));
+                    (t.into_iter().map(|x| x.0).collect(), tr!("First played in the last 30 days").into(), tr!("Nothing new in the last 30 days.").into())
+                }
+                // Grane kiedyś, a nie od 3 miesięcy – najczęściej grane na górze.
+                "forgotten" => {
+                    let mut t: Vec<(TrackInfo, u32)> = all
+                        .into_iter()
+                        .filter_map(|t| {
+                            let s = app.stats.get(&t.path);
+                            (s.plays > 0 && s.last > 0 && now.saturating_sub(s.last) > 90 * day).then_some((t, s.plays))
+                        })
+                        .collect();
+                    t.sort_by_key(|x| std::cmp::Reverse(x.1));
+                    (t.into_iter().map(|x| x.0).take(500).collect(), tr!("Played before, not in the last 3 months").into(), tr!("Everything has been played recently.").into())
+                }
+                "never" => (all.into_iter().filter(|t| app.stats.get(&t.path).plays == 0).take(3000).collect(), tr!("Not played even once").into(), tr!("Everything has been played at least once.").into()),
+                "long" => {
+                    let mut t: Vec<TrackInfo> = all.into_iter().filter(|t| t.duration >= 480.0 && !t.video).collect();
+                    t.sort_by(|a, b| b.duration.total_cmp(&a.duration));
+                    (t, tr!("Over 8 minutes").into(), tr!("No tracks longer than 8 minutes.").into())
+                }
+                // Bezstratne albo powyżej jakości płyty CD.
+                "hires" => {
+                    let lossless = |t: &TrackInfo| matches!(t.format().as_str(), "FLAC" | "WAV" | "AIFF" | "AIF" | "APE" | "WV" | "ALAC");
+                    let mut t: Vec<TrackInfo> = all.into_iter().filter(|t| !t.video && (lossless(t) || t.bits > 16 || t.rate > 48_000)).collect();
+                    t.sort_by(library::album_order);
+                    (t, tr!("Lossless or above CD quality").into(), tr!("No lossless or high-resolution tracks.").into())
+                }
+                _ => {
+                    let mut t: Vec<TrackInfo> = all.into_iter().filter(|t| !t.video && (t.title.trim().is_empty() || t.artist.trim().is_empty() || t.album.trim().is_empty())).collect();
+                    t.sort_by_key(|t| natural(&t.path));
+                    (t, tr!("Without a title, artist or album in the tags").into(), tr!("All tracks have their tags filled in.").into())
+                }
+            };
+            t.truncate(5000);
+            l.set_subtitle(ss(format!("{} · {sub}", trn!("{n} item", "{n} items", t.len()))));
+            l.set_empty_text(ss(empty));
+            set_tracks(app, t);
+        }
+        "v-watched" => {
+            let keys: Vec<(String, u64)> = app.stats.map.iter().filter(|(k, s)| s.watched && meta::is_video(std::path::Path::new(k.as_str()))).map(|(k, s)| (k.clone(), s.last)).collect();
+            let t = from_stats(source, other(app, video_kind), keys, 5000);
+            l.set_subtitle(ss(trn!("{n} item", "{n} items", t.len())));
+            l.set_empty_text(ss(tr!("No watched movies yet.")));
             set_tracks(app, t);
         }
         "history" => {

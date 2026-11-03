@@ -1,5 +1,10 @@
 # Zmiany
 
+## 1.12.0
+
+- **Kolekcje**: zbiory i inteligentne listy połączone w jedną sekcję panelu. Nowe kolekcje: Nowe odkrycia (pierwszy raz grane w ostatnich 30 dniach), Dawno niegrane, Nigdy niegrane, Długie utwory, Wysoka jakość (bezstratne i hi-res), Brakujące tagi i Obejrzane filmy. Własne kolekcje z filtrów tworzy pozycja „Nowa kolekcja z filtrów…”.
+- Puls taśmy przy znaczniku przesuwa się płynnie jak linia odtwarzania, zamiast przeskakiwać o kolumnę.
+
 ## 1.11.0
 
 - **Prawdziwe szkło**: okno programu, okna ustawień i dialogów oraz menu używają akrylu Windows 11 – prześwituje rozmyte to, co jest za oknem, zamiast podkładanej okładki. Przezroczystość ustawia suwak „Szkło: przezroczystość”.

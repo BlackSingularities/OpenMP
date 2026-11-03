@@ -926,11 +926,6 @@ export component SettingsDialog inherits Dialog {
                     toggled => { Prefs.changed("nav-sections"); }
                 }
                 if Prefs.show-sidebar: SettingSwitch {
-                    title: @tr("Panel: smart playlists");
-                    checked <=> Prefs.nav-smart;
-                    toggled => { Prefs.changed("nav-sections"); }
-                }
-                if Prefs.show-sidebar: SettingSwitch {
                     title: @tr("Panel: folders");
                     checked <=> Prefs.nav-folders;
                     toggled => { Prefs.changed("nav-sections"); }
