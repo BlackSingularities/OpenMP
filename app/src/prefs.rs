@@ -627,6 +627,13 @@ pub fn changed(app: &mut App, key: &str) {
             );
         }
         "ai-provider" | "ai-key" | "ai-url" => {
+            // Inny dostawca – inne modele: wybór od nowa.
+            if p.get_ai_provider() != app.s.ai_provider {
+                app.s.ai_model.clear();
+                p.set_ai_model(ss(""));
+                p.set_ai_models(slint::ModelRc::new(slint::VecModel::from(Vec::<slint::SharedString>::new())));
+                p.set_ai_status(ss(""));
+            }
             app.s.ai_provider = p.get_ai_provider();
             app.s.ai_key = p.get_ai_key().trim().to_string();
             app.s.ai_url = p.get_ai_url().trim().to_string();

@@ -1,5 +1,14 @@
 # Zmiany
 
+## 1.14.1
+
+- Suwak widoku (lista – okładki) jest w każdym widoku biblioteki, także przy kafelkach: gatunkach, latach, albumach, wykonawcach, serialach i kolekcjach AI.
+- Przycisk wyboru kolumn przeniesiony na początek nagłówka listy – nie zasłania już nazwy ostatniej kolumny.
+- Nowi dostawcy AI: OpenRouter, Google Gemini, Mistral, Groq, DeepSeek, xAI i lokalna Ollama (bez klucza); po zmianie dostawcy model wybiera się od nowa.
+- Nagłówki sezonów seriali mają okładkę (plakat serialu albo klatkę pierwszego odcinka).
+- Wizualizacja w tle nie wchodzi już na panel nawigacji ani dolny pasek: jest wyśrodkowana w obszarze po prawej. Słupki stoją na dole, a tryby symetryczne (lustro, okrąg, fala, plama, puls) są na środku.
+- Analizator może mieć do 256 słupków (wcześniej 96).
+
 ## 1.14.0
 
 - **AI (opcjonalnie, z własnym kluczem API)**: nowa strona Ustawienia → AI – dostawca (Anthropic, OpenAI albo serwer zgodny z API OpenAI, np. OpenRouter, LM Studio, Ollama), klucz, model wybierany z listy pobranej od dostawcy i temperatura.

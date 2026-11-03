@@ -20,7 +20,7 @@ static CANCEL: AtomicBool = AtomicBool::new(false);
 const BATCH: usize = 50;
 
 pub fn enabled(app: &App) -> bool {
-    !app.s.ai_key.trim().is_empty() || (app.s.ai_provider == 2 && !app.s.ai_url.trim().is_empty())
+    !app.s.ai_key.trim().is_empty() || app.s.ai_provider == 9 || (app.s.ai_provider == 2 && !app.s.ai_url.trim().is_empty())
 }
 
 /// Sekcja w panelu: gdy AI jest ustawione albo zostały wyniki wcześniejszej analizy.

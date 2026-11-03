@@ -1,6 +1,7 @@
 //! Analiza biblioteki modelem językowym (klucz API użytkownika): język, nastrój, tematy i energia
 //! utworu z jego metadanych, a listy „z opisu” – model zamienia opis na filtr, dopasowanie lokalne.
-//! Dostawcy: Anthropic, OpenAI i dowolny serwer zgodny z API OpenAI (własny adres).
+//! Dostawcy: Anthropic (własne API) i serwery zgodne z API OpenAI – OpenAI, OpenRouter, Gemini,
+//! Mistral, Groq, DeepSeek, xAI, lokalna Ollama albo dowolny własny adres.
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -18,7 +19,7 @@ pub const MOODS: [&str; 14] = [
 /// Połączenie z dostawcą.
 #[derive(Clone, Debug, Default)]
 pub struct Config {
-    /// 0 – Anthropic, 1 – OpenAI, 2 – zgodny z OpenAI (własny adres).
+    /// Numer z `PROVIDERS` (2 – własny adres zgodny z OpenAI).
     pub provider: i32,
     pub key: String,
     pub url: String,
@@ -26,11 +27,29 @@ pub struct Config {
     pub temperature: f32,
 }
 
+/// Dostawcy w kolejności listy w ustawieniach: nazwa i adres API (pusty – własny adres).
+pub const PROVIDERS: [(&str, &str); 10] = [
+    ("Anthropic", "https://api.anthropic.com/v1"),
+    ("OpenAI", "https://api.openai.com/v1"),
+    ("", ""),
+    ("OpenRouter", "https://openrouter.ai/api/v1"),
+    ("Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
+    ("Mistral", "https://api.mistral.ai/v1"),
+    ("Groq", "https://api.groq.com/openai/v1"),
+    ("DeepSeek", "https://api.deepseek.com/v1"),
+    ("xAI", "https://api.x.ai/v1"),
+    ("Ollama", "http://localhost:11434/v1"),
+];
+
+/// Dostawcy bez klucza (serwer na tym komputerze albo własny adres).
+pub fn keyless(provider: i32) -> bool {
+    matches!(provider, 2 | 9)
+}
+
 impl Config {
     fn base(&self) -> String {
-        match self.provider {
-            0 => "https://api.anthropic.com/v1".into(),
-            1 => "https://api.openai.com/v1".into(),
+        match PROVIDERS.get(self.provider.max(0) as usize) {
+            Some((_, url)) if !url.is_empty() => url.to_string(),
             _ => self.url.trim().trim_end_matches('/').to_string(),
         }
     }
@@ -104,6 +123,12 @@ pub fn list_models(cfg: &Config) -> Result<Vec<String>, String> {
         });
         out.sort();
         out.reverse();
+    }
+    // Gemini podaje „models/nazwa”, a w zapytaniu wystarcza sama nazwa.
+    for m in out.iter_mut() {
+        if let Some(x) = m.strip_prefix("models/") {
+            *m = x.to_string();
+        }
     }
     out.dedup();
     if out.is_empty() {

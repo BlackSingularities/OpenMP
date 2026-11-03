@@ -87,28 +87,6 @@ export component AppWindow inherits Window {
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
             // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
             if Prefs.backdrop > 0: Backdrop { }
-            // Wizualizacja w tle okna (ustawienie „Pokazuj wizualizację”): duża, przygaszona,
-            // pod listami i panelami – nie zasłania treści.
-            if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Visualizer {
-                x: parent.width * 0.04;
-                width: parent.width * 0.92;
-                y: parent.height * 0.4;
-                height: parent.height * 0.5;
-                opacity: 0.32;
-                overlay: true;
-                mode: Player.viz-mode;
-                bars: Player.bars;
-                peaks: Player.peaks;
-                scope-path: Player.scope-path;
-                spectrum-path: Player.spectrum-path;
-                viz-path: Player.viz-path;
-                vu-l: Player.vu-l;
-                vu-r: Player.vu-r;
-                vu-pl: Player.vu-pl;
-                vu-pr: Player.vu-pr;
-                active: Player.viz-active;
-                note: "";
-            }
             Rectangle {
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
@@ -120,78 +98,105 @@ export component AppWindow inherits Window {
                 HorizontalLayout {
                     vertical-stretch: 1;
                     if Prefs.show-sidebar: Sidebar { }
-                    VerticalLayout {
+                    Rectangle {
                         horizontal-stretch: 1;
-                        TitleBar {
-                            show-brand: !Prefs.show-sidebar;
-                            subtitle: "";
+                        // Wizualizacja w tle (ustawienie „Pokazuj wizualizację”): duża, przygaszona,
+                        // pod listami i panelami, wyśrodkowana obok panelu nawigacji. Słupki i widma
+                        // stoją na dole, tryby symetryczne (oscyloskop, VU, lustro, okrąg, stereo,
+                        // fala, plama, puls, kapsułki) są na środku wysokości.
+                        if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Visualizer {
+                            property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
+                            width: parent.width * 0.94;
+                            x: (parent.width - self.width) / 2;
+                            height: parent.height * (self.floor ? 0.6 : 0.76);
+                            y: self.floor ? parent.height - self.height : (parent.height - self.height) / 2;
+                            opacity: 0.32;
+                            overlay: true;
+                            mode: Player.viz-mode;
+                            bars: Player.bars;
+                            peaks: Player.peaks;
+                            scope-path: Player.scope-path;
+                            spectrum-path: Player.spectrum-path;
+                            viz-path: Player.viz-path;
+                            vu-l: Player.vu-l;
+                            vu-r: Player.vu-r;
+                            vu-pl: Player.vu-pl;
+                            vu-pr: Player.vu-pr;
+                            active: Player.viz-active;
+                            note: "";
                         }
-                        HorizontalLayout {
-                            vertical-stretch: 1;
-                            padding-left: Theme.pad;
-                            padding-right: Theme.dense ? 8px : 14px;
-                            padding-bottom: Theme.dense ? 6px : 10px;
-                            spacing: Theme.dense ? 10px : 16px;
-                            VerticalLayout {
-                                horizontal-stretch: 1;
-                                property <length> auto-h: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
-                                // Własna wysokość z przeciągnięcia – lista pod spodem zawsze zostaje widoczna.
-                                property <length> max-h: max(110px, root.height - 380px);
-                                property <length> drag-h: -1px;
-                                hero := Hero {
-                                    avail: root.width;
-                                    height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
-                                    small: self.height < 220px;
-                                }
-                                // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
-                                Rectangle {
-                                    height: Theme.gap;
-                                    grip := TouchArea {
-                                        mouse-cursor: row-resize;
-                                        property <length> start;
-                                        pointer-event(e) => {
-                                            if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
-                                                self.start = hero.height;
+                        VerticalLayout {
+                            TitleBar {
+                                show-brand: !Prefs.show-sidebar;
+                                subtitle: "";
+                            }
+                            HorizontalLayout {
+                                vertical-stretch: 1;
+                                padding-left: Theme.pad;
+                                padding-right: Theme.dense ? 8px : 14px;
+                                padding-bottom: Theme.dense ? 6px : 10px;
+                                spacing: Theme.dense ? 10px : 16px;
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    property <length> auto-h: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                    // Własna wysokość z przeciągnięcia – lista pod spodem zawsze zostaje widoczna.
+                                    property <length> max-h: max(110px, root.height - 380px);
+                                    property <length> drag-h: -1px;
+                                    hero := Hero {
+                                        avail: root.width;
+                                        height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
+                                        small: self.height < 220px;
+                                    }
+                                    // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
+                                    Rectangle {
+                                        height: Theme.gap;
+                                        grip := TouchArea {
+                                            mouse-cursor: row-resize;
+                                            property <length> start;
+                                            pointer-event(e) => {
+                                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                                                    self.start = hero.height;
+                                                }
+                                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.up && drag-h >= 0 {
+                                                    Prefs.hero-h = drag-h / 1px;
+                                                    drag-h = -1px;
+                                                    Prefs.changed("hero-h");
+                                                }
                                             }
-                                            if e.button == PointerEventButton.left && e.kind == PointerEventKind.up && drag-h >= 0 {
-                                                Prefs.hero-h = drag-h / 1px;
+                                            moved => {
+                                                if self.pressed {
+                                                    drag-h = clamp(self.start + self.mouse-y - self.pressed-y, 110px, max-h);
+                                                }
+                                            }
+                                            double-clicked => {
                                                 drag-h = -1px;
+                                                Prefs.hero-h = 0;
                                                 Prefs.changed("hero-h");
                                             }
                                         }
-                                        moved => {
-                                            if self.pressed {
-                                                drag-h = clamp(self.start + self.mouse-y - self.pressed-y, 110px, max-h);
-                                            }
-                                        }
-                                        double-clicked => {
-                                            drag-h = -1px;
-                                            Prefs.hero-h = 0;
-                                            Prefs.changed("hero-h");
+                                        Rectangle {
+                                            width: 36px;
+                                            height: 3px;
+                                            border-radius: 1.5px;
+                                            background: grip.pressed ? Theme.tint : Theme.line2;
+                                            opacity: grip.has-hover || grip.pressed ? 1 : 0;
                                         }
                                     }
-                                    Rectangle {
-                                        width: 36px;
-                                        height: 3px;
-                                        border-radius: 1.5px;
-                                        background: grip.pressed ? Theme.tint : Theme.line2;
-                                        opacity: grip.has-hover || grip.pressed ? 1 : 0;
+                                    if Lib.view == 0: PlaylistView {
+                                        vertical-stretch: 1;
+                                    }
+                                    if Lib.view == 1: LibraryView {
+                                        vertical-stretch: 1;
+                                    }
+                                    if Lib.view == 2: RadioView {
+                                        vertical-stretch: 1;
+                                    }
+                                    if Lib.view == 3: StatsView {
+                                        vertical-stretch: 1;
                                     }
                                 }
-                                if Lib.view == 0: PlaylistView {
-                                    vertical-stretch: 1;
-                                }
-                                if Lib.view == 1: LibraryView {
-                                    vertical-stretch: 1;
-                                }
-                                if Lib.view == 2: RadioView {
-                                    vertical-stretch: 1;
-                                }
-                                if Lib.view == 3: StatsView {
-                                    vertical-stretch: 1;
-                                }
+                                if Prefs.side-panel > 0: SidePanel { }
                             }
-                            if Prefs.side-panel > 0: SidePanel { }
                         }
                     }
                 }

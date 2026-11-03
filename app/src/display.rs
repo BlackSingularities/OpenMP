@@ -759,7 +759,7 @@ pub fn frame(app: &mut App) {
     let playing = p.get_playing();
     let total = app.engine.scope(Analyzer::frames(), app.analyzer.input());
     let total = if playing { total } else { 0 };
-    let bands = app.s.viz_bands.clamp(8, 128) as usize;
+    let bands = app.s.viz_bands.clamp(8, 256) as usize;
     app.analyzer.update(bands, app.engine.rate(), total, dt * app.s.viz_speed.clamp(0.5, 2.0), app.s.viz_sensitivity);
     // Żywa część taśmy przy znaczniku odtwarzania.
     if app.s.show_waveform && app.s.live_style > 0 && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {

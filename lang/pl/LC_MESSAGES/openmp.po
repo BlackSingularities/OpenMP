@@ -4164,8 +4164,8 @@ msgstr "Pokazuj wizualizację"
 msgid "On the bottom part of the cover"
 msgstr "Na dolnej części okładki"
 
-msgid "Large, behind the whole window – under the lists and panels"
-msgstr "Duża, w tle całego okna – pod listami i panelami"
+msgid "Large, centered behind the lists and panels – next to the navigation panel"
+msgstr "Duża, wyśrodkowana pod listami i panelami – obok panelu nawigacji"
 
 msgid "On the cover"
 msgstr "Na okładce"
@@ -4401,3 +4401,18 @@ msgid_plural "{n} models available"
 msgstr[0] "{n} model dostępny"
 msgstr[1] "{n} modele dostępne"
 msgstr[2] "{n} modeli dostępnych"
+
+msgid "Local models on this computer – no key needed"
+msgstr "Modele lokalne na tym komputerze – bez klucza"
+
+msgid "One key for models from many providers"
+msgstr "Jeden klucz do modeli wielu dostawców"
+
+msgid "Custom address (OpenAI-compatible)"
+msgstr "Własny adres (zgodny z OpenAI)"
+
+msgid "Ollama (local)"
+msgstr "Ollama (lokalnie)"
+
+msgid "A server compatible with the OpenAI API, e.g. LM Studio, vLLM or your own gateway"
+msgstr "Serwer zgodny z API OpenAI, np. LM Studio, vLLM albo własna bramka"

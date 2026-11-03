@@ -1068,11 +1068,15 @@ fn with_seasons(tracks: &[TrackInfo], rows: Vec<TrackRow>) -> Vec<TrackRow> {
             if i == 0 || keys[i - 1].as_ref() != Some(k) {
                 let n = keys[i..].iter().take_while(|x| x.as_ref() == Some(k)).count();
                 let name = if k.0.is_empty() { String::new() } else { format!("{}  ·  ", k.0) };
+                // Okładka sezonu: plakat pierwszego odcinka (z TMDB zwykle plakat serialu).
+                let cover = crate::covers::get(&tracks[i].path);
                 out.push(TrackRow {
                     header: true,
                     idx: -1,
                     h_title: ss(format!("{name}{}", tr!("Season {}", k.1))),
                     h_sub: ss(trn!("{n} episode", "{n} episodes", n)),
+                    h_has_cover: cover.is_some(),
+                    h_cover: cover.unwrap_or_default(),
                     ..Default::default()
                 });
             }
@@ -1121,6 +1125,21 @@ pub fn refresh_grid_covers(app: &mut App) {
 }
 
 pub fn refresh_covers(app: &mut App, key: &str) {
+    // Nagłówki sezonów: okładka pierwszego odcinka – wiersza tuż pod nagłówkiem.
+    for r in 0..app.m.lib_rows.row_count() {
+        let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
+        if !row.header || row.h_has_cover {
+            continue;
+        }
+        let Some(p) = app.m.lib_rows.row_data(r + 1).and_then(|n| app.libv.tracks.get(n.idx as usize).map(|t| t.path.clone())) else { continue };
+        if crate::covers::key(&p) == key {
+            if let Some(img) = crate::covers::get(&p) {
+                row.h_cover = img;
+                row.h_has_cover = true;
+                app.m.lib_rows.set_row_data(r, row);
+            }
+        }
+    }
     if app.s.track_grid {
         for r in 0..app.m.lib_rows.row_count() {
             let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };

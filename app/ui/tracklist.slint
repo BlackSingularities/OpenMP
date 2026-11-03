@@ -298,17 +298,29 @@ export component TrackList inherits Rectangle {
     if root.head: Rectangle {
         y: 0;
         height: 26px;
+        TouchArea {
+            pointer-event(e) => {
+                if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
+                    root.columns-menu(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                }
+            }
+        }
         HorizontalLayout {
             padding-left: 8px;
             padding-right: 10px;
             spacing: 10px;
-            Text {
+            // Kolumna numeru: w nagłówku przycisk wyboru kolumn (z prawej zasłaniałby ostatnią).
+            Rectangle {
                 width: 30px;
-                text: "#";
-                color: Theme.text3;
-                font-size: Theme.fs-xs;
-                horizontal-alignment: right;
-                vertical-alignment: center;
+                IconBtn {
+                    x: parent.width - self.width + 3px;
+                    y: (parent.height - self.height) / 2;
+                    size: 22px;
+                    icon-size: 13px;
+                    icon: Icons.tune;
+                    tip: @tr("Columns");
+                    clicked => { root.columns-menu(self.absolute-position.x, self.absolute-position.y + self.height); }
+                }
             }
             Rectangle {
                 width: 14px;
@@ -350,22 +362,6 @@ export component TrackList inherits Rectangle {
             y: parent.height - 1px;
             height: 1px;
             background: Theme.line;
-        }
-        TouchArea {
-            pointer-event(e) => {
-                if e.kind == PointerEventKind.up && e.button == PointerEventButton.right {
-                    root.columns-menu(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
-                }
-            }
-        }
-        IconBtn {
-            x: parent.width - self.width - 4px;
-            y: (parent.height - self.height) / 2;
-            size: 22px;
-            icon-size: 13px;
-            icon: Icons.tune;
-            tip: @tr("Columns");
-            clicked => { root.columns-menu(self.absolute-position.x, self.absolute-position.y + self.height); }
         }
     }
     lv := ListView {

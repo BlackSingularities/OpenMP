@@ -705,7 +705,8 @@ export component LibraryView inherits Rectangle {
                     clicked => { Lib.add-all(); }
                 }
             }
-            if !Lib.show-tiles: ViewSize {
+            // Ten sam suwak w każdym widoku biblioteki – także przy kafelkach (gatunki, albumy…).
+            ViewSize {
                 y: (parent.height - self.height) / 2;
             }
             // Zbiory (ulubione, historia…): muzyka, filmy albo jedno i drugie.
@@ -747,9 +748,9 @@ export component LibraryView inherits Rectangle {
             }
         }
         Divider { }
-        if Lib.show-tiles && Lib.grid: tg := ScrollView {
+        if Lib.show-tiles && Prefs.track-grid: tg := ScrollView {
             vertical-stretch: 1;
-            property <int> cols: max(1, floor((self.visible-width - 24px) / 168px));
+            property <int> cols: max(1, floor((self.visible-width - 24px) / (Prefs.grid-size * 1px + 8px)));
             property <length> cell: (self.visible-width - 24px) / cols;
             property <length> extra: Prefs.caption-overlay ? 0px : 46px;
             content-height: ceil(Lib.tiles.length / cols) * (cell + extra) + 24px;
@@ -819,7 +820,7 @@ export component LibraryView inherits Rectangle {
                 }
             }
         }
-        if Lib.show-tiles && !Lib.grid: ListView {
+        if Lib.show-tiles && !Prefs.track-grid: ListView {
             vertical-stretch: 1;
             for t in Lib.tiles: Rectangle {
                 height: Theme.item-h;

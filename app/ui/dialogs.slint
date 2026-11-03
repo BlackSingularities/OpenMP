@@ -989,7 +989,7 @@ export component SettingsDialog inherits Dialog {
                 }
                 SettingRow {
                     title: @tr("Show visualization");
-                    hint: Prefs.viz-place == 0 ? @tr("On the bottom part of the cover") : @tr("Large, behind the whole window – under the lists and panels");
+                    hint: Prefs.viz-place == 0 ? @tr("On the bottom part of the cover") : @tr("Large, centered behind the lists and panels – next to the navigation panel");
                     Segmented {
                         options: [@tr("On the cover"), @tr("In the background")];
                         selected: Prefs.viz-place;
@@ -1008,7 +1008,7 @@ export component SettingsDialog inherits Dialog {
                     HSlider {
                         width: 180px;
                         minimum: 16;
-                        maximum: 96;
+                        maximum: 256;
                         step: 4;
                         value: Prefs.viz-bands;
                         moved(v) => {
@@ -2173,18 +2173,21 @@ export component SettingsDialog inherits Dialog {
                 }
                 SettingRow {
                     title: @tr("Provider");
-                    Segmented {
-                        options: [@tr("Anthropic"), @tr("OpenAI"), @tr("Compatible")];
-                        selected: Prefs.ai-provider;
-                        changed(i) => {
-                            Prefs.ai-provider = i;
+                    hint: Prefs.ai-provider == 9 ? @tr("Local models on this computer – no key needed") : Prefs.ai-provider == 3 ? @tr("One key for models from many providers") : "";
+                    // Kolejność jak w `openmp_core::ai::PROVIDERS`.
+                    ComboBox {
+                        width: 240px;
+                        model: ["Anthropic", "OpenAI", @tr("Custom address (OpenAI-compatible)"), "OpenRouter", "Google Gemini", "Mistral", "Groq", "DeepSeek", "xAI", @tr("Ollama (local)")];
+                        current-index: Prefs.ai-provider;
+                        selected => {
+                            Prefs.ai-provider = self.current-index;
                             Prefs.changed("ai-provider");
                         }
                     }
                 }
                 if Prefs.ai-provider == 2: SettingRow {
                     title: @tr("API address");
-                    hint: @tr("A server compatible with the OpenAI API, e.g. OpenRouter, LM Studio, Ollama");
+                    hint: @tr("A server compatible with the OpenAI API, e.g. LM Studio, vLLM or your own gateway");
                     LineEdit {
                         width: 260px;
                         placeholder-text: "http://localhost:11434/v1";

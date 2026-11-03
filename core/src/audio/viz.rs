@@ -88,6 +88,13 @@ impl Analyzer {
                 for k in i0..i1 {
                     mx = mx.max(self.buf[k].norm());
                 }
+                // Pasmo węższe niż prążek FFT (dużo słupków, niskie tony): wartość między
+                // sąsiednimi prążkami zamiast schodków z kilku równych słupków.
+                let c = (f0 * f1).sqrt() / nyq * (N / 2) as f32;
+                if (f1 - f0) / nyq * ((N / 2) as f32) < 1.0 && (c as usize) < N / 2 {
+                    let k = c as usize;
+                    mx = self.buf[k].norm() + (self.buf[k + 1].norm() - self.buf[k].norm()) * c.fract();
+                }
                 // Normalizacja okna Hanna i lekkie podbicie wysokich (naturalny wygląd widma).
                 let mag = mx / (N as f32 / 4.0) * (1.0 + b as f32 / bands as f32 * 2.0);
                 let db = 20.0 * mag.max(1e-9).log10();
