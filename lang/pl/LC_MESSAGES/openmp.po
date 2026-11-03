@@ -4172,3 +4172,232 @@ msgstr "Na okładce"
 
 msgid "In the background"
 msgstr "W tle okna"
+
+msgid "Analyzed {} of {} tracks"
+msgstr "Przeanalizowano {} z {} utworów"
+
+msgid "Enter the API key first."
+msgstr "Najpierw wpisz klucz API."
+
+msgid "Loading models…"
+msgstr "Pobieranie modeli…"
+
+msgid "Could not load models: {}"
+msgstr "Nie udało się pobrać modeli: {}"
+
+msgid "Enter the API key and choose a model first."
+msgstr "Najpierw wpisz klucz API i wybierz model."
+
+msgid "Everything is already analyzed."
+msgstr "Wszystko jest już przeanalizowane."
+
+msgid "Analyzing… {} of {}"
+msgstr "Analiza… {} z {}"
+
+msgid "Analysis stopped: {}"
+msgstr "Analiza przerwana: {}"
+
+msgid "Error, continuing: {}"
+msgstr "Błąd, analiza trwa dalej: {}"
+
+msgid "Analysis stopped."
+msgstr "Analiza zatrzymana."
+
+msgid "Analysis finished."
+msgstr "Analiza zakończona."
+
+msgid "Library analysis finished"
+msgstr "Analiza biblioteki zakończona"
+
+msgid "Analysis results removed."
+msgstr "Wyniki analizy usunięte."
+
+msgctxt "mood"
+msgid "calm"
+msgstr "spokojne"
+
+msgctxt "mood"
+msgid "happy"
+msgstr "radosne"
+
+msgctxt "mood"
+msgid "sad"
+msgstr "smutne"
+
+msgctxt "mood"
+msgid "energetic"
+msgstr "energiczne"
+
+msgctxt "mood"
+msgid "romantic"
+msgstr "romantyczne"
+
+msgctxt "mood"
+msgid "melancholic"
+msgstr "melancholijne"
+
+msgctxt "mood"
+msgid "angry"
+msgstr "gniewne"
+
+msgctxt "mood"
+msgid "dreamy"
+msgstr "rozmarzone"
+
+msgctxt "mood"
+msgid "nostalgic"
+msgstr "nostalgiczne"
+
+msgctxt "mood"
+msgid "dark"
+msgstr "mroczne"
+
+msgctxt "mood"
+msgid "uplifting"
+msgstr "podnoszące na duchu"
+
+msgctxt "mood"
+msgid "party"
+msgstr "imprezowe"
+
+msgctxt "mood"
+msgid "focused"
+msgstr "do skupienia"
+
+msgctxt "mood"
+msgid "epic"
+msgstr "epickie"
+
+msgid "Calm"
+msgstr "Spokojne"
+
+msgid "Moderate"
+msgstr "Umiarkowane"
+
+msgid "Energetic"
+msgstr "Energetyczne"
+
+msgid "Set up AI in Settings → AI first"
+msgstr "Najpierw ustaw AI w Ustawienia → AI"
+
+msgid "Describe the playlist, e.g. calm songs about the sea for the evening"
+msgstr "Opisz listę, np. spokojne piosenki o morzu na wieczór"
+
+msgid "Creating the playlist…"
+msgstr "Tworzenie listy…"
+
+msgid "Could not create the playlist: {}"
+msgstr "Nie udało się utworzyć listy: {}"
+
+msgid "AI COLLECTIONS"
+msgstr "KOLEKCJE AI"
+
+msgid "Languages"
+msgstr "Języki"
+
+msgid "Moods"
+msgstr "Nastroje"
+
+msgid "Themes"
+msgstr "Tematy"
+
+msgid "Energy"
+msgstr "Energia"
+
+msgid "Create again"
+msgstr "Utwórz ponownie"
+
+msgid "Delete playlist"
+msgstr "Usuń listę"
+
+msgid "New playlist from a description…"
+msgstr "Nowa lista z opisu…"
+
+msgid "AI settings…"
+msgstr "Ustawienia AI…"
+
+msgid "No analysis yet.
+Start it in Settings → AI – the library is analyzed only when you ask."
+msgstr "Brak analizy.
+Uruchom ją w Ustawienia → AI – biblioteka jest analizowana tylko na Twoje żądanie."
+
+msgid "Nothing in the library fits this description."
+msgstr "Nic w bibliotece nie pasuje do tego opisu."
+
+msgid "AI"
+msgstr "AI"
+
+msgid "Optional. With your own API key, a language model can analyze the library (language, mood, themes, energy) and create playlists from a description. Only track metadata is sent – artist, title, album, genre and year – and only when you start it."
+msgstr "Opcjonalne. Z własnym kluczem API model językowy może przeanalizować bibliotekę (język, nastrój, tematy, energia) i tworzyć listy z opisu. Wysyłane są tylko dane utworów – wykonawca, tytuł, album, gatunek i rok – i tylko wtedy, gdy to uruchomisz."
+
+msgid "CONNECTION"
+msgstr "POŁĄCZENIE"
+
+msgid "Provider"
+msgstr "Dostawca"
+
+msgid "Anthropic"
+msgstr "Anthropic"
+
+msgid "OpenAI"
+msgstr "OpenAI"
+
+msgid "Compatible"
+msgstr "Zgodny"
+
+msgid "API address"
+msgstr "Adres API"
+
+msgid "A server compatible with the OpenAI API, e.g. OpenRouter, LM Studio, Ollama"
+msgstr "Serwer zgodny z API OpenAI, np. OpenRouter, LM Studio, Ollama"
+
+msgid "API key"
+msgstr "Klucz API"
+
+msgid "Stored encrypted on this computer only"
+msgstr "Zapisany zaszyfrowany, tylko na tym komputerze"
+
+msgid "Model"
+msgstr "Model"
+
+msgid "Load models"
+msgstr "Pobierz modele"
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Lower – consistent, predictable answers; higher – more varied playlists"
+msgstr "Niższa – spójne, przewidywalne odpowiedzi; wyższa – bardziej różnorodne listy"
+
+msgid "LIBRARY ANALYSIS"
+msgstr "ANALIZA BIBLIOTEKI"
+
+msgid "Analyze the library"
+msgstr "Analiza biblioteki"
+
+msgid "Analyze new tracks"
+msgstr "Analizuj nowe utwory"
+
+msgid "Analyze everything again"
+msgstr "Przeanalizuj wszystko od nowa"
+
+msgid "For example after changing the model"
+msgstr "Na przykład po zmianie modelu"
+
+msgid "Analyze again"
+msgstr "Analizuj ponownie"
+
+msgid "Remove analysis results"
+msgstr "Usuń wyniki analizy"
+
+msgid "AI collections disappear; playlists from a description stay"
+msgstr "Kolekcje AI znikną; listy z opisu zostaną"
+
+msgid "Remove"
+msgstr "Usuń"
+
+msgid "{n} model available"
+msgid_plural "{n} models available"
+msgstr[0] "{n} model dostępny"
+msgstr[1] "{n} modele dostępne"
+msgstr[2] "{n} modeli dostępnych"

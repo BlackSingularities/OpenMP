@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.14.0
+
+- **AI (opcjonalnie, z własnym kluczem API)**: nowa strona Ustawienia → AI – dostawca (Anthropic, OpenAI albo serwer zgodny z API OpenAI, np. OpenRouter, LM Studio, Ollama), klucz, model wybierany z listy pobranej od dostawcy i temperatura.
+- Analiza biblioteki uruchamiana ręcznie: model rozpoznaje język, nastrój, tematy i energię utworów. Wysyłane są tylko metadane (wykonawca, tytuł, album, gatunek, rok); analizę można zatrzymać, powtórzyć albo usunąć jej wyniki.
+- Sekcja **Kolekcje AI** w panelu (tylko gdy AI jest ustawione): Języki, Nastroje, Tematy i Energia, a przyciskiem „+” – listy z opisu („spokojne piosenki o morzu na wieczór”). Model zamienia opis na filtr, utwory dobierane są lokalnie z biblioteki.
+
 ## 1.13.2
 
 - Wizualizację można pokazywać na okładce albo w tle całego okna (Ustawienia → Wizualizacja → Pokazuj wizualizację).

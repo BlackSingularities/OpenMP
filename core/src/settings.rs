@@ -27,6 +27,14 @@ pub struct Settings {
     /// Klatki na sekundę analizatora (15..60) i szybkość reakcji (0.5..2).
     pub viz_fps: i32,
     pub viz_speed: f32,
+    /// AI: dostawca (0 – Anthropic, 1 – OpenAI, 2 – zgodny z OpenAI), klucz, adres, model, temperatura.
+    pub ai_provider: i32,
+    pub ai_key: String,
+    pub ai_url: String,
+    pub ai_model: String,
+    pub ai_temperature: f32,
+    /// Listy utworzone z opisu (filtr od modelu, dopasowanie lokalne).
+    pub ai_lists: Vec<crate::ai::Plan>,
     pub show_waveform: bool,
     /// Styl taśmy na pasku przewijania: 0 – fala, 1 – słupki, 2 – fala jednostronna, 3 – kontur.
     pub wave_style: i32,
@@ -237,6 +245,12 @@ impl Default for Settings {
             viz_dim: 0.45,
             viz_fps: 60,
             viz_speed: 1.0,
+            ai_provider: 0,
+            ai_key: String::new(),
+            ai_url: String::new(),
+            ai_model: String::new(),
+            ai_temperature: 0.3,
+            ai_lists: Vec::new(),
             show_waveform: true,
             wave_style: 1,
             live_style: 1,

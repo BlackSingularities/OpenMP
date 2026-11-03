@@ -82,6 +82,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
     props!(v, Prefs:
         nav_playlist, nav_music, nav_video, nav_sets, nav_smart, nav_folders, sidebar_width, panel_glass, glass_tint, nav_text,
         live_style, live_span, live_glow, tmdb_key, os_key, peq_on, peq_name,
+        ai_provider, ai_key, ai_url, ai_model, ai_models, ai_temperature, ai_status, ai_count, ai_busy,
     );
     props!(v, Prefs:
         bass, treble, eq_curve, eq_curve_fill, eq_peak, preset_custom,
@@ -124,7 +125,7 @@ fn create(main: &AppWindow) -> Option<Dialogs> {
     fwd!(Prefs:
         changed(k), eq_band(i, v), eq_preset(i), eq_save_preset(), eq_reset(), add_folder(i),
         add_network_folder(i), remove_folder(i, j), pick_screenshot_dir(), backup_export(), backup_import(), custom_key(i, t, c, s, a), check_update(), open_url(u),
-        associate(),
+        associate(), ai_fetch_models(), ai_analyze(a), ai_stop(), ai_forget(),
     );
     fwd!(Player: set_viz(m));
     fwd!(Ui:

@@ -411,6 +411,13 @@ export component Sidebar inherits Rectangle {
                         tip: @tr("New collection from filters…");
                         clicked => { Lib.nav-clicked("smart-add"); }
                     }
+                    if n.id == "sec-ai": IconBtn {
+                        icon: Icons.add;
+                        size: 24px;
+                        icon-size: 15px;
+                        tip: @tr("New playlist from a description…");
+                        clicked => { Lib.nav-clicked("ai-new"); }
+                    }
                 }
                 if !n.section: Rectangle {
                     y: 2px;

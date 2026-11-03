@@ -8,6 +8,7 @@ extern crate openmp_core;
 
 slint::include_modules!();
 
+mod ai;
 mod app;
 mod cast;
 mod columns;
@@ -153,6 +154,7 @@ fn main() {
         store: Store::load(),
         lib: Library::load(),
         stats: Stats::load(),
+        ai_tags: openmp_core::ai::Tags::load(),
         loudness: openmp_core::audio::loudness::Store::load(),
         measuring: Default::default(),
         engine,
@@ -239,6 +241,7 @@ fn main() {
 
     with(|app| {
         prefs::publish(app);
+        ai::publish(app);
         prefs::apply_audio(app);
         lists::rebuild(app);
         libview::rebuild_nav(app);
@@ -799,6 +802,10 @@ fn wire(ui: &AppWindow) {
     pr.on_custom_key(|id, t, c, s, a| later(move |app| keys::set_custom(app, &id, &t, c, s, a)));
     pr.on_backup_import(|| later(prefs::backup_import));
     pr.on_check_update(|| later(|app| dialogs::check_update(app, true)));
+    pr.on_ai_fetch_models(|| later(ai::fetch_models));
+    pr.on_ai_analyze(|again| later(move |app| ai::analyze(app, again)));
+    pr.on_ai_stop(|| later(ai::stop));
+    pr.on_ai_forget(|| later(ai::forget));
     pr.on_open_url(|u| {
         let _ = open::that(u.as_str());
     });

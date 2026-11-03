@@ -464,6 +464,16 @@ export global Prefs {
     in-out property <string> sub-lang;
     in-out property <string> lb-token;
     in-out property <string> tmdb-key;
+    // AI: dostawca, klucz, adres, model (lista z API dostawcy), temperatura i stan analizy.
+    in-out property <int> ai-provider;
+    in-out property <string> ai-key;
+    in-out property <string> ai-url;
+    in-out property <string> ai-model;
+    in-out property <[string]> ai-models;
+    in-out property <float> ai-temperature: 0.3;
+    in-out property <string> ai-status;
+    in-out property <string> ai-count;
+    in-out property <bool> ai-busy;
     in-out property <bool> peq-on;
     in-out property <string> peq-name;
     in-out property <string> os-key;
@@ -497,6 +507,10 @@ export global Prefs {
     callback backup-export();
     callback backup-import();
     callback check-update();
+    callback ai-fetch-models();
+    callback ai-analyze(bool);
+    callback ai-stop();
+    callback ai-forget();
     callback open-url(string);
     callback associate();
 }

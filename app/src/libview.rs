@@ -80,6 +80,17 @@ pub fn rebuild_nav(app: &mut App) {
     }
     v.push(nav("radio", tr!("Internet radio"), "radio", String::new()));
     v.push(nav("stats", tr!("Statistics"), "trending", String::new()));
+    // Kolekcje AI – tylko gdy AI jest ustawione (albo zostały wyniki analizy).
+    if crate::ai::visible(app) {
+        v.push(section("sec-ai", tr!("AI COLLECTIONS")));
+        v.push(nav("ai-lang", tr!("Languages"), "lyrics", String::new()));
+        v.push(nav("ai-mood", tr!("Moods"), "palette", String::new()));
+        v.push(nav("ai-theme", tr!("Themes"), "tag", String::new()));
+        v.push(nav("ai-energy", tr!("Energy"), "trending", String::new()));
+        for (i, p) in app.s.ai_lists.iter().enumerate() {
+            v.push(nav(&format!("ai:{i}"), &p.name, "playlist", String::new()));
+        }
+    }
     v.push(section("sec-podcasts", tr!("PODCASTS")));
     for (i, (_, title)) in app.s.podcasts.iter().enumerate() {
         v.push(nav(&format!("pod:{i}"), title, "radio", String::new()));
@@ -190,6 +201,10 @@ pub fn nav_clicked(app: &mut App, id: &str) {
         crate::dialogs::rename(app, RenameCtx::Podcast, tr!("Podcast feed address (RSS)"), "https://");
         return;
     }
+    if id == "ai-new" {
+        crate::ai::ask_new(app);
+        return;
+    }
     if id == "stats" {
         l.set_view(3);
         crate::statsview::show(app);
@@ -224,6 +239,23 @@ pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
             crate::menu::item("pod-refresh", tr!("Check for new episodes"), "refresh", ""),
             crate::menu::sep(),
             crate::menu::item("pod-del", tr!("Unsubscribe"), "delete", ""),
+        ];
+        crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
+        return;
+    }
+    if id.starts_with("ai:") {
+        let items = vec![
+            crate::menu::item("ai-again", tr!("Create again"), "refresh", ""),
+            crate::menu::sep(),
+            crate::menu::item("ai-del", tr!("Delete playlist"), "delete", ""),
+        ];
+        crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
+        return;
+    }
+    if id.starts_with("ai-") {
+        let items = vec![
+            crate::menu::item("ai-new", tr!("New playlist from a description…"), "add", ""),
+            crate::menu::item("ai-settings", tr!("AI settings…"), "settings", ""),
         ];
         crate::menu::open(app, MenuCtx::Nav(id.to_string()), items, x, y);
         return;
@@ -278,6 +310,20 @@ pub fn nav_command(app: &mut App, id: &str, cmd: &str) {
                 show(app);
             }
         }
+        "ai-del" | "ai-again" => {
+            let Some(i) = id.strip_prefix("ai:").and_then(|s| s.parse::<usize>().ok()).filter(|i| *i < app.s.ai_lists.len()) else { return };
+            let p = app.s.ai_lists.remove(i);
+            app.s.save();
+            rebuild_nav(app);
+            if cmd == "ai-again" {
+                // Ten sam opis od nowa – model może dobrać filtr inaczej (temperatura).
+                crate::ai::create_list(app, p.description);
+            } else if app.libv.kind == id {
+                nav_clicked(app, "ai-lang");
+            }
+        }
+        "ai-new" => crate::ai::ask_new(app),
+        "ai-settings" => crate::keys::open_settings(app, crate::ai::SETTINGS_PAGE),
         "rescan" => start_scan(app),
         "folders" => crate::keys::open_settings(app, 7),
         _ => {}
@@ -325,6 +371,10 @@ fn title_for(kind: &str) -> &'static str {
         "recent" => tr!("Recently added"),
         "history" => tr!("History"),
         "dupes" => tr!("Duplicates"),
+        "ai-lang" => tr!("Languages"),
+        "ai-mood" => tr!("Moods"),
+        "ai-theme" => tr!("Themes"),
+        "ai-energy" => tr!("Energy"),
         "v-all" => tr!("All videos"),
         "v-folder" => tr!("Video folders"),
         "v-shows" => tr!("TV shows"),
@@ -424,6 +474,15 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
             }
             return;
         }
+        if gk.starts_with("ai-") {
+            let tracks = crate::ai::in_group(app, source, &gk, &name);
+            let dur: f64 = tracks.iter().map(|t| t.duration).sum();
+            l.set_title(ss(&name));
+            l.set_subtitle(ss(format!("{}  ·  {}", trn!("{n} track", "{n} tracks", tracks.len()), meta::fmt_total(dur))));
+            l.set_empty_text(ss(tr!("Empty.")));
+            set_tracks(app, tracks);
+            return;
+        }
         let gk = match gk.as_str() {
             "files" => "folder".to_string(),
             "v-files" => "v-folder".to_string(),
@@ -454,6 +513,25 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
     }
     l.set_title(ss(title_for(&kind)));
     l.set_empty_text(ss(empty_lib));
+    if kind.starts_with("ai") {
+        let none = tr!("No analysis yet.
+Start it in Settings → AI – the library is analyzed only when you ask.");
+        if let Some(i) = kind.strip_prefix("ai:").and_then(|s| s.parse::<usize>().ok()) {
+            let Some(plan) = app.s.ai_lists.get(i).cloned() else { return };
+            let t = crate::ai::plan_tracks(app, source, &plan);
+            l.set_title(ss(&plan.name));
+            l.set_subtitle(ss(format!("{}  ·  {}", trn!("{n} track", "{n} tracks", t.len()), plan.description)));
+            l.set_empty_text(ss(if app.ai_tags.map.is_empty() { none } else { tr!("Nothing in the library fits this description.") }));
+            set_tracks(app, t);
+        } else {
+            let groups = crate::ai::groups(app, source, &kind);
+            let n = groups.len();
+            l.set_subtitle(ss(if n > 0 { n.to_string() } else { String::new() }));
+            l.set_empty_text(ss(none));
+            set_tiles(app, groups, &kind, false);
+        }
+        return;
+    }
     match kind.as_str() {
         "artist" | "genre" | "year" => {
             let groups = library::group_by(&source, &kind);
@@ -1103,6 +1181,7 @@ fn group_tracks_of(app: &App, kind: &str, name: &str, sub: &str) -> Vec<TrackInf
         "dir" | "v-dir" => library::in_tree(src, name).into_iter().cloned().collect(),
         "files" | "v-files" | "v-folder" => library::in_group(src, "folder", name, sub).into_iter().cloned().collect(),
         "v-show" => return show_episodes(src, name),
+        k if k.starts_with("ai-") => return crate::ai::in_group(app, &app.lib.tracks, k, name),
         _ => library::in_group(src, kind, name, sub).into_iter().cloned().collect(),
     };
     if matches!(kind, "dir" | "v-dir" | "files" | "v-files" | "v-folder") {

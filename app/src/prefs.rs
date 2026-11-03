@@ -212,6 +212,11 @@ pub fn publish(app: &mut App) {
     p.set_sub_lang(ss(&s.sub_lang));
     p.set_lb_token(ss(&s.listenbrainz_token));
     p.set_tmdb_key(ss(&s.tmdb_key));
+    p.set_ai_provider(s.ai_provider);
+    p.set_ai_key(ss(&s.ai_key));
+    p.set_ai_url(ss(&s.ai_url));
+    p.set_ai_model(ss(&s.ai_model));
+    p.set_ai_temperature(s.ai_temperature);
     p.set_peq_on(s.dsp.peq_on);
     p.set_peq_name(ss(&s.dsp.peq_name));
     p.set_os_key(ss(&s.opensubs_key));
@@ -621,6 +626,14 @@ pub fn changed(app: &mut App, key: &str) {
                 },
             );
         }
+        "ai-provider" | "ai-key" | "ai-url" => {
+            app.s.ai_provider = p.get_ai_provider();
+            app.s.ai_key = p.get_ai_key().trim().to_string();
+            app.s.ai_url = p.get_ai_url().trim().to_string();
+            crate::libview::rebuild_nav(app);
+        }
+        "ai-model" => app.s.ai_model = p.get_ai_model().to_string(),
+        "ai-temperature" => app.s.ai_temperature = p.get_ai_temperature(),
         "tmdb-key" => {
             app.s.tmdb_key = p.get_tmdb_key().trim().to_string();
             openmp_core::tmdb::set_key(&app.s.tmdb_key);

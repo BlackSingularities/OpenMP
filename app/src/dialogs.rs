@@ -145,6 +145,7 @@ pub fn rename_accepted(app: &mut App, text: &str) {
         }
         RenameCtx::RadioUrl => crate::radio::add_url(app, &text),
         RenameCtx::Podcast => crate::libview::add_podcast(app, text),
+        RenameCtx::AiList => crate::ai::create_list(app, text),
         RenameCtx::Tmdb(path) => {
             openmp_core::tmdb::set_query(std::path::Path::new(&path), &text);
             crate::covers::forget(&path);

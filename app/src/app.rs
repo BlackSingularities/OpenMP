@@ -81,6 +81,8 @@ pub enum RenameCtx {
     SmartQuery(usize),
     /// Adres kanału RSS nowego podcastu.
     Podcast,
+    /// Opis nowej listy AI.
+    AiList,
 }
 
 #[derive(Clone, Debug)]
@@ -126,6 +128,8 @@ pub struct App {
     pub store: Store,
     pub lib: Library,
     pub stats: Stats,
+    /// Wyniki analizy AI (język, nastrój, tematy, energia) – ścieżka → znaczniki.
+    pub ai_tags: openmp_core::ai::Tags,
     /// Pomiary głośności R128 plików bez ReplayGain i pliki mierzone teraz.
     pub loudness: openmp_core::audio::loudness::Store,
     pub measuring: std::collections::HashSet<String>,

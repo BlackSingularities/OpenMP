@@ -628,6 +628,7 @@ export component SettingsDialog inherits Dialog {
                 { icon: Icons.keyboard, l: @tr("Keyboard shortcuts") },
                 { icon: Icons.system, l: @tr("System") },
                 { icon: Icons.info, l: @tr("About") },
+                { icon: Icons.tune, l: @tr("AI") },
             ]: Rectangle {
                 // Podczas szukania zamiast stron są wyniki.
                 height: Ui.settings-query == "" ? 34px : 0px;
@@ -2157,6 +2158,123 @@ export component SettingsDialog inherits Dialog {
                     color: Theme.text3;
                     font-size: Theme.fs-sm;
                     wrap: word-wrap;
+                }
+            }
+            if Ui.settings-page == 11: Page {
+                heading: @tr("AI");
+                Text {
+                    text: @tr("Optional. With your own API key, a language model can analyze the library (language, mood, themes, energy) and create playlists from a description. Only track metadata is sent – artist, title, album, genre and year – and only when you start it.");
+                    color: Theme.text3;
+                    font-size: Theme.fs-sm;
+                    wrap: word-wrap;
+                }
+                SectionTitle {
+                    text: @tr("CONNECTION");
+                }
+                SettingRow {
+                    title: @tr("Provider");
+                    Segmented {
+                        options: [@tr("Anthropic"), @tr("OpenAI"), @tr("Compatible")];
+                        selected: Prefs.ai-provider;
+                        changed(i) => {
+                            Prefs.ai-provider = i;
+                            Prefs.changed("ai-provider");
+                        }
+                    }
+                }
+                if Prefs.ai-provider == 2: SettingRow {
+                    title: @tr("API address");
+                    hint: @tr("A server compatible with the OpenAI API, e.g. OpenRouter, LM Studio, Ollama");
+                    LineEdit {
+                        width: 260px;
+                        placeholder-text: "http://localhost:11434/v1";
+                        text <=> Prefs.ai-url;
+                        edited => { Prefs.changed("ai-url"); }
+                    }
+                }
+                SettingRow {
+                    title: @tr("API key");
+                    hint: @tr("Stored encrypted on this computer only");
+                    LineEdit {
+                        width: 260px;
+                        input-type: password;
+                        text <=> Prefs.ai-key;
+                        edited => { Prefs.changed("ai-key"); }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Model");
+                    hint: Prefs.ai-status;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        ComboBox {
+                            width: 220px;
+                            model: Prefs.ai-models;
+                            current-value: Prefs.ai-model;
+                            selected(v) => {
+                                Prefs.ai-model = v;
+                                Prefs.changed("ai-model");
+                            }
+                        }
+                        Btn {
+                            text: @tr("Load models");
+                            icon: Icons.refresh;
+                            clicked => { Prefs.ai-fetch-models(); }
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Temperature");
+                    hint: @tr("Lower – consistent, predictable answers; higher – more varied playlists") + "  ·  " + round(Prefs.ai-temperature * 100) / 100;
+                    HSlider {
+                        width: 180px;
+                        minimum: 0;
+                        maximum: 1;
+                        step: 0.05;
+                        value: Prefs.ai-temperature;
+                        moved(v) => {
+                            Prefs.ai-temperature = v;
+                            Prefs.changed("ai-temperature");
+                        }
+                    }
+                }
+                SectionTitle {
+                    text: @tr("LIBRARY ANALYSIS");
+                }
+                SettingRow {
+                    title: @tr("Analyze the library");
+                    hint: Prefs.ai-count;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        if !Prefs.ai-busy: Btn {
+                            text: @tr("Analyze new tracks");
+                            primary: true;
+                            clicked => { Prefs.ai-analyze(false); }
+                        }
+                        if Prefs.ai-busy: Btn {
+                            text: @tr("Stop");
+                            clicked => { Prefs.ai-stop(); }
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Analyze everything again");
+                    hint: @tr("For example after changing the model");
+                    Btn {
+                        text: @tr("Analyze again");
+                        enabled: !Prefs.ai-busy;
+                        clicked => { Prefs.ai-analyze(true); }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Remove analysis results");
+                    hint: @tr("AI collections disappear; playlists from a description stay");
+                    Btn {
+                        text: @tr("Remove");
+                        danger: true;
+                        enabled: !Prefs.ai-busy;
+                        clicked => { Prefs.ai-forget(); }
+                    }
                 }
             }
         }
