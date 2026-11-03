@@ -34,6 +34,7 @@ struct Gl {
     preview: Option<Render>,
     prev_tgt: Option<Target>,
     last_sample: Instant,
+    last_chain: Instant,
 }
 
 thread_local! {
@@ -71,7 +72,8 @@ pub fn create(s: &Settings) -> Result<Mpv, String> {
         ("screenshot-directory", &shots),
         ("screenshot-format", "png"),
         ("screenshot-template", "OpenMP-%F-%P"),
-        ("cache", "yes"),
+        // Bufor tylko dla sieci – plik z dysku nie musi leżeć w pamięci.
+        ("cache", "auto"),
         ("force-seekable", "yes"),
         ("network-timeout", "20"),
         ("user-agent", "OpenMP"),
@@ -165,7 +167,8 @@ pub fn apply_quality(m: &Mpv, s: &Settings) {
         0 => ("bilinear", "bilinear", "bilinear", false),
         2 => ("ewa_lanczos", "spline36", "mitchell", true),
         3 => ("ewa_lanczossharp", "ewa_lanczos", "mitchell", true),
-        _ => ("spline36", "spline36", "mitchell", true),
+        // Domyślna: dobre skalowanie bez dodatkowych przebiegów w liniowym świetle.
+        _ => ("spline36", "spline36", "mitchell", false),
     };
     m.set("scale", scale);
     m.set("cscale", cscale);
@@ -246,7 +249,7 @@ pub fn attach(ui: &AppWindow, mpv: Mpv, preview: Option<Mpv>) {
                 let prev = preview.as_ref().and_then(|p| Render::new(p, get_proc_address, redraw()).ok());
                 match Render::new(&mpv, get_proc_address, redraw()) {
                     Ok(render) => GL.with(|g| {
-                        *g.borrow_mut() = Some(Gl { gl, render, main: None, chain: Vec::new(), blit, preview: prev, prev_tgt: None, last_sample: Instant::now() })
+                        *g.borrow_mut() = Some(Gl { gl, render, main: None, chain: Vec::new(), blit, preview: prev, prev_tgt: None, last_sample: Instant::now(), last_chain: Instant::now() })
                     }),
                     Err(e) => eprintln!("mpv render: {e}"),
                 }
@@ -384,8 +387,10 @@ fn draw(ui: &AppWindow) {
                 let _ = g.render.needs_frame();
             }
 
-            // Poświata: obraz zmniejszany krokami do 40 pikseli szerokości.
-            if drew && g.blit && (want_ambient || want_tint) {
+            // Poświata: obraz zmniejszany krokami do 40 pikseli szerokości. Zmienia się wolno,
+            // więc wystarczy ok. 15 razy na sekundę, nie przy każdej klatce filmu.
+            if drew && g.blit && (want_ambient || want_tint) && (g.chain.is_empty() || g.last_chain.elapsed() >= Duration::from_millis(66)) {
+                g.last_chain = Instant::now();
                 let sizes = chain_sizes(w, h);
                 if g.chain.iter().map(|t| t.size).collect::<Vec<_>>() != sizes {
                     for t in g.chain.drain(..) {

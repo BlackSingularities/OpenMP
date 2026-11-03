@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.14.2
+
+- Nowy wygląd panelu po prawej (tekst, informacje, kolejka), podobny do panelu nawigacji: gradient od krawędzi okna, karty z ikonami, wiersze z ikonami; panel dochodzi do krawędzi okna.
+- Panel filmu na pełnym ekranie dostał ten sam gradient, odstępy i zaokrąglenia kart.
+- Mniejsze zużycie pamięci i karty graficznej przy filmach: bufor odczytu tylko dla sieci, lżejsza domyślna jakość skalowania, rzadsze odświeżanie poświaty, analizator wyłączony podczas filmu.
+
 ## 1.14.1
 
 - Suwak widoku (lista – okładki) jest w każdym widoku biblioteki, także przy kafelkach: gatunkach, latach, albumach, wykonawcach, serialach i kolekcjach AI.

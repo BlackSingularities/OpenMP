@@ -706,33 +706,33 @@ fn details(app: &mut App) {
     let Some(c) = &app.cur else { return };
     let t = &c.info;
     let st = app.stats.get(&t.path);
-    let mut v: Vec<(String, String)> = Vec::new();
-    let mut add = |l: &str, s: String| {
+    let mut v: Vec<(String, String, String)> = Vec::new();
+    let mut add = |i: &str, l: &str, s: String| {
         if !s.trim().is_empty() && s != "0" {
-            v.push((l.into(), s));
+            v.push((i.into(), l.into(), s));
         }
     };
-    add(tr!("Title"), t.display_title());
-    add(tr!("Artist"), t.artist.clone());
-    add(tr!("Album"), t.album.clone());
-    add(tr!("Album artist"), t.album_artist.clone());
-    add(tr!("Year"), if t.year > 0 { t.year.to_string() } else { String::new() });
-    add(tr!("Genre"), t.genre.clone());
-    add(tr!("Track"), if t.track > 0 { if t.disc > 0 { tr!("{} (disc {})", t.track, t.disc) } else { t.track.to_string() } } else { String::new() });
-    add(tr!("Composer"), t.composer.clone());
-    add(tr!("Length"), if t.duration > 0.0 { meta::fmt_time(t.duration) } else { String::new() });
-    add(tr!("Format"), badges(t, None).join(" · "));
-    add(tr!("ReplayGain"), match (t.rg_track, t.rg_album) {
+    add("note", tr!("Title"), t.display_title());
+    add("artist", tr!("Artist"), t.artist.clone());
+    add("album", tr!("Album"), t.album.clone());
+    add("artist", tr!("Album artist"), t.album_artist.clone());
+    add("calendar", tr!("Year"), if t.year > 0 { t.year.to_string() } else { String::new() });
+    add("tag", tr!("Genre"), t.genre.clone());
+    add("playlist", tr!("Track"), if t.track > 0 { if t.disc > 0 { tr!("{} (disc {})", t.track, t.disc) } else { t.track.to_string() } } else { String::new() });
+    add("edit", tr!("Composer"), t.composer.clone());
+    add("clock", tr!("Length"), if t.duration > 0.0 { meta::fmt_time(t.duration) } else { String::new() });
+    add("file", tr!("Format"), badges(t, None).join(" · "));
+    add("volume", tr!("ReplayGain"), match (t.rg_track, t.rg_album) {
         (Some(a), Some(b)) => tr!("track {} dB, album {} dB", format!("{a:+.2}"), format!("{b:+.2}")),
         (Some(a), None) => tr!("track {} dB", format!("{a:+.2}")),
         (None, Some(b)) => tr!("album {} dB", format!("{b:+.2}")),
         _ => String::new(),
     });
-    add(tr!("Size"), if t.size > 0 { openmp_core::i18n::decimal(format!("{:.1} MB", t.size as f64 / 1_048_576.0)) } else { String::new() });
-    add(tr!("Plays"), st.plays.to_string());
-    add(tr!("Comment"), t.comment.clone());
-    add(tr!("File"), t.path.clone());
-    let rows: Vec<Opt> = v.into_iter().map(|(l, s)| Opt { id: ss(""), label: ss(l), sub: ss(s), selected: false }).collect();
+    add("download", tr!("Size"), if t.size > 0 { openmp_core::i18n::decimal(format!("{:.1} MB", t.size as f64 / 1_048_576.0)) } else { String::new() });
+    add("history", tr!("Plays"), st.plays.to_string());
+    add("info", tr!("Comment"), t.comment.clone());
+    add("folder-open", tr!("File"), t.path.clone());
+    let rows: Vec<Opt> = v.into_iter().map(|(i, l, s)| Opt { id: ss(i), label: ss(l), sub: ss(s), selected: false }).collect();
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_details(ModelRc::new(VecModel::from(rows)));
     }
@@ -753,6 +753,12 @@ pub fn frame(app: &mut App) {
     app.last_frame = now;
     let mode = ui.global::<Ui>().get_mode();
     if mode == 1 || ui.window().is_minimized() {
+        return;
+    }
+    // Dźwięk filmu idzie przez mpv – analizator nie ma czego pokazać, a każda zmiana słupków
+    // wymuszałaby przerysowanie całego okna.
+    if ui.global::<Video>().get_active() {
+        sync_lyrics(app);
         return;
     }
     let p = ui.global::<Player>();
@@ -815,7 +821,13 @@ pub fn frame(app: &mut App) {
         p.set_vu_pr(app.analyzer.vu_peak[1]);
     }
     p.set_viz_active(true);
-    // Tekst synchronizowany
+    sync_lyrics(app);
+}
+
+/// Tekst synchronizowany: podświetlenie bieżącej linii.
+fn sync_lyrics(app: &mut App) {
+    let Some(ui) = app.ui() else { return };
+    let p = ui.global::<Player>();
     if !app.lyrics.is_empty() {
         // Napisy filmu przesunięte razem z obrazem.
         let delay = if app.cur.as_ref().is_some_and(|c| c.video) { ui.global::<Video>().get_sub_delay() as f64 } else { 0.0 };

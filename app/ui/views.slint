@@ -5,7 +5,7 @@ import { ComboBox } from "std-widgets.slint";
 import { ScrollView, ListView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
-import { Icon, IconBtn, Btn, HSlider, Field, Cover, Segmented, SectionTitle, Divider, LyricText, LyricStyle } from "widgets.slint";
+import { Icon, IconBtn, Btn, HSlider, Field, Cover, Segmented, SectionTitle, Divider, LyricText, LyricStyle, EdgeShade, PanelTab } from "widgets.slint";
 import { TrackList } from "tracklist.slint";
 import { Player, Lists, Lib, Prefs, Ui } from "state.slint";
 import { Fmt } from "display.slint";
@@ -318,9 +318,7 @@ component ViewSize inherits HorizontalLayout {
 export component Sidebar inherits Rectangle {
     width: Prefs.sidebar-width * 1px;
     // Ciemny gradient od lewej krawędzi okna – panel zawsze odcina się od tła (okładki, szkła).
-    Rectangle {
-        background: @linear-gradient(90deg, #000000.with-alpha(Prefs.dark ? 0.42 : 0.12) 0%, #000000.with-alpha(Prefs.dark ? 0.26 : 0.07) 60%, #000000.with-alpha(Prefs.dark ? 0.16 : 0.04) 100%);
-    }
+    EdgeShade { }
     VerticalLayout {
         padding: 10px;
         padding-top: 4px;
@@ -1040,29 +1038,50 @@ export component SidePanel inherits Rectangle {
     width: 300px;
     // Tekst jest obok opisu utworu – karta „Tekst” znika, zostają informacje i kolejka.
     property <int> page: Player.hero-lyrics && Prefs.side-panel == 1 ? 2 : Prefs.side-panel;
-    GlassFill {
-        border-radius: Theme.radius-lg;
+    // Wygląd jak panel nawigacji po lewej: gradient od krawędzi okna, karty jak jego wiersze.
+    EdgeShade {
+        flip: true;
     }
-    border-radius: Theme.radius-lg;
     clip: true;
     VerticalLayout {
+        padding: 10px;
+        padding-top: 4px;
+        spacing: 6px;
         HorizontalLayout {
-            height: 46px;
-            padding-left: 10px;
-            padding-right: 6px;
-            spacing: 4px;
-            Segmented {
-                y: (parent.height - self.height) / 2;
-                small: true;
-                options: Player.hero-lyrics ? [@tr("Info"), @tr("Queue")] : [@tr("Lyrics"), @tr("Info"), @tr("Queue")];
-                selected: Player.hero-lyrics ? root.page - 2 : root.page - 1;
-                changed(i) => {
-                    Prefs.side-panel = Player.hero-lyrics ? i + 2 : i + 1;
+            height: Theme.nav-h;
+            spacing: 2px;
+            if !Player.hero-lyrics: PanelTab {
+                y: 2px;
+                horizontal-stretch: 1;
+                icon: Player.subs-mode ? Icons.subtitles : Icons.lyrics;
+                text: Player.subs-mode ? @tr("Subtitles") : @tr("Lyrics");
+                active: root.page == 1;
+                clicked => {
+                    Prefs.side-panel = 1;
                     Prefs.changed("side-panel");
                 }
             }
-            Rectangle {
+            PanelTab {
+                y: 2px;
                 horizontal-stretch: 1;
+                icon: Icons.info;
+                text: @tr("Info");
+                active: root.page == 2;
+                clicked => {
+                    Prefs.side-panel = 2;
+                    Prefs.changed("side-panel");
+                }
+            }
+            PanelTab {
+                y: 2px;
+                horizontal-stretch: 1;
+                icon: Icons.queue;
+                text: @tr("Queue");
+                active: root.page == 3;
+                clicked => {
+                    Prefs.side-panel = 3;
+                    Prefs.changed("side-panel");
+                }
             }
             IconBtn {
                 y: (parent.height - self.height) / 2;
@@ -1076,9 +1095,8 @@ export component SidePanel inherits Rectangle {
                 }
             }
         }
-        Divider { }
         if root.page == 1 && Player.subs-mode && Player.sub-langs.length > 0: HorizontalLayout {
-            padding: 10px;
+            padding-left: 12px;
             spacing: 8px;
             Text {
                 text: @tr("Subtitles");
@@ -1095,10 +1113,6 @@ export component SidePanel inherits Rectangle {
         }
         // Szukanie w tekście / napisach tego utworu: Enter – następne, Shift+Enter… strzałki obok.
         if root.page == 1 && Player.lyrics.length > 0: HorizontalLayout {
-            padding-left: 10px;
-            padding-right: 6px;
-            padding-top: 8px;
-            padding-bottom: 4px;
             spacing: 2px;
             Field {
                 horizontal-stretch: 1;
@@ -1225,8 +1239,7 @@ export component SidePanel inherits Rectangle {
         if root.page == 2: ScrollView {
             vertical-stretch: 1;
             VerticalLayout {
-                padding: 14px;
-                spacing: 10px;
+                spacing: 2px;
                 Cover {
                     height: self.width;
                     source: Player.cover;
@@ -1238,18 +1251,36 @@ export component SidePanel inherits Rectangle {
                         clicked => { Player.open-cover(); }
                     }
                 }
-                for d in Player.details: VerticalLayout {
-                    spacing: 1px;
-                    Text {
-                        text: d.label;
-                        color: Theme.text3;
-                        font-size: Theme.fs-xs;
+                // Wiersze jak w panelu nawigacji: ikona, a obok nazwa i wartość.
+                for d in Player.details: HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 8px;
+                    padding-top: 6px;
+                    padding-bottom: 6px;
+                    spacing: 12px;
+                    Rectangle {
+                        width: 26px;
+                        Icon {
+                            y: 2px;
+                            icon: Icons.get(d.id);
+                            size: 17px;
+                            fill: Theme.text2;
+                        }
                     }
-                    Text {
-                        text: d.sub;
-                        color: Theme.text;
-                        font-size: Theme.fs;
-                        wrap: word-wrap;
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        spacing: 1px;
+                        Text {
+                            text: d.label;
+                            color: Theme.text3;
+                            font-size: Theme.nav-fs-xs;
+                        }
+                        Text {
+                            text: d.sub;
+                            color: Theme.text;
+                            font-size: Theme.fs;
+                            wrap: word-wrap;
+                        }
                     }
                 }
             }
@@ -1267,17 +1298,22 @@ export component SidePanel inherits Rectangle {
             if Player.queue.length > 0: ListView {
                 vertical-stretch: 1;
                 for q[i] in Player.queue: Rectangle {
-                    height: 40px;
+                    height: 48px;
+                    border-radius: Theme.r(10px);
+                    background: qta.has-hover ? Theme.hover : transparent;
+                    animate background { duration: 120ms; }
+                    qta := TouchArea { }
                     HorizontalLayout {
                         padding-left: 12px;
                         padding-right: 6px;
-                        spacing: 8px;
+                        spacing: 12px;
                         Text {
-                            text: (i + 1) + ".";
+                            text: (i + 1) + "";
                             color: Theme.text3;
                             font-size: Theme.fs-sm;
+                            horizontal-alignment: center;
                             vertical-alignment: center;
-                            width: 20px;
+                            width: 26px;
                         }
                         VerticalLayout {
                             alignment: center;

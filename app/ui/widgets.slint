@@ -668,6 +668,56 @@ export component SectionTitle inherits Text {
     letter-spacing: 0.8px;
 }
 
+// Tło paneli przy krawędzi okna: ciemny gradient od tej krawędzi (`flip` – od prawej).
+export component EdgeShade inherits Rectangle {
+    in property <bool> flip;
+    property <float> k: Theme.dark ? 1 : 0.28;
+    background: root.flip
+        ? @linear-gradient(270deg, #000000.with-alpha(0.42 * root.k) 0%, #000000.with-alpha(0.26 * root.k) 60%, #000000.with-alpha(0.16 * root.k) 100%)
+        : @linear-gradient(90deg, #000000.with-alpha(0.42 * root.k) 0%, #000000.with-alpha(0.26 * root.k) 60%, #000000.with-alpha(0.16 * root.k) 100%);
+}
+
+// Karta panelu w stylu wiersza nawigacji: ikona i nazwa, zaznaczenie tłem i akcentem.
+export component PanelTab inherits Rectangle {
+    in property <string> icon;
+    in property <string> text;
+    in property <bool> active;
+    callback clicked();
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-action-default => { root.clicked(); }
+    height: Theme.nav-h - 4px;
+    border-radius: Theme.r(10px);
+    background: root.active ? Theme.sel : pta.has-hover ? Theme.hover : transparent;
+    animate background { duration: 120ms; }
+    HorizontalLayout {
+        padding-left: 8px;
+        padding-right: 8px;
+        spacing: 6px;
+        alignment: center;
+        Rectangle {
+            width: 18px;
+            Icon {
+                icon: root.icon;
+                size: 16px;
+                fill: root.active ? Theme.tint : Theme.text2;
+            }
+        }
+        Text {
+            text: root.text;
+            color: root.active ? Theme.text : Theme.text2;
+            font-weight: root.active ? 600 : 400;
+            font-size: Theme.fs-sm;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    pta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
 export component Divider inherits Rectangle {
     height: 1px;
     background: Theme.line;

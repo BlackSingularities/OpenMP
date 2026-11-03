@@ -6,7 +6,7 @@
 import { ListView } from "scroll.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
-import { Icon, IconBtn, HSlider, Segmented, Cover, Marquee, Btn, Switch } from "widgets.slint";
+import { Icon, IconBtn, HSlider, Segmented, Cover, Marquee, Btn, Switch, EdgeShade } from "widgets.slint";
 import { SeekBar, Fmt, Visualizer } from "display.slint";
 import { CoverArt, PlayRing } from "nowplaying.slint";
 import { WinButtons } from "views.slint";
@@ -169,12 +169,14 @@ component VideoPages inherits VerticalLayout {
             { i: 4, icon: Icons.info, tip: @tr("Playback details") },
         ]: Rectangle {
             width: t.i != 5 || root.wide ? 36px : 0px;
-            height: 34px;
+            height: 36px;
             if t.i != 5 || root.wide: IconBtn {
                 icon: t.icon;
                 tip: t.tip;
-                size: 34px;
-                icon-size: 18px;
+                size: 36px;
+                icon-size: 17px;
+                round: false;
+                border-radius: Theme.r(10px);
                 active: root.pg == t.i;
                 on-dark: !root.themed;
                 icon-color: root.pg == t.i ? Theme.tint-hi : VInk.fg2(root.themed);
@@ -203,7 +205,7 @@ component VideoPages inherits VerticalLayout {
         for r in Lists.rows: Rectangle {
             height: r.header ? 0px : 46px;
             visible: !r.header;
-            border-radius: Theme.r(8px);
+            border-radius: Theme.r(10px);
             background: r.playing ? Theme.sel : lta.has-hover ? VInk.hov(root.themed) : transparent;
             HorizontalLayout {
                 padding-left: 8px;
@@ -1255,10 +1257,14 @@ component FullView inherits Rectangle {
             base: Theme.dark ? #0b0c10 : Theme.glass-color;
             min-alpha: 0.72;
         }
+        // Ten sam gradient od krawędzi okna co w panelach trybu muzyki.
+        EdgeShade {
+            flip: true;
+        }
         TouchArea { }
         VerticalLayout {
-            padding: 16px;
-            padding-top: 10px;
+            padding: 10px;
+            padding-top: 4px;
             spacing: 6px;
             HorizontalLayout {
                 height: 36px;
