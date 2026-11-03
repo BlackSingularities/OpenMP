@@ -4,6 +4,7 @@
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon, Marquee, Badge, Cover } from "widgets.slint";
+import { Prefs } from "state.slint";
 
 export global Fmt {
     pure public function time(s: float) -> string {
@@ -192,23 +193,13 @@ export component SeekBar inherits Rectangle {
         animate width { duration: 100ms; }
     }
     if root.show-wave && root.wave != "": Rectangle {
-        // Znacznik: linia z poświatą i kropki na krańcach.
+        // Znacznik: linia z poświatą.
         x: root.width * clamp(root.shown, 0, 1) - 1px;
         width: 2px;
         height: 100%;
         background: Theme.knob;
         drop-shadow-blur: 5px;
         drop-shadow-color: Theme.tint.brighter(0.4);
-        for k in 2: Rectangle {
-            x: -2px;
-            y: k == 0 ? -3px : parent.height - 3px;
-            width: 6px;
-            height: 6px;
-            border-radius: 3px;
-            background: Theme.knob;
-            drop-shadow-blur: 4px;
-            drop-shadow-color: Theme.tint;
-        }
     }
     if (ta.has-hover || ta.pressed) && root.duration > 0 && !(root.show-preview && root.has-preview): Rectangle {
         property <float> at: ta.pressed ? root.drag-value : clamp(ta.mouse-x / root.width, 0, 1);
@@ -308,6 +299,11 @@ export component Visualizer inherits Rectangle {
     in property <bool> overlay;
     callback cycle();
     clip: true;
+    // Trzy barwy wizualizacji: akcent (odcienie), barwy okładki albo tęcza – kryjące, żeby były
+    // widoczne także przy przezroczystym oknie.
+    property <color> c1: Prefs.viz-color == 1 ? Theme.grad-a.brighter(0.15) : Prefs.viz-color == 2 ? #ff4d8d : Theme.tint;
+    property <color> c2: Prefs.viz-color == 1 ? Theme.grad-c.brighter(0.35) : Prefs.viz-color == 2 ? #ffc24d : Theme.tint.brighter(0.6);
+    property <color> c3: Prefs.viz-color == 1 ? Theme.grad-b.brighter(0.25) : Prefs.viz-color == 2 ? #4dd8ff : Theme.tint.darker(0.25);
     property <int> n: bars.length;
     property <length> slot: n > 0 ? self.width / n : 1px;
     if root.mode == 0: Rectangle {
@@ -318,8 +314,8 @@ export component Visualizer inherits Rectangle {
             height: root.height * b;
             border-radius: root.overlay ? 2px : 1.5px;
             background: root.overlay
-                ? @linear-gradient(0deg, Theme.tint.with-alpha(0.95) 0%, Theme.tint.brighter(0.5).with-alpha(0.75) 60%, #ffffffb0 100%)
-                : @linear-gradient(0deg, Theme.tint.darker(0.25) 0%, Theme.tint 55%, Theme.tint.brighter(0.7) 100%);
+                ? @linear-gradient(0deg, root.c1 0%, root.c2 70%, root.c2.brighter(0.5) 100%)
+                : @linear-gradient(0deg, root.c3 0%, root.c1 55%, root.c2 100%);
         }
         for p[i] in root.peaks: Rectangle {
             x: i * root.slot + 1px;
@@ -337,8 +333,8 @@ export component Visualizer inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            fill: @linear-gradient(0deg, Theme.tint.with-alpha(0.05) 0%, Theme.tint.with-alpha(0.55) 100%);
-            stroke: Theme.tint.brighter(0.5);
+            fill: @linear-gradient(0deg, root.c1.with-alpha(0.08) 0%, root.c2.with-alpha(0.7) 100%);
+            stroke: root.c2;
             stroke-width: 1.5px;
         }
     }
@@ -354,8 +350,8 @@ export component Visualizer inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            stroke: Theme.tint.brighter(0.4);
-            stroke-width: 1.6px;
+            stroke: root.c2;
+            stroke-width: 1.8px;
             fill: transparent;
         }
     }
@@ -382,7 +378,7 @@ export component Visualizer inherits Rectangle {
                     width: parent.width / parent.leds - 2px;
                     height: 100%;
                     border-radius: 1.5px;
-                    background: (k + 1) / parent.leds <= ch.v || abs((k + 0.5) / parent.leds - ch.p) < 0.5 / parent.leds ? (k > 27 ? #ff5252 : k > 22 ? #ffc94a : Theme.tint) : #ffffff10;
+                    background: (k + 1) / parent.leds <= ch.v || abs((k + 0.5) / parent.leds - ch.p) < 0.5 / parent.leds ? (k > 27 ? #ff5252 : k > 22 ? #ffc94a : root.c1) : #ffffff10;
                 }
             }
         }
@@ -402,9 +398,8 @@ export component Visualizer inherits Rectangle {
         viewbox-height: 100;
         fit: fill;
         fill: root.mode == 5
-            ? @linear-gradient(0deg, Theme.tint.brighter(0.5) 0%, Theme.tint 30%, Theme.tint.darker(0.2) 50%, Theme.tint 70%, Theme.tint.brighter(0.5) 100%)
-            : @linear-gradient(0deg, Theme.tint 0%, Theme.tint.brighter(0.4) 65%, #ffd166 85%, #ff5c5c 100%);
-        opacity: root.overlay ? 0.9 : 1;
+            ? @linear-gradient(0deg, root.c2 0%, root.c1 30%, root.c3 50%, root.c1 70%, root.c2 100%)
+            : @linear-gradient(0deg, root.c1 0%, root.c2 65%, #ffd166 85%, #ff5c5c 100%);
         stroke-width: 0;
     }
     // Okrąg: promienie wokół środka (kwadratowy układ).
@@ -415,7 +410,7 @@ export component Visualizer inherits Rectangle {
         viewbox-width: 1000;
         viewbox-height: 1000;
         fit: contain;
-        fill: @radial-gradient(circle, Theme.tint.brighter(0.8) 0%, Theme.tint 45%, Theme.tint.darker(0.2) 100%);
+        fill: @radial-gradient(circle, root.c2 0%, root.c1 45%, root.c3 100%);
         stroke-width: 0;
     }
     // Widmo 3D: linie kolejnych widm w głąb.
@@ -427,7 +422,7 @@ export component Visualizer inherits Rectangle {
         viewbox-height: 100;
         fit: fill;
         fill: transparent;
-        stroke: Theme.tint.brighter(0.35);
+        stroke: root.c2;
         stroke-width: 1.2px;
     }
     // Stereo (Lissajous): obraz przestrzeni dźwięku.
@@ -439,8 +434,32 @@ export component Visualizer inherits Rectangle {
         viewbox-height: 1000;
         fit: contain;
         fill: transparent;
-        stroke: Theme.tint.brighter(0.5);
+        stroke: root.c2;
         stroke-width: 1.2px;
+    }
+    // Fala i kapsułki: gładkie kształty symetryczne względem środka (1000×100).
+    if root.mode == 11 || root.mode == 14: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 100;
+        fit: fill;
+        fill: @linear-gradient(0deg, root.c2 0%, root.c1 35%, root.c3 50%, root.c1 65%, root.c2 100%);
+        stroke: root.mode == 11 ? root.c2.brighter(0.4) : transparent;
+        stroke-width: root.mode == 11 ? 1.2px : 0;
+    }
+    // Plama i puls: kształty wokół środka (kwadratowy układ).
+    if root.mode == 12 || root.mode == 13: Path {
+        width: 100%;
+        height: 100%;
+        commands: root.viz-path;
+        viewbox-width: 1000;
+        viewbox-height: 1000;
+        fit: contain;
+        fill: root.mode == 12 ? @radial-gradient(circle, root.c3.with-alpha(0.55) 0%, root.c1.with-alpha(0.85) 60%, root.c2 100%) : @radial-gradient(circle, root.c1 0%, root.c2 55%, root.c3 100%);
+        stroke: root.mode == 12 ? root.c2.brighter(0.4) : transparent;
+        stroke-width: root.mode == 12 ? 2px : 0;
     }
     if !root.active && root.note != "": Text {
         text: root.note;

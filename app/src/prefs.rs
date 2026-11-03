@@ -99,6 +99,10 @@ pub fn publish(app: &mut App) {
     p.set_accent_from_cover(s.accent_from_cover);
     p.set_viz_bands(s.viz_bands);
     p.set_viz_sensitivity(s.viz_sensitivity);
+    p.set_viz_color(s.viz_color);
+    p.set_viz_dim(s.viz_dim);
+    p.set_viz_fps(s.viz_fps);
+    p.set_viz_speed(s.viz_speed);
     p.set_show_waveform(s.show_waveform);
     p.set_auto_eq(s.auto_eq);
     p.set_wave_style(s.wave_style);
@@ -353,6 +357,10 @@ pub fn changed(app: &mut App, key: &str) {
         }
         "viz-bands" => app.s.viz_bands = p.get_viz_bands(),
         "viz-sensitivity" => app.s.viz_sensitivity = p.get_viz_sensitivity(),
+        "viz-color" => app.s.viz_color = p.get_viz_color(),
+        "viz-dim" => app.s.viz_dim = p.get_viz_dim(),
+        "viz-fps" => app.s.viz_fps = p.get_viz_fps(),
+        "viz-speed" => app.s.viz_speed = p.get_viz_speed(),
         "show-waveform" => {
             app.s.show_waveform = p.get_show_waveform();
             if app.s.show_waveform {

@@ -743,7 +743,13 @@ pub fn frame(app: &mut App) {
     let Some(ui) = app.ui() else { return };
     poll_live_subs(app);
     let now = Instant::now();
-    let dt = now.duration_since(app.last_frame).as_secs_f32().min(0.1);
+    // Ograniczenie klatek analizatora (zegar chodzi co 16 ms).
+    let fps = app.s.viz_fps.clamp(15, 60) as f32;
+    let since = now.duration_since(app.last_frame).as_secs_f32();
+    if since + 0.004 < 1.0 / fps {
+        return;
+    }
+    let dt = since.min(0.1);
     app.last_frame = now;
     let mode = ui.global::<Ui>().get_mode();
     if mode == 1 || ui.window().is_minimized() {
@@ -754,7 +760,7 @@ pub fn frame(app: &mut App) {
     let total = app.engine.scope(Analyzer::frames(), app.analyzer.input());
     let total = if playing { total } else { 0 };
     let bands = app.s.viz_bands.clamp(8, 128) as usize;
-    app.analyzer.update(bands, app.engine.rate(), total, dt, app.s.viz_sensitivity);
+    app.analyzer.update(bands, app.engine.rate(), total, dt * app.s.viz_speed.clamp(0.5, 2.0), app.s.viz_sensitivity);
     // Żywa część taśmy przy znaczniku odtwarzania.
     if app.s.show_waveform && app.s.live_style > 0 && playing && !app.wave_raw.is_empty() && p.get_duration() > 0.0 {
         let pos = p.get_pos() / p.get_duration();
@@ -795,6 +801,10 @@ pub fn frame(app: &mut App) {
                 let s = app.analyzer.input().clone();
                 vp::lissajous(&s)
             }
+            vp::WAVE => vp::wave(&app.analyzer.bars),
+            vp::BLOB => vp::blob(&app.analyzer.bars),
+            vp::PULSE => vp::pulse(&app.analyzer.bars),
+            vp::CAPSULES => vp::capsules(&app.analyzer.bars),
             _ => vp::dots(&app.analyzer.bars),
         };
         p.set_viz_path(ss(path));
@@ -831,13 +841,19 @@ pub fn frame(app: &mut App) {
 }
 
 pub fn cycle_viz(app: &mut App) {
-    app.s.viz = crate::vizpaths::next(app.s.viz);
+    step_viz(app, 1);
+    let names = [trc!("visualization", "bars"), trc!("visualization", "spectrum"), trc!("visualization", "oscilloscope"), trc!("visualization", "VU meters"), "", trc!("visualization", "mirror"), trc!("visualization", "circle"), trc!("visualization", "3D spectrum"), trc!("visualization", "LEDs"), trc!("visualization", "stereo (Lissajous)"), trc!("visualization", "dots"), trc!("visualization", "wave"), trc!("visualization", "blob"), trc!("visualization", "pulse"), trc!("visualization", "capsules")];
+    let n = names.get(app.s.viz as usize).copied().unwrap_or("");
+    app.toast(if n.is_empty() { tr!("Visualization off").to_string() } else { tr!("Visualization: {}", n) });
+}
+
+/// Następna (1) albo poprzednia (-1) wizualizacja – strzałki przełącznika na okładce
+/// (bez komunikatu: nazwa jest w przełączniku).
+pub fn step_viz(app: &mut App, dir: i32) {
+    app.s.viz = crate::vizpaths::step(app.s.viz, dir);
     if let Some(ui) = app.ui() {
         ui.global::<Player>().set_viz_mode(app.s.viz);
     }
-    let names = [trc!("visualization", "bars"), trc!("visualization", "spectrum"), trc!("visualization", "oscilloscope"), trc!("visualization", "VU meters"), "", trc!("visualization", "mirror"), trc!("visualization", "circle"), trc!("visualization", "3D spectrum"), trc!("visualization", "LEDs"), trc!("visualization", "stereo (Lissajous)"), trc!("visualization", "dots")];
-    let n = names.get(app.s.viz as usize).copied().unwrap_or("");
-    app.toast(if n.is_empty() { tr!("Visualization off").to_string() } else { tr!("Visualization: {}", n) });
     app.dirty = true;
 }
 

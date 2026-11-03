@@ -107,6 +107,7 @@ export global Player {
     callback toggle-shuffle();
     callback cycle-repeat();
     callback cycle-viz();
+    callback step-viz(int);
     callback toggle-fav();
     callback reveal-current();
     callback show-current();
@@ -323,6 +324,10 @@ export global Prefs {
     in-out property <bool> accent-from-cover: true;
     in-out property <int> viz-bands: 48;
     in-out property <float> viz-sensitivity;
+    in-out property <int> viz-color: 1;
+    in-out property <float> viz-dim: 0.45;
+    in-out property <int> viz-fps: 60;
+    in-out property <float> viz-speed: 1;
     in-out property <bool> show-waveform: true;
     in-out property <int> wave-style;
     in-out property <int> live-style: 1;

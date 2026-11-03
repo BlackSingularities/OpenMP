@@ -4093,3 +4093,61 @@ msgstr "Nie ma jeszcze obejrzanych filmów."
 
 msgid "Several files in a row cannot be played – check whether the drive or folder is available."
 msgstr "Kilku plików z rzędu nie da się odtworzyć – sprawdź, czy dysk lub folder jest dostępny."
+
+msgid "Blob"
+msgstr "Plama"
+
+msgid "Pulse"
+msgstr "Puls"
+
+msgid "Capsules"
+msgstr "Kapsułki"
+
+msgctxt "visualization"
+msgid "wave"
+msgstr "fala"
+
+msgctxt "visualization"
+msgid "blob"
+msgstr "plama"
+
+msgctxt "visualization"
+msgid "pulse"
+msgstr "puls"
+
+msgctxt "visualization"
+msgid "capsules"
+msgstr "kapsułki"
+
+msgid "Previous visualization"
+msgstr "Poprzednia wizualizacja"
+
+msgid "Next visualization"
+msgstr "Następna wizualizacja"
+
+msgid "Visualization colors"
+msgstr "Kolory wizualizacji"
+
+msgid "Shades of the accent color"
+msgstr "Odcienie koloru akcentu"
+
+msgid "Colors taken from the album cover"
+msgstr "Barwy wzięte z okładki"
+
+msgid "Bright, multicolored"
+msgstr "Jaskrawe, wielobarwne"
+
+msgid "Accent"
+msgstr "Akcent"
+
+msgid "Colorful"
+msgstr "Kolorowe"
+
+msgid "Darken cover under visualization"
+msgstr "Przyciemnienie okładki pod wizualizacją"
+
+msgid "Frames per second"
+msgstr "Klatki na sekundę"
+
+msgid "Animation speed"
+msgstr "Szybkość animacji"

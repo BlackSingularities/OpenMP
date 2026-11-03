@@ -18,6 +18,13 @@ pub struct Settings {
     pub viz: i32,
     pub viz_bands: i32,
     pub viz_sensitivity: f32,
+    /// Kolory wizualizacji: 0 – akcent, 1 – barwy okładki, 2 – tęcza.
+    pub viz_color: i32,
+    /// Przyciemnienie okładki pod wizualizacją (0..1).
+    pub viz_dim: f32,
+    /// Klatki na sekundę analizatora (15..60) i szybkość reakcji (0.5..2).
+    pub viz_fps: i32,
+    pub viz_speed: f32,
     pub show_waveform: bool,
     /// Styl taśmy na pasku przewijania: 0 – fala, 1 – słupki, 2 – fala jednostronna, 3 – kontur.
     pub wave_style: i32,
@@ -223,6 +230,10 @@ impl Default for Settings {
             viz: 0,
             viz_bands: 48,
             viz_sensitivity: 0.0,
+            viz_color: 1,
+            viz_dim: 0.45,
+            viz_fps: 60,
+            viz_speed: 1.0,
             show_waveform: true,
             wave_style: 1,
             live_style: 1,

@@ -553,6 +553,7 @@ fn wire(ui: &AppWindow) {
     p.on_toggle_shuffle(|| later(keys::toggle_shuffle));
     p.on_cycle_repeat(|| later(keys::cycle_repeat));
     p.on_cycle_viz(|| later(display::cycle_viz));
+    p.on_step_viz(|d| later(move |app| display::step_viz(app, d)));
     p.on_save_lyrics(|| later(display::save_lyrics));
     p.on_pick_sub_lang(|i| later(move |app| display::pick_sub_panel(app, i)));
     p.on_lyrics_search(|_| later(display::lyrics_search));

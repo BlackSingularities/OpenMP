@@ -11,13 +11,19 @@ pub const WATERFALL: i32 = 7;
 pub const LEDS: i32 = 8;
 pub const LISSAJOUS: i32 = 9;
 pub const DOTS: i32 = 10;
+pub const WAVE: i32 = 11;
+pub const BLOB: i32 = 12;
+pub const PULSE: i32 = 13;
+pub const CAPSULES: i32 = 14;
 
 /// Kolejność przełączania: klasyczne, nowe, na końcu wyłączona.
-pub const ORDER: [i32; 11] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 4];
+pub const ORDER: [i32; 15] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 4];
 
-pub fn next(mode: i32) -> i32 {
-    let i = ORDER.iter().position(|m| *m == mode).unwrap_or(0);
-    ORDER[(i + 1) % ORDER.len()]
+/// O jeden tryb dalej (`dir` > 0) albo wstecz, w kolejności `ORDER`.
+pub fn step(mode: i32, dir: i32) -> i32 {
+    let n = ORDER.len() as i32;
+    let i = ORDER.iter().position(|m| *m == mode).unwrap_or(0) as i32;
+    ORDER[(i + dir.signum()).rem_euclid(n) as usize]
 }
 
 /// Słupki rosnące od środka w górę i w dół.
@@ -138,6 +144,99 @@ pub fn dots(bars: &[f32]) -> String {
             let cy = 100.0 - (l as f32 + 0.5) * gap;
             let _ = write!(s, "M {:.1} {:.1} h {:.1} v {:.1} h {:.1} Z ", cx - r, cy - gap * 0.25, r * 2.0, gap * 0.5, -r * 2.0);
         }
+    }
+    s
+}
+
+/// Wygładzone widmo: krzywa Catmulla-Roma przez wierzchołki słupków.
+fn smooth(pts: &[(f32, f32)], s: &mut String) {
+    for i in 0..pts.len().saturating_sub(1) {
+        let p0 = pts[i.saturating_sub(1)];
+        let (p1, p2) = (pts[i], pts[i + 1]);
+        let p3 = pts[(i + 2).min(pts.len() - 1)];
+        let c1 = (p1.0 + (p2.0 - p0.0) / 6.0, p1.1 + (p2.1 - p0.1) / 6.0);
+        let c2 = (p2.0 - (p3.0 - p1.0) / 6.0, p2.1 - (p3.1 - p1.1) / 6.0);
+        let _ = write!(s, " C {:.1} {:.1} {:.1} {:.1} {:.1} {:.1}", c1.0, c1.1, c2.0, c2.1, p2.0, p2.1);
+    }
+}
+
+/// Fala: gładki kształt symetryczny względem środka (układ 1000×100).
+pub fn wave(bars: &[f32]) -> String {
+    let n = bars.len().max(2);
+    let x = |i: usize| i as f32 * 1000.0 / (n - 1) as f32;
+    let top: Vec<(f32, f32)> = bars.iter().enumerate().map(|(i, b)| (x(i), 50.0 - b.clamp(0.0, 1.0) * 47.0 - 0.8)).collect();
+    let bottom: Vec<(f32, f32)> = top.iter().rev().map(|&(x, y)| (x, 100.0 - y)).collect();
+    let mut s = String::with_capacity(n * 90);
+    let _ = write!(s, "M {:.1} {:.1}", top[0].0, top[0].1);
+    smooth(&top, &mut s);
+    let _ = write!(s, " L {:.1} {:.1}", bottom[0].0, bottom[0].1);
+    smooth(&bottom, &mut s);
+    s.push_str(" Z");
+    s
+}
+
+/// Plama: zamknięty, płynny kształt wokół środka – promień z widma (układ 1000×1000).
+pub fn blob(bars: &[f32]) -> String {
+    let n = bars.len().max(3);
+    let k = n * 2;
+    let bass = bars.iter().take(4).sum::<f32>() / 4.0;
+    let r0 = 250.0 + bass.clamp(0.0, 1.0) * 40.0;
+    let pts: Vec<(f32, f32)> = (0..k)
+        .map(|j| {
+            let b = bars[if j < n { j } else { 2 * n - 1 - j }].clamp(0.0, 1.0);
+            let a = j as f32 / k as f32 * std::f32::consts::TAU - std::f32::consts::FRAC_PI_2;
+            let r = r0 + b * 200.0;
+            (500.0 + a.cos() * r, 500.0 + a.sin() * r)
+        })
+        .collect();
+    let mut s = String::with_capacity(k * 60);
+    let _ = write!(s, "M {:.1} {:.1}", pts[0].0, pts[0].1);
+    // Zamknięta krzywa: sąsiedzi brani w kółko.
+    for i in 0..k {
+        let p0 = pts[(i + k - 1) % k];
+        let (p1, p2) = (pts[i], pts[(i + 1) % k]);
+        let p3 = pts[(i + 2) % k];
+        let c1 = (p1.0 + (p2.0 - p0.0) / 6.0, p1.1 + (p2.1 - p0.1) / 6.0);
+        let c2 = (p2.0 - (p3.0 - p1.0) / 6.0, p2.1 - (p3.1 - p1.1) / 6.0);
+        let _ = write!(s, " C {:.1} {:.1} {:.1} {:.1} {:.1} {:.1}", c1.0, c1.1, c2.0, c2.1, p2.0, p2.1);
+    }
+    s.push_str(" Z");
+    s
+}
+
+/// Okrąg o promieniu `r` i grubości `w` jako pierścień (układ 1000×1000).
+fn ring(s: &mut String, r: f32, w: f32) {
+    let (a, b) = (r + w / 2.0, (r - w / 2.0).max(1.0));
+    let _ = write!(s, "M {:.1} 500 A {a:.1} {a:.1} 0 1 0 {:.1} 500 A {a:.1} {a:.1} 0 1 0 {:.1} 500 Z ", 500.0 - a, 500.0 + a, 500.0 - a);
+    let _ = write!(s, "M {:.1} 500 A {b:.1} {b:.1} 0 1 1 {:.1} 500 A {b:.1} {b:.1} 0 1 1 {:.1} 500 Z ", 500.0 - b, 500.0 + b, 500.0 - b);
+}
+
+/// Puls: pierścienie basu, środka i góry pasma rozszerzające się z głośnością.
+pub fn pulse(bars: &[f32]) -> String {
+    let n = bars.len().max(3);
+    let avg = |a: usize, b: usize| bars[a..b.max(a + 1).min(n)].iter().sum::<f32>() / (b - a).max(1) as f32;
+    let (lo, mid, hi) = (avg(0, n / 6), avg(n / 6, n / 2), avg(n / 2, n));
+    let mut s = String::with_capacity(600);
+    ring(&mut s, 120.0 + lo.clamp(0.0, 1.0) * 120.0, 18.0 + lo * 30.0);
+    ring(&mut s, 270.0 + mid.clamp(0.0, 1.0) * 110.0, 10.0 + mid * 18.0);
+    ring(&mut s, 400.0 + hi.clamp(0.0, 1.0) * 80.0, 5.0 + hi * 10.0);
+    s
+}
+
+/// Kapsułki: zaokrąglone słupki rosnące od środka (układ 1000×100).
+pub fn capsules(bars: &[f32]) -> String {
+    let n = bars.len().max(1);
+    let step = 1000.0 / n as f32;
+    let bw = step * 0.56;
+    let r = bw / 2.0;
+    let mut s = String::with_capacity(n * 90);
+    for (i, b) in bars.iter().enumerate() {
+        let h = b.clamp(0.0, 1.0) * 46.0;
+        let x = i as f32 * step + (step - bw) / 2.0;
+        let (y0, y1) = (50.0 - h - r * 0.1, 50.0 + h + r * 0.1);
+        // Prostokąt z półokręgami na końcach (w układzie rozciąganym – łuk eliptyczny).
+        let ry = r * 0.1;
+        let _ = write!(s, "M {x:.1} {y0:.1} A {r:.1} {ry:.2} 0 0 1 {:.1} {y0:.1} L {:.1} {y1:.1} A {r:.1} {ry:.2} 0 0 1 {x:.1} {y1:.1} Z ", x + bw, x + bw);
     }
     s
 }

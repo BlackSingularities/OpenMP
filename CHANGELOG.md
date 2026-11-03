@@ -1,5 +1,14 @@
 # Zmiany
 
+## 1.13.0
+
+- Nowe wizualizacje: Fala, Plama, Puls i Kapsułki.
+- Kolory wizualizacji do wyboru: odcienie akcentu, barwy okładki albo kolorowe; są kryjące, więc widać je także przy przezroczystym oknie.
+- W ustawieniach wizualizacji: siła przyciemnienia okładki pod wizualizacją (także wyłączone), liczba klatek na sekundę (15–60) i szybkość animacji.
+- Nowy przełącznik wizualizacji na okładce: szklana pigułka ze strzałkami poprzednia / następna.
+- Panel boczny bez własnego tła – przezroczysty jak reszta okna.
+- Znacznik odtwarzania na taśmie to sama linia, bez kropek na końcach.
+
 ## 1.12.3
 
 - Po cichej aktualizacji OpenMP uruchamia się znowu jako zwykły użytkownik, a nie administrator – wracają dyski sieciowe, odtwarzanie i okładki.

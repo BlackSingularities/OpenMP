@@ -1007,6 +1007,63 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
+                SettingRow {
+                    title: @tr("Visualization colors");
+                    hint: Prefs.viz-color == 0 ? @tr("Shades of the accent color") : Prefs.viz-color == 1 ? @tr("Colors taken from the album cover") : @tr("Bright, multicolored");
+                    Segmented {
+                        options: [@tr("Accent"), @tr("Cover"), @tr("Colorful")];
+                        selected: Prefs.viz-color;
+                        changed(i) => {
+                            Prefs.viz-color = i;
+                            Prefs.changed("viz-color");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Darken cover under visualization");
+                    hint: Prefs.viz-dim < 0.01 ? @tr("short" => "Off") : round(Prefs.viz-dim * 100) + "%";
+                    HSlider {
+                        width: 180px;
+                        minimum: 0;
+                        maximum: 1;
+                        step: 0.05;
+                        value: Prefs.viz-dim;
+                        moved(v) => {
+                            Prefs.viz-dim = v;
+                            Prefs.changed("viz-dim");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Frames per second");
+                    hint: Prefs.viz-fps + " FPS";
+                    HSlider {
+                        width: 180px;
+                        minimum: 15;
+                        maximum: 60;
+                        step: 5;
+                        value: Prefs.viz-fps;
+                        moved(v) => {
+                            Prefs.viz-fps = v;
+                            Prefs.changed("viz-fps");
+                        }
+                    }
+                }
+                SettingRow {
+                    title: @tr("Animation speed");
+                    hint: round(Prefs.viz-speed * 100) + "%";
+                    HSlider {
+                        width: 180px;
+                        minimum: 0.5;
+                        maximum: 2;
+                        step: 0.1;
+                        value: Prefs.viz-speed;
+                        moved(v) => {
+                            Prefs.viz-speed = v;
+                            Prefs.changed("viz-speed");
+                        }
+                    }
+                }
                 Rectangle {
                     height: 10px;
                 }
