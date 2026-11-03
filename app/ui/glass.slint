@@ -1,6 +1,7 @@
 // Szkło: jedno tło dla wszystkich powierzchni programu – paneli, pasków bocznych, panelu filmu,
-// menu kontekstowych i okien (ustawienia, korektor, dialogi). Pod spodem rozmyta okładka albo
-// obraz filmu, na wierzchu barwa szkła; przezroczystość i barwę ustawia się w wyglądzie.
+// menu kontekstowych i okien (ustawienia, korektor, dialogi). Pod spodem prawdziwe szkło
+// systemowe (akryl Windows rozmywa to, co jest za oknem), na wierzchu barwa szkła;
+// przezroczystość i barwę ustawia się w wyglądzie.
 
 import { Theme } from "theme.slint";
 
@@ -48,9 +49,6 @@ export component GlassFill inherits Rectangle {
     // Najmniejsza krycie – dla powierzchni nad obrazem filmu, żeby tekst był czytelny.
     in property <float> min-alpha: 0;
     clip: true;
-    if Theme.glass > 0 && Theme.glass-has: FadeImage {
-        source: Theme.glass-image;
-    }
     // Barwa szkła zmienia się płynnie (okładka, film, ustawienia), nie skokiem.
     Rectangle {
         background: root.base.with-alpha(max(root.min-alpha, 1 - Theme.glass));

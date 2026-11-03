@@ -96,6 +96,7 @@ fn open_at(app: &mut App, ctx: MenuCtx, items: Vec<MenuEntry>, x: f32, y: f32, a
     mw.window().set_position(pos);
     let _ = mw.show();
     crate::win::popup_style(mw.window());
+    crate::win::acrylic(crate::win::hwnd_of(mw.window()), app.s.theme != "light");
     // Pierwsze pokazanie potrafi zignorować pozycję – ustawiamy ją jeszcze raz. Menu zawsze
     // nad oknem programu, także gdy to jest „zawsze na wierzchu” (bez przeskakiwania pod nie).
     mw.window().set_position(pos);

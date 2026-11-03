@@ -303,6 +303,7 @@ fn main() {
                     ui.global::<Ui>().set_maximized(true);
                 }
                 win::round_corners(&ui);
+                win::acrylic(win::hwnd(&ui), app.s.theme != "light");
                 win::set_ontop(app, app.s.always_on_top);
             }
             win::smtc_init(app);

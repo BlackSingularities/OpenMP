@@ -328,6 +328,7 @@ pub fn changed(app: &mut App, key: &str) {
         "dark" => {
             app.s.theme = if p.get_dark() { "dark".into() } else { "light".into() };
             ui.global::<Theme>().set_dark(p.get_dark());
+            crate::win::acrylic_all(app);
         }
         "accent" => {
             // Własny kolor wpisywany ręcznie – dopiero pełny zapis #RRGGBB.

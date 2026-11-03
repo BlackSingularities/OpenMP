@@ -693,9 +693,15 @@ export component SettingsDialog inherits Dialog {
                 SectionTitle {
                     text: @tr("ACCENT COLOR");
                 }
-                SettingRow {
+                SettingSwitch {
+                    title: @tr("Accent color from cover");
+                    hint: @tr("The whole program takes on the album's color (for movies – the picture's color, when enabled in video settings)");
+                    checked <=> Prefs.accent-from-cover;
+                    toggled => { Prefs.changed("accent-from-cover"); }
+                }
+                // Własny kolor – tylko gdy nie jest brany z okładki.
+                if !Prefs.accent-from-cover: SettingRow {
                     title: @tr("Accent color");
-                    hint: @tr("When the cover has no distinct color – or always, when the cover color is off");
                     HorizontalLayout {
                         spacing: 6px;
                         for c in [{ h: "#4f8cff", c: #4f8cff }, { h: "#8b5cf6", c: #8b5cf6 }, { h: "#c026d3", c: #c026d3 }, { h: "#ec4899", c: #ec4899 }, { h: "#ef4444", c: #ef4444 }, { h: "#f97316", c: #f97316 }, { h: "#f59e0b", c: #f59e0b }, { h: "#84cc16", c: #84cc16 }, { h: "#22c55e", c: #22c55e }, { h: "#14b8a6", c: #14b8a6 }, { h: "#06b6d4", c: #06b6d4 }, { h: "#e2e8f0", c: #e2e8f0 }]: Rectangle {
@@ -715,7 +721,7 @@ export component SettingsDialog inherits Dialog {
                         }
                     }
                 }
-                SettingRow {
+                if !Prefs.accent-from-cover: SettingRow {
                     title: @tr("Custom color");
                     hint: @tr("Hex notation, e.g. #ff6a3d");
                     LineEdit {
@@ -723,12 +729,6 @@ export component SettingsDialog inherits Dialog {
                         text <=> Prefs.accent;
                         edited => { Prefs.changed("accent"); }
                     }
-                }
-                SettingSwitch {
-                    title: @tr("Accent color from cover");
-                    hint: @tr("The whole program takes on the album's color (for movies – the picture's color, when enabled in video settings)");
-                    checked <=> Prefs.accent-from-cover;
-                    toggled => { Prefs.changed("accent-from-cover"); }
                 }
                 SettingRow {
                     title: @tr("Accent color scope");
@@ -809,7 +809,7 @@ export component SettingsDialog inherits Dialog {
                 }
                 SettingRow {
                     title: @tr("Glass: transparency");
-                    hint: @tr("{}% – all windows, menus, panels and sidebars show the blurred cover or movie through", round(Prefs.panel-glass * 100));
+                    hint: @tr("{}% – all windows, menus and panels are real glass: what is behind the window shows through blurred", round(Prefs.panel-glass * 100));
                     HSlider {
                         width: 180px;
                         minimum: 0;

@@ -251,7 +251,7 @@ msgstr "Jasny"
 
 #: app/ui/dialogs.slint:587
 msgid "ACCENT COLOR"
-msgstr "KOLOR PRZEWODNI"
+msgstr "KOLOR AKCENTU"
 
 #: app/ui/dialogs.slint:590
 msgid "Accent color"
@@ -271,7 +271,7 @@ msgstr "Zapis szesnastkowy, np. #ff6a3d"
 
 #: app/ui/dialogs.slint:621
 msgid "Accent color from cover"
-msgstr "Kolor przewodni z okładki"
+msgstr "Kolor akcentu z okładki"
 
 #: app/ui/dialogs.slint:622
 msgid "The whole program takes on the album's color (for movies – the picture's color, when enabled in video settings)"
@@ -279,7 +279,7 @@ msgstr "Cały program przyjmuje barwę albumu (przy filmie – barwę obrazu, gd
 
 #: app/ui/dialogs.slint:627
 msgid "Accent color scope"
-msgstr "Zasięg koloru przewodniego"
+msgstr "Zasięg koloru akcentu"
 
 #: app/ui/dialogs.slint:628
 msgid "Accents only: selections, waveform, play button"
@@ -786,7 +786,7 @@ msgstr "Mocna"
 
 #: app/ui/dialogs.slint:1143 app/ui/video.slint:588
 msgid "Accent color from picture"
-msgstr "Kolor przewodni z obrazu"
+msgstr "Kolor akcentu z obrazu"
 
 #: app/ui/dialogs.slint:1144
 msgid "The program's accent smoothly follows the movie's colors"
@@ -4018,3 +4018,6 @@ msgstr "Kolejność widoku"
 
 msgid "default"
 msgstr "domyślnie"
+
+msgid "{}% – all windows, menus and panels are real glass: what is behind the window shows through blurred"
+msgstr "{}% – wszystkie okna, menu i panele są prawdziwym szkłem: prześwituje rozmyte to, co jest za oknem"

@@ -235,6 +235,7 @@ pub fn shown(app: &mut App, on: bool) {
             dl.open = true;
             let _ = dl.win.show();
             crate::win::popup_style(dl.win.window());
+            crate::win::acrylic(crate::win::hwnd_of(dl.win.window()), app.s.theme != "light");
             // Na środku okna programu – gdy okno ma już rozmiar aktywnego dialogu.
             let dw = dl.win.as_weak();
             let mw = ui.as_weak();

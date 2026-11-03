@@ -10,7 +10,8 @@ export component DialogWindow inherits Window {
     no-frame: true;
     always-on-top: true;
     icon: @image-url("../icon.png");
-    background: Theme.glass-color;
+    // Barwę szkła rysuje dialog; okno przezroczyste – pod spodem akryl systemowy.
+    background: transparent;
     default-font-family: Theme.font;
     default-font-size: Theme.fs;
     title: Ui.settings ? @tr("Settings – OpenMP") : Ui.equalizer ? @tr("Equalizer – OpenMP") : Ui.tag-editor ? @tr("Tag editor – OpenMP") : "OpenMP";

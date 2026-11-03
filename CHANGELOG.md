@@ -1,5 +1,11 @@
 # Zmiany
 
+## 1.11.0
+
+- **Prawdziwe szkło**: okno programu, okna ustawień i dialogów oraz menu używają akrylu Windows 11 – prześwituje rozmyte to, co jest za oknem, zamiast podkładanej okładki. Przezroczystość ustawia suwak „Szkło: przezroczystość”.
+- Ujednolicona nazwa: wszędzie „kolor akcentu” (wcześniej miejscami „kolor przewodni”).
+- Gdy kolor akcentu jest brany z okładki, wybór koloru i pole własnego koloru są ukryte; przełącznik „z okładki” jest na początku sekcji.
+
 ## 1.10.0
 
 - **Sortowanie w każdym widoku listy**: przełącznik obok filtrów pokazuje, jak lista jest ułożona; klik otwiera wybór (tytuł, wykonawca, album, rok, długość, data pliku, liczba odtworzeń, ostatnio grane, ocena, rozmiar). Każdy widok ma swoje domyślne – np. „Ostatnio dodane” wg daty pliku, „Najczęściej odtwarzane” wg liczby odtworzeń – a wybór jest zapamiętany.

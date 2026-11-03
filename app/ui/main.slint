@@ -22,7 +22,8 @@ export component AppWindow inherits Window {
     title: Player.idle ? "OpenMP" : Player.title + " – OpenMP";
     icon: @image-url("../icon.png");
     no-frame: true;
-    background: Ui.mode == 1 ? #000000 : Theme.bg;
+    // Przezroczystość okna = szkło: przez tło prześwituje akryl systemowy.
+    background: Ui.mode == 1 ? #000000 : Theme.bg.with-alpha(1 - Theme.glass);
     min-width: Ui.mode == 2 ? 260px : Ui.mode == 1 ? 320px : 720px;
     min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 180px : 560px;
     preferred-width: 1180px;
@@ -76,7 +77,8 @@ export component AppWindow inherits Window {
         // panel boczny i dolny pasek.
         if Ui.mode == 0: Rectangle {
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
-            if Prefs.backdrop > 0: Backdrop { }
+            // Tło z okładki tylko bez szkła – przy szkle prześwituje to, co jest za oknem.
+            if Prefs.backdrop > 0 && Theme.glass <= 0: Backdrop { }
             Rectangle {
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;

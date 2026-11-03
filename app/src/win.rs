@@ -102,6 +102,42 @@ pub fn monitor(ui: &AppWindow) -> Option<(i32, i32, u32, u32)> {
         .flatten()
 }
 
+/// Prawdziwe szkło okna: akryl Windows 11 (DWM) rozmywa to, co jest pod oknem. Okno ma
+/// przezroczyste tło, a barwę szkła rysuje interfejs (Theme.glass). Ciemny akryl przy ciemnym
+/// motywie. Na starszym Windowsie atrybut jest pomijany – zostaje zwykła barwa okna.
+pub fn acrylic(h: isize, dark: bool) {
+    if h == 0 {
+        return;
+    }
+    unsafe {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Graphics::Dwm::{DwmExtendFrameIntoClientArea, DwmSetWindowAttribute, DWMSBT_TRANSIENTWINDOW, DWMWA_SYSTEMBACKDROP_TYPE, DWMWA_USE_IMMERSIVE_DARK_MODE};
+        use windows::Win32::UI::Controls::MARGINS;
+        let hw = HWND(h as *mut _);
+        let d: i32 = dark as i32;
+        let _ = DwmSetWindowAttribute(hw, DWMWA_USE_IMMERSIVE_DARK_MODE, &d as *const _ as *const _, std::mem::size_of_val(&d) as u32);
+        // Okno bez ramki: tło systemowe sięga całej powierzchni okna.
+        let m = MARGINS { cxLeftWidth: -1, cxRightWidth: -1, cyTopHeight: -1, cyBottomHeight: -1 };
+        let _ = DwmExtendFrameIntoClientArea(hw, &m);
+        let kind = DWMSBT_TRANSIENTWINDOW;
+        let _ = DwmSetWindowAttribute(hw, DWMWA_SYSTEMBACKDROP_TYPE, &kind as *const _ as *const _, std::mem::size_of_val(&kind) as u32);
+    }
+}
+
+/// Akryl wszystkich okien programu (po zmianie motywu – ciemny albo jasny).
+pub fn acrylic_all(app: &App) {
+    let dark = app.s.theme != "light";
+    if let Some(ui) = app.ui() {
+        acrylic(hwnd(&ui), dark);
+    }
+    if let Some(d) = &app.dialogs {
+        acrylic(hwnd_of(d.win.window()), dark);
+    }
+    if let Some(m) = &app.menu_win {
+        acrylic(hwnd_of(m.window()), dark);
+    }
+}
+
 /// Zaokrąglone rogi i cień okna bez ramki (Windows 11).
 pub fn round_corners(ui: &AppWindow) {
     let h = hwnd(ui);
