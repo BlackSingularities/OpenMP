@@ -655,24 +655,9 @@ export component LibraryView inherits Rectangle {
                 tip: @tr("Back (Backspace)");
                 clicked => { Lib.back(); }
             }
-            VerticalLayout {
-                alignment: center;
+            // Bez tytułu widoku – jest zaznaczony w panelu nawigacji; tu tylko narzędzia.
+            Rectangle {
                 horizontal-stretch: 1;
-                Text {
-                    text: Lib.title;
-                    color: Theme.heading;
-                    font-size: Theme.fs-xl;
-                    font-family: Theme.font-serif;
-                    horizontal-alignment: center;
-                    overflow: elide;
-                }
-                if Lib.subtitle != "": Text {
-                    text: Lib.subtitle;
-                    color: Theme.text3;
-                    font-size: Theme.fs-sm;
-                    horizontal-alignment: center;
-                    overflow: elide;
-                }
             }
             // Odtwarzanie całego folderu – przycisk główny i dwie ikony, bez rozciągania na pasek.
             if !Lib.show-tiles && Lib.rows.length > 0: HorizontalLayout {
@@ -712,6 +697,14 @@ export component LibraryView inherits Rectangle {
                     Lib.kind-filter-changed(i);
                 }
             }
+            // Sortowanie listy: pokazuje bieżące, klik – wybór (każdy widok ma swoje domyślne).
+            if !Lib.show-tiles && Lib.rows.length > 0: Btn {
+                y: (parent.height - self.height) / 2;
+                compact: true;
+                icon: Icons.sort;
+                text: Lib.sort-label;
+                clicked => { Lib.sort-menu(self.absolute-position.x, self.absolute-position.y + self.height + 2px); }
+            }
             Field {
                 y: (parent.height - self.height) / 2;
                 width: 200px;
@@ -733,7 +726,7 @@ export component LibraryView inherits Rectangle {
             }
         }
         Divider { }
-        if Lib.show-tiles && Lib.grid: ScrollView {
+        if Lib.show-tiles && Lib.grid: tg := ScrollView {
             vertical-stretch: 1;
             property <int> cols: max(1, floor((self.visible-width - 24px) / 168px));
             property <length> cell: (self.visible-width - 24px) / cols;
@@ -744,6 +737,8 @@ export component LibraryView inherits Rectangle {
                 y: 12px + floor(i / parent.cols) * (parent.cell + parent.extra);
                 width: parent.cell;
                 height: parent.cell + parent.extra;
+                // Rząd wjeżdżający pod górną krawędź stopniowo znika.
+                opacity: clamp((self.y + tg.content-y + self.height * 0.7) / (self.height * 0.7), 0, 1);
                 Rectangle {
                     x: 6px;
                     y: 6px;

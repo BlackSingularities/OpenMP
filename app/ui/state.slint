@@ -178,6 +178,9 @@ export global Lib {
     in-out property <[int]> columns: [0, 1, 4];
     in-out property <[string]> col-names;
     callback columns-menu(length, length);
+    // Bieżące sortowanie listy widoku (napis na przełączniku) i menu wyboru.
+    in-out property <string> sort-label;
+    callback sort-menu(length, length);
     // Filtr zbiorów: 0 – wszystko, 1 – muzyka, 2 – filmy; widoczny tylko w zbiorach.
     in-out property <bool> kind-filter-shown;
     in-out property <int> kind-filter;

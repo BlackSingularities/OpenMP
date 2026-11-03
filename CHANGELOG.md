@@ -1,5 +1,13 @@
 # Zmiany
 
+## 1.10.0
+
+- **Sortowanie w każdym widoku listy**: przełącznik obok filtrów pokazuje, jak lista jest ułożona; klik otwiera wybór (tytuł, wykonawca, album, rok, długość, data pliku, liczba odtworzeń, ostatnio grane, ocena, rozmiar). Każdy widok ma swoje domyślne – np. „Ostatnio dodane” wg daty pliku, „Najczęściej odtwarzane” wg liczby odtworzeń – a wybór jest zapamiętany.
+- Nad siatką i listą nie ma już wyśrodkowanego tytułu i podtytułu widoku – jest zaznaczony w panelu nawigacji.
+- Rząd okładek wjeżdżający pod górną krawędź stopniowo znika.
+- **Okładki wczytują się szybciej**: najpierw te, które są właśnie na ekranie, i w czterech wątkach zamiast dwóch.
+- Naprawiona żywa część taśmy przy znaczniku (w 1.9.6 była niewidoczna).
+
 ## 1.9.6
 
 - Poprawka budowania: miękkie krawędzie żywej części taśmy (wydania 1.9.0–1.9.5 nie zbudowały się).

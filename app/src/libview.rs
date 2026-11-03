@@ -349,6 +349,7 @@ fn show_with(app: &mut App, source: &[TrackInfo]) {
     l.set_kind_filter_shown(mixed);
     l.set_kind_filter(app.s.coll_kind);
     crate::columns::publish(app);
+    crate::sorting::publish(app);
     l.set_can_back(!app.libv.stack.is_empty());
     l.set_seasons(app.libv.search.trim().is_empty() && app.libv.stack.last().is_some_and(|g| g.0 == "v-show"));
     let empty_lib = if video_kind {
@@ -844,6 +845,8 @@ fn set_tracks(app: &mut App, tracks: Vec<TrackInfo>) {
     l.set_show_tiles(false);
     app.libv.sel.clear();
     app.libv.anchor = None;
+    let mut tracks = tracks;
+    crate::sorting::apply(app, &mut tracks);
     app.libv.tracks = tracks;
     rows(app);
 }

@@ -23,6 +23,7 @@ mod player;
 mod prefs;
 mod radio;
 mod sleep;
+mod sorting;
 mod statsview;
 mod video;
 mod vizpaths;
@@ -708,6 +709,7 @@ fn wire(ui: &AppWindow) {
     b.on_row_double(|i| later(move |app| libview::row_double(app, i as usize)));
     b.on_row_menu(|_, x, y| later(move |app| libview::row_menu(app, x, y)));
     b.on_columns_menu(|x, y| later(move |app| columns::menu(app, false, x, y)));
+    b.on_sort_menu(|x, y| later(move |app| sorting::menu(app, x, y)));
     b.on_search_changed(|t| later(move |app| {
         app.libv.search = t.to_string();
         libview::show(app);

@@ -15,7 +15,14 @@ thread_local! {
     static ASKED: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
-static WORKER: std::sync::OnceLock<crossbeam_channel::Sender<(String, String)>> = std::sync::OnceLock::new();
+/// Kolejka zleceń jako stos: najpierw ostatnio zlecone – po przewinięciu widoczne kafelki
+/// nie czekają na wszystkie wcześniej przewinięte.
+struct Jobs {
+    stack: std::sync::Mutex<Vec<(String, String)>>,
+    ready: std::sync::Condvar,
+}
+
+static WORKER: std::sync::OnceLock<std::sync::Arc<Jobs>> = std::sync::OnceLock::new();
 
 /// Zdekodowane miniatury wg skrótu treści – utwory jednego albumu nie dekodują jej po kilka razy.
 static DECODED: std::sync::Mutex<Option<HashMap<u64, SharedPixelBuffer<Rgba8Pixel>>>> = std::sync::Mutex::new(None);
@@ -131,28 +138,36 @@ pub fn decode(bytes: &[u8], size: u32) -> Option<SharedPixelBuffer<Rgba8Pixel>> 
     Some(SharedPixelBuffer::clone_from_slice(rgba.as_raw(), rgba.width(), rgba.height()))
 }
 
-fn worker() -> &'static crossbeam_channel::Sender<(String, String)> {
+fn worker() -> &'static std::sync::Arc<Jobs> {
     WORKER.get_or_init(|| {
-        let (tx, rx) = crossbeam_channel::unbounded::<(String, String)>();
-        // Dwa wątki – okładki z dysku sieciowego nie blokują się nawzajem.
-        for _ in 0..2 {
-            let rx = rx.clone();
-            std::thread::spawn(move || {
-                while let Ok((k, path)) = rx.recv() {
-                    let bytes = source(&path);
-                    let buf = bytes.and_then(|b| decode_shared(&b));
-                    let _ = slint::invoke_from_event_loop(move || {
-                        let img = buf.map(Image::from_rgba8);
-                        CACHE.with(|c| c.borrow_mut().insert(k.clone(), img));
-                        later(move |app| {
-                            crate::lists::refresh_covers(app, &k);
-                            crate::libview::refresh_covers(app, &k);
-                        });
+        let jobs = std::sync::Arc::new(Jobs { stack: std::sync::Mutex::new(Vec::new()), ready: std::sync::Condvar::new() });
+        // Kilka wątków – okładki z dysku sieciowego nie blokują się nawzajem.
+        for _ in 0..4 {
+            let jobs = jobs.clone();
+            std::thread::spawn(move || loop {
+                let (k, path) = {
+                    let Ok(mut st) = jobs.stack.lock() else { return };
+                    loop {
+                        if let Some(j) = st.pop() {
+                            break j;
+                        }
+                        let Ok(g) = jobs.ready.wait(st) else { return };
+                        st = g;
+                    }
+                };
+                let bytes = source(&path);
+                let buf = bytes.and_then(|b| decode_shared(&b));
+                let _ = slint::invoke_from_event_loop(move || {
+                    let img = buf.map(Image::from_rgba8);
+                    CACHE.with(|c| c.borrow_mut().insert(k.clone(), img));
+                    later(move |app| {
+                        crate::lists::refresh_covers(app, &k);
+                        crate::libview::refresh_covers(app, &k);
                     });
-                }
+                });
             });
         }
-        tx
+        jobs
     })
 }
 
@@ -167,7 +182,11 @@ pub fn get(path: &str) -> Option<Image> {
     }
     let fresh = ASKED.with(|a| a.borrow_mut().insert(k.clone()));
     if fresh {
-        let _ = worker().send((k, path.to_string()));
+        let w = worker();
+        if let Ok(mut st) = w.stack.lock() {
+            st.push((k, path.to_string()));
+        }
+        w.ready.notify_one();
     }
     None
 }

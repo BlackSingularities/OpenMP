@@ -128,6 +128,8 @@ export component TrackList inherits Rectangle {
             width: sv.cell;
             height: sv.cell-h;
             property <bool> shown: self.y + self.height > -sv.content-y - sv.cell-h && self.y < -sv.content-y + sv.visible-height + sv.cell-h;
+            // Rząd wjeżdżający pod górną krawędź stopniowo znika.
+            opacity: clamp((self.y + sv.content-y + self.height * 0.7) / (self.height * 0.7), 0, 1);
             if cellr.shown && !r.header: Rectangle {
                 x: 5px;
                 y: 5px;

@@ -214,6 +214,7 @@ pub fn activated(app: &mut App, id: &str) {
         MenuCtx::Nav(n) => crate::libview::nav_command(app, &n, id),
         MenuCtx::Sleep => crate::sleep::command(app, id),
         MenuCtx::Columns(p) => crate::columns::command(app, p, id),
+        MenuCtx::Sort => crate::sorting::command(app, id),
         MenuCtx::Video => crate::video::command(app, id),
         MenuCtx::Device => {
             if let (Some(ui), Some(i)) = (app.ui(), id.strip_prefix("dev-").and_then(|s| s.parse::<i32>().ok())) {

@@ -4012,3 +4012,9 @@ msgstr "Napisy wyświetlane na obrazie podczas odtwarzania filmu – w oknie i n
 
 msgid "Text shown as a scrolling list: song lyrics next to the cover and in the side panel, and movie subtitles in the side panel. The picture's subtitles above are not affected."
 msgstr "Tekst przewijany jako lista: tekst piosenki przy okładce i w panelu bocznym oraz napisy filmu w panelu bocznym. Nie zmienia napisów na obrazie (powyżej)."
+
+msgid "Default order"
+msgstr "Kolejność widoku"
+
+msgid "default"
+msgstr "domyślnie"

@@ -61,6 +61,8 @@ pub enum MenuCtx {
     Device,
     /// Wybór kolumn: listy odtwarzania (true) albo bieżący widok biblioteki.
     Columns(bool),
+    /// Wybór sortowania bieżącego widoku biblioteki.
+    Sort,
 }
 
 #[derive(Clone, Debug, Default)]

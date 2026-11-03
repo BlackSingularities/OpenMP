@@ -177,6 +177,8 @@ pub struct Settings {
     pub coll_kind: i32,
     /// Dodatkowe kolumny list dla każdego widoku (klucz z `columns::key`).
     pub columns: std::collections::HashMap<String, Vec<i32>>,
+    /// Sortowanie list wybrane w widoku (brak – domyślne widoku).
+    pub sorts: std::collections::HashMap<String, i32>,
     // System
     pub single_instance: bool,
     /// Ikona w zasobniku systemowym; zamknięcie okna chowa je tam.
@@ -319,6 +321,7 @@ impl Default for Settings {
             lyr_align: 0,
             coll_kind: 0,
             columns: Default::default(),
+            sorts: Default::default(),
             single_instance: true,
             tray: false,
             custom_keys: Vec::new(),

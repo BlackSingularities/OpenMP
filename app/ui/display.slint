@@ -126,16 +126,22 @@ export component SeekBar inherits Rectangle {
             viewbox-width: 1000;
             fit: fill;
             viewbox-height: 100;
-            // Krawędzie wtapiają się w taśmę: przejrzyste na skrajach zasięgu, pełne przy znaczniku.
+            // Krawędzie wtapiają się w taśmę: przejrzyste na skrajach, pełne przy znaczniku.
+            // Gradient ścieżki rozciąga się na jej własny obszar (od l do r), nie na cały pasek –
+            // stąd pozycje względem tego obszaru.
             property <float> c: clamp(root.shown, 0, 1);
+            property <float> l: max(0, self.c - root.live-span);
+            property <float> r: min(1, self.c + root.live-span);
+            property <float> w: max(0.0001, self.r - self.l);
             property <color> lit: Theme.tint.brighter(0.45);
             property <color> clear: Theme.tint.brighter(0.45).transparentize(1);
-            // Pozycje przejść (ułamki szerokości) – liczone osobno, bo w gradiencie „kolor (…)” to wywołanie.
-            property <float> p0: self.c - root.live-span;
-            property <float> p1: self.c - root.live-span * 0.35;
-            property <float> p3: self.c + root.live-span * 0.35;
-            property <float> p4: self.c + root.live-span;
-            fill: @linear-gradient(90deg, self.clear self.p0, self.lit self.p1, Theme.knob self.c, self.lit self.p3, self.clear self.p4);
+            property <float> p1: (self.c - root.live-span * 0.35 - self.l) / self.w;
+            property <float> pc: (self.c - self.l) / self.w;
+            property <float> p3: (self.c + root.live-span * 0.35 - self.l) / self.w;
+            // Przy początku i końcu utworu obszar jest ucięty – tam krawędź nie zanika.
+            property <color> e0: self.c - root.live-span < 0 ? self.lit : self.clear;
+            property <color> e1: self.c + root.live-span > 1 ? self.lit : self.clear;
+            fill: @linear-gradient(90deg, self.e0 0%, self.lit self.p1, Theme.knob self.pc, self.lit self.p3, self.e1 100%);
             opacity: 0.8;
             stroke-width: 0;
         }
