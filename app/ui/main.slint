@@ -105,7 +105,8 @@ export component AppWindow inherits Window {
                 property <bool> soft: Prefs.viz-blur > 0.01;
                 x: self.left;
                 width: parent.width - self.left;
-                height: body.height;
+                // Zawsze nad paskiem odtwarzania (pasek z falą ma własne miejsce pod spodem).
+                height: body.height - 4px;
                 clip: true;
                 for o in (self.soft
                     ? [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0.5, y: 0.87 }, { x: -0.5, y: 0.87 }, { x: 0.5, y: -0.87 }, { x: -0.5, y: -0.87 }]

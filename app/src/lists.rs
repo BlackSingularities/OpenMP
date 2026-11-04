@@ -284,7 +284,7 @@ fn refresh_selection(app: &mut App) {
     }
 }
 
-pub fn refresh_covers(app: &mut App, key: &str) {
+pub fn refresh_covers(app: &mut App, keys: &std::collections::HashSet<String>) {
     for r in 0..app.m.rows.row_count() {
         let Some(mut row) = app.m.rows.row_data(r) else { continue };
         if row.h_has_cover || (!row.header && !app.s.track_grid) {
@@ -292,7 +292,7 @@ pub fn refresh_covers(app: &mut App, key: &str) {
         }
         let li = app.store.active;
         let Some(t) = app.store.lists.get(li).and_then(|l| l.items.get(row.idx as usize)) else { continue };
-        if crate::covers::key(&t.path) == key {
+        if keys.contains(&crate::covers::key(&t.path)) {
             if let Some(img) = crate::covers::get(&t.path) {
                 row.h_cover = img;
                 row.h_has_cover = true;

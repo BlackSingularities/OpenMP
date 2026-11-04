@@ -13,7 +13,13 @@ use crate::app::*;
 thread_local! {
     static CACHE: RefCell<HashMap<String, Option<Image>>> = RefCell::new(HashMap::new());
     static ASKED: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    /// Okładki gotowe od ostatniego odświeżenia widoków – odświeżane razem, nie po jednej.
+    static PENDING: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
+
+/// Osobna kolejka okładek z sieci (MusicBrainz przyjmuje 1 zapytanie na sekundę) – nie
+/// blokuje wątków wczytujących okładki z dysku.
+static NET: std::sync::OnceLock<std::sync::Arc<Jobs>> = std::sync::OnceLock::new();
 
 /// Kolejka zleceń jako stos: najpierw ostatnio zlecone – po przewinięciu widoczne kafelki
 /// nie czekają na wszystkie wcześniej przewinięte.
@@ -118,17 +124,105 @@ fn video_thumb(p: &Path) -> Option<Vec<u8>> {
 
 /// Obraz okładki w pełnej rozdzielczości (blokujące – poza wątkiem interfejsu).
 pub fn source(path: &str) -> Option<Vec<u8>> {
+    local_source(path).or_else(|| net_source(path))
+}
+
+/// Okładka z pliku, folderu albo klatki filmu – bez sieci.
+fn local_source(path: &str) -> Option<Vec<u8>> {
     let p = Path::new(path);
     if openmp_core::meta::is_video(p) {
         video_thumb(p).or_else(|| openmp_core::meta::folder_cover(p).and_then(|c| std::fs::read(c).ok()))
     } else {
-        // Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
-        openmp_core::meta::cover(p).or_else(|| {
-            let t = openmp_core::meta::read(p);
-            let artist = if t.album_artist.trim().is_empty() { &t.artist } else { &t.album_artist };
-            openmp_core::coverart::fetch(artist, &t.album)
-        })
+        openmp_core::meta::cover(p)
     }
+}
+
+/// Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
+fn net_source(path: &str) -> Option<Vec<u8>> {
+    let p = Path::new(path);
+    if openmp_core::meta::is_video(p) {
+        return None;
+    }
+    let t = openmp_core::meta::read(p);
+    let artist = if t.album_artist.trim().is_empty() { &t.artist } else { &t.album_artist };
+    openmp_core::coverart::fetch(artist, &t.album)
+}
+
+/// Plik gotowej miniatury na dysku: zależy od ścieżki, rozmiaru i daty zmiany pliku,
+/// więc po edycji tagów powstaje nowa.
+fn thumb_file(path: &str) -> Option<std::path::PathBuf> {
+    let md = std::fs::metadata(path).ok()?;
+    let mtime = md.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    std::hash::Hash::hash(&(key(path), md.len(), mtime), &mut h);
+    let dir = openmp_core::paths::cache().join("covers-thumbs");
+    Some(dir.join(format!("{:016x}.jpg", std::hash::Hasher::finish(&h))))
+}
+
+fn save_thumb(file: &Path, buf: &SharedPixelBuffer<Rgba8Pixel>) {
+    let Some(img) = image::RgbaImage::from_raw(buf.width(), buf.height(), buf.as_bytes().to_vec()) else { return };
+    let rgb = image::DynamicImage::ImageRgba8(img).to_rgb8();
+    let mut out = Vec::new();
+    if image::codecs::jpeg::JpegEncoder::new_with_quality(&mut out, 88).encode_image(&rgb).is_ok() {
+        if let Some(d) = file.parent() {
+            let _ = std::fs::create_dir_all(d);
+        }
+        let _ = std::fs::write(file, out);
+    }
+}
+
+/// Przekazuje gotową okładkę do wątku interfejsu; widoki odświeżane są zbiorczo co ~50 ms.
+fn deliver(k: String, buf: Option<SharedPixelBuffer<Rgba8Pixel>>) {
+    let _ = slint::invoke_from_event_loop(move || {
+        let img = buf.map(Image::from_rgba8);
+        CACHE.with(|c| c.borrow_mut().insert(k.clone(), img));
+        let first = PENDING.with(|p| {
+            let mut p = p.borrow_mut();
+            let was = p.is_empty();
+            p.insert(k);
+            was
+        });
+        if first {
+            slint::Timer::single_shot(std::time::Duration::from_millis(50), || {
+                let keys = PENDING.with(|p| std::mem::take(&mut *p.borrow_mut()));
+                later(move |app| {
+                    crate::lists::refresh_covers(app, &keys);
+                    crate::libview::refresh_covers(app, &keys);
+                });
+            });
+        }
+    });
+}
+
+fn queue() -> std::sync::Arc<Jobs> {
+    std::sync::Arc::new(Jobs { stack: std::sync::Mutex::new(Vec::new()), ready: std::sync::Condvar::new() })
+}
+
+fn take(jobs: &Jobs) -> Option<(String, String)> {
+    let mut st = jobs.stack.lock().ok()?;
+    loop {
+        if let Some(j) = st.pop() {
+            return Some(j);
+        }
+        st = jobs.ready.wait(st).ok()?;
+    }
+}
+
+fn net() -> &'static std::sync::Arc<Jobs> {
+    NET.get_or_init(|| {
+        let jobs = queue();
+        let j = jobs.clone();
+        std::thread::spawn(move || {
+            while let Some((k, path)) = take(&j) {
+                let buf = net_source(&path).and_then(|b| decode_shared(&b));
+                if let (Some(b), Some(f)) = (&buf, thumb_file(&path)) {
+                    save_thumb(&f, b);
+                }
+                deliver(k, buf);
+            }
+        });
+        jobs
+    })
 }
 
 pub fn decode(bytes: &[u8], size: u32) -> Option<SharedPixelBuffer<Rgba8Pixel>> {
@@ -140,31 +234,36 @@ pub fn decode(bytes: &[u8], size: u32) -> Option<SharedPixelBuffer<Rgba8Pixel>> 
 
 fn worker() -> &'static std::sync::Arc<Jobs> {
     WORKER.get_or_init(|| {
-        let jobs = std::sync::Arc::new(Jobs { stack: std::sync::Mutex::new(Vec::new()), ready: std::sync::Condvar::new() });
+        let jobs = queue();
         // Kilka wątków – okładki z dysku sieciowego nie blokują się nawzajem.
-        for _ in 0..4 {
+        let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(4, 8);
+        for _ in 0..n {
             let jobs = jobs.clone();
-            std::thread::spawn(move || loop {
-                let (k, path) = {
-                    let Ok(mut st) = jobs.stack.lock() else { return };
-                    loop {
-                        if let Some(j) = st.pop() {
-                            break j;
-                        }
-                        let Ok(g) = jobs.ready.wait(st) else { return };
-                        st = g;
+            std::thread::spawn(move || {
+                while let Some((k, path)) = take(&jobs) {
+                    // Najpierw gotowa miniatura z dysku – bez czytania tagów i dekodowania dużego obrazu.
+                    let file = thumb_file(&path);
+                    if let Some(buf) = file.as_ref().and_then(|f| std::fs::read(f).ok()).and_then(|b| decode_shared(&b)) {
+                        deliver(k, Some(buf));
+                        continue;
                     }
-                };
-                let bytes = source(&path);
-                let buf = bytes.and_then(|b| decode_shared(&b));
-                let _ = slint::invoke_from_event_loop(move || {
-                    let img = buf.map(Image::from_rgba8);
-                    CACHE.with(|c| c.borrow_mut().insert(k.clone(), img));
-                    later(move |app| {
-                        crate::lists::refresh_covers(app, &k);
-                        crate::libview::refresh_covers(app, &k);
-                    });
-                });
+                    match local_source(&path).and_then(|b| decode_shared(&b)) {
+                        Some(buf) => {
+                            if let Some(f) = &file {
+                                save_thumb(f, &buf);
+                            }
+                            deliver(k, Some(buf));
+                        }
+                        // Bez okładki na dysku – kolejka sieciowa.
+                        None => {
+                            let w = net();
+                            if let Ok(mut st) = w.stack.lock() {
+                                st.push((k, path));
+                            }
+                            w.ready.notify_one();
+                        }
+                    }
+                }
             });
         }
         jobs

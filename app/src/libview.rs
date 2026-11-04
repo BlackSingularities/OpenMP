@@ -1124,7 +1124,7 @@ pub fn refresh_grid_covers(app: &mut App) {
     }
 }
 
-pub fn refresh_covers(app: &mut App, key: &str) {
+pub fn refresh_covers(app: &mut App, keys: &std::collections::HashSet<String>) {
     // Nagłówki sezonów: okładka pierwszego odcinka – wiersza tuż pod nagłówkiem.
     for r in 0..app.m.lib_rows.row_count() {
         let Some(mut row) = app.m.lib_rows.row_data(r) else { continue };
@@ -1132,7 +1132,7 @@ pub fn refresh_covers(app: &mut App, key: &str) {
             continue;
         }
         let Some(p) = app.m.lib_rows.row_data(r + 1).and_then(|n| app.libv.tracks.get(n.idx as usize).map(|t| t.path.clone())) else { continue };
-        if crate::covers::key(&p) == key {
+        if keys.contains(&crate::covers::key(&p)) {
             if let Some(img) = crate::covers::get(&p) {
                 row.h_cover = img;
                 row.h_has_cover = true;
@@ -1147,7 +1147,7 @@ pub fn refresh_covers(app: &mut App, key: &str) {
                 continue;
             }
             let Some(p) = app.libv.tracks.get(row.idx as usize).map(|t| t.path.clone()) else { continue };
-            if crate::covers::key(&p) == key {
+            if keys.contains(&crate::covers::key(&p)) {
                 if let Some(img) = crate::covers::get(&p) {
                     row.h_cover = img;
                     row.h_has_cover = true;
@@ -1167,7 +1167,7 @@ pub fn refresh_covers(app: &mut App, key: &str) {
         }
         let first = group_tracks_of(app, &kind, &name, &sub).first().map(|t| t.path.clone());
         if let Some(p) = first {
-            if crate::covers::key(&p) == key {
+            if keys.contains(&crate::covers::key(&p)) {
                 if let Some(img) = crate::covers::get(&p) {
                     t.cover = img;
                     t.has_cover = true;
