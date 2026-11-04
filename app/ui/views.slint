@@ -1185,15 +1185,15 @@ export component SidePanel inherits Rectangle {
                         // Trafienie wyszukiwania – tło, bieżące trafienie mocniej; najechanie – lekko.
                         background: l.hit ? (i == Player.lyrics-focus ? Theme.sel-strong : Theme.sel) : lta.has-hover && Player.lyrics-synced ? Theme.hover : transparent;
                         property <bool> on: l.active;
-                        property <bool> focus: i == Player.lyrics-focus;
+                        property <bool> is-focus: i == Player.lyrics-focus;
                         // Bieżąca linia na środku – chyba że trwa wyszukiwanie (wtedy widok trzyma trafienie).
                         changed on => {
                             if self.on && Player.lyrics-synced && Player.lyrics-query == "" {
                                 lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
                             }
                         }
-                        changed focus => {
-                            if self.focus {
+                        changed is-focus => {
+                            if self.is-focus {
                                 lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
                             }
                         }

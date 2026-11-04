@@ -4319,10 +4319,8 @@ msgstr "Nowa lista z opisu…"
 msgid "AI settings…"
 msgstr "Ustawienia AI…"
 
-msgid "No analysis yet.
-Start it in Settings → AI – the library is analyzed only when you ask."
-msgstr "Brak analizy.
-Uruchom ją w Ustawienia → AI – biblioteka jest analizowana tylko na Twoje żądanie."
+msgid "No analysis yet.\nStart it in Settings → AI – the library is analyzed only when you ask."
+msgstr "Brak analizy.\nUruchom ją w Ustawienia → AI – biblioteka jest analizowana tylko na Twoje żądanie."
 
 msgid "Nothing in the library fits this description."
 msgstr "Nic w bibliotece nie pasuje do tego opisu."

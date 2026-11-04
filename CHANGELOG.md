@@ -1,15 +1,12 @@
 # Zmiany
 
-## 2.0.1
+## 2.0.0
 
 - Szybsze wczytywanie okładek z plików FLAC, zwłaszcza z dysku sieciowego: okładka czytana jest prosto z bloków metadanych na początku pliku, resztę program przeskakuje. Pozostałe formaty czytają same tagi, bez właściwości dźwięku.
 - Więcej równoległych odczytów okładek (8–16 wątków): przy dysku sieciowym większość czasu to czekanie na sieć.
-
-## 2.0.0
-
 - Dużo szybsze wczytywanie okładek: gotowe miniatury zapisywane są na dysku, więc przy kolejnym uruchomieniu nie trzeba ponownie czytać tagów ani dekodować dużych obrazów. Okładki z sieci (MusicBrainz, 1 zapytanie na sekundę) mają osobną kolejkę i nie blokują okładek z dysku. Więcej wątków wczytujących, a listy i kafelki odświeżane są zbiorczo zamiast po każdej okładce.
 - Wizualizacja w tle zawsze kończy się nad paskiem odtwarzania.
-- Zawiera wszystkie zmiany z 1.14.x: nowy panel boczny, kolekcje AI, wizualizację w tle z rozmyciem i do 512 słupków, zawijanie tekstu piosenek i napisów oraz pasek przewijania panelu nawigacji przy krawędzi.
+- Wydania 1.14.2 i 1.14.3 nie zbudowały się, więc 2.0.0 zawiera też ich zmiany: nowy panel boczny, kolekcje AI, wizualizację w tle z rozmyciem i do 512 słupków, zawijanie tekstu piosenek i napisów oraz pasek przewijania panelu nawigacji przy krawędzi.
 
 ## 1.14.3
 
