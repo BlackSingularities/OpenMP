@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.2
+
+- Wizualizacja w tle sięga dokładnie do tych samych krawędzi co kafelki i listy, także przy otwartym panelu po prawej.
+
 ## 2.0.1
 
 - Naprawione: wizualizacja w tle schodziła pod pasek odtwarzania. Teraz zawsze kończy się nad nim.

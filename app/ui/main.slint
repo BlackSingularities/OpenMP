@@ -99,12 +99,13 @@ export component AppWindow inherits Window {
             // stoją na dole, tryby symetryczne są na środku wysokości. Rozmycie – kilka przesuniętych,
             // słabszych kopii wokół środka.
             if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Rectangle {
-                property <length> left: Prefs.show-sidebar ? Prefs.sidebar-width * 1px : 0px;
+                // Krawędzie jak kafelki i listy: kolumna treści bez jej odstępów (bez panelu nawigacji i panelu po prawej).
+                property <length> left: (Prefs.show-sidebar ? Prefs.sidebar-width * 1px : 0px) + content.x + content.padding-left;
                 property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
                 property <length> r: Prefs.viz-blur * 22px;
                 property <bool> soft: Prefs.viz-blur > 0.01;
                 x: self.left;
-                width: parent.width - self.left;
+                width: content.width - content.padding-left - content.padding-right;
                 // Zawsze nad paskiem odtwarzania (pasek z falą ma własne miejsce pod spodem).
                 y: 0;
                 height: body.height - 4px;
@@ -112,7 +113,7 @@ export component AppWindow inherits Window {
                 for o in (self.soft
                     ? [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0.5, y: 0.87 }, { x: -0.5, y: 0.87 }, { x: 0.5, y: -0.87 }, { x: -0.5, y: -0.87 }]
                     : [{ x: 0, y: 0 }]): Visualizer {
-                    width: parent.width * 0.94;
+                    width: parent.width;
                     x: (parent.width - self.width) / 2 + o.x * parent.r;
                     height: parent.height * (parent.floor ? 0.6 : 0.76);
                     y: (parent.floor ? parent.height - self.height : (parent.height - self.height) / 2) + o.y * parent.r;
@@ -146,7 +147,7 @@ export component AppWindow inherits Window {
                             HorizontalLayout {
                                 vertical-stretch: 1;
                                 // Odstępy ma sama treść – panel po prawej dochodzi do krawędzi okna.
-                                VerticalLayout {
+                                content := VerticalLayout {
                                     horizontal-stretch: 1;
                                     padding-left: Theme.pad;
                                     padding-right: Theme.dense ? 8px : 14px;
