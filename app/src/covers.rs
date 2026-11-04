@@ -236,7 +236,7 @@ fn worker() -> &'static std::sync::Arc<Jobs> {
     WORKER.get_or_init(|| {
         let jobs = queue();
         // Kilka wątków – okładki z dysku sieciowego nie blokują się nawzajem.
-        let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(4, 8);
+        let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(8).clamp(8, 16);
         for _ in 0..n {
             let jobs = jobs.clone();
             std::thread::spawn(move || {

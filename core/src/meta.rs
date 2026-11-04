@@ -163,7 +163,16 @@ pub fn read(path: &Path) -> TrackInfo {
 
 /// Okładka: osadzona w pliku albo cover/folder/front.jpg w katalogu.
 pub fn cover(path: &Path) -> Option<Vec<u8>> {
-    if let Ok(f) = lofty::read_from_path(path) {
+    // FLAC: tylko bloki metadanych z początku pliku, pozostałe bloki przeskakiwane – na dysku
+    // sieciowym to kilkadziesiąt KB zamiast parsowania całych tagów i właściwości dźwięku.
+    if ext(path) == "flac" {
+        if let Some(found) = flac_picture(path) {
+            return found.or_else(|| folder_cover(path).and_then(|p| std::fs::read(p).ok()));
+        }
+    }
+    // Inne formaty: same tagi, bez odczytu właściwości dźwięku.
+    let opts = lofty::config::ParseOptions::new().read_properties(false);
+    if let Ok(f) = lofty::probe::Probe::open(path).and_then(|p| p.options(opts).read()) {
         for tag in f.tags() {
             let pics = tag.pictures();
             if let Some(p) = pics.iter().find(|p| p.pic_type() == PictureType::CoverFront).or(pics.first()) {
@@ -172,6 +181,49 @@ pub fn cover(path: &Path) -> Option<Vec<u8>> {
         }
     }
     folder_cover(path).and_then(|p| std::fs::read(p).ok())
+}
+
+/// Okładka z bloków PICTURE pliku FLAC. `None` – plik nie jest poprawnym FLAC-iem (wtedy
+/// czyta go lofty), `Some(None)` – FLAC bez osadzonej okładki.
+fn flac_picture(path: &Path) -> Option<Option<Vec<u8>>> {
+    use std::io::{BufReader, Read};
+    let mut r = BufReader::with_capacity(64 * 1024, std::fs::File::open(path).ok()?);
+    let mut magic = [0u8; 4];
+    r.read_exact(&mut magic).ok()?;
+    if &magic != b"fLaC" {
+        return None;
+    }
+    let u32be = |b: &[u8], at: usize| -> Option<usize> { Some(u32::from_be_bytes(b.get(at..at + 4)?.try_into().ok()?) as usize) };
+    let mut first: Option<Vec<u8>> = None;
+    for _ in 0..256 {
+        let mut h = [0u8; 4];
+        if r.read_exact(&mut h).is_err() {
+            break;
+        }
+        let last = h[0] & 0x80 != 0;
+        let kind = h[0] & 0x7f;
+        let len = u32::from_be_bytes([0, h[1], h[2], h[3]]) as usize;
+        if kind == 6 {
+            let mut b = vec![0u8; len];
+            r.read_exact(&mut b).ok()?;
+            let pic_type = u32be(&b, 0)?;
+            let mime = u32be(&b, 4)?;
+            let desc = u32be(&b, 8 + mime)?;
+            let at = 8 + mime + 4 + desc + 16;
+            let size = u32be(&b, at)?;
+            let data = b.get(at + 4..at + 4 + size)?.to_vec();
+            if pic_type == 3 {
+                return Some(Some(data));
+            }
+            first.get_or_insert(data);
+        } else if r.seek_relative(len as i64).is_err() {
+            break;
+        }
+        if last {
+            break;
+        }
+    }
+    Some(first)
 }
 
 pub fn folder_cover(path: &Path) -> Option<PathBuf> {
