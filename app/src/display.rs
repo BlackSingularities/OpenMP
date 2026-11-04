@@ -375,12 +375,15 @@ fn load_lyrics(app: &mut App) {
         text = meta::lyrics(Path::new(&c.info.path));
         source = tr!("file / tags");
     }
-    let online = text.is_none() && app.s.online_lyrics && !c.video && c.station.is_none();
+    // Bez tekstu albo z samym tekstem (bez czasów) – szukamy wersji z sygnaturami czasu.
+    let plain_only = text.as_deref().is_some_and(|t| !openmp_core::lrclib::is_synced(t));
+    let online = (text.is_none() || plain_only) && app.s.online_lyrics && !c.video && c.station.is_none();
     let (artist, title, album, dur) = (c.info.artist.clone(), c.info.title.clone(), c.info.album.clone(), c.info.duration);
-    if text.is_none() && online {
-        // Z pamięci podręcznej od razu, z sieci – w tle.
+    if online {
+        let need_any = text.is_none();
+        // Z pamięci podręcznej od razu, z sieci – w tle. Sam tekst z sieci nie zastępuje tekstu z pliku.
         match openmp_core::lrclib::cached(&artist, &title) {
-            Some(t) if !t.trim().is_empty() => {
+            Some(t) if !t.trim().is_empty() && (need_any || openmp_core::lrclib::is_synced(&t)) => {
                 text = Some(t);
                 source = "LRCLIB";
             }
@@ -389,6 +392,9 @@ fn load_lyrics(app: &mut App) {
                 let gen = GEN.load(Ordering::SeqCst);
                 std::thread::spawn(move || {
                     let Some(t) = openmp_core::lrclib::fetch(&artist, &title, &album, dur) else { return };
+                    if !need_any && !openmp_core::lrclib::is_synced(&t) {
+                        return;
+                    }
                     let _ = slint::invoke_from_event_loop(move || {
                         if GEN.load(Ordering::SeqCst) == gen {
                             later(move |app| set_lyrics(app, Some(t), "LRCLIB"));
@@ -738,6 +744,62 @@ fn details(app: &mut App) {
     }
 }
 
+/// Po tylu milisekundach bez myszy i klawiatury zaczyna się tryb bezczynności.
+const AMBIENT_AFTER_MS: u64 = 90_000;
+
+thread_local! {
+    static AMBIENT_AT: std::cell::Cell<Option<Instant>> = const { std::cell::Cell::new(None) };
+}
+
+/// Czas od ostatniego ruchu myszy albo klawisza w systemie.
+#[cfg(windows)]
+fn idle_ms() -> u64 {
+    use windows::Win32::System::SystemInformation::GetTickCount;
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
+    let mut li = LASTINPUTINFO { cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32, dwTime: 0 };
+    if unsafe { GetLastInputInfo(&mut li) }.as_bool() {
+        unsafe { GetTickCount() }.wrapping_sub(li.dwTime) as u64
+    } else {
+        0
+    }
+}
+
+#[cfg(not(windows))]
+fn idle_ms() -> u64 {
+    0
+}
+
+/// Raz na sekundę: włącza tryb bezczynności (sama wizualizacja w tle), gdy gra muzyka,
+/// wizualizacja jest w tle i nikt nie rusza myszą ani klawiaturą; wyłącza, gdy warunki
+/// przestają być spełnione. Kliknięcie albo klawisz wyłącza go w samym interfejsie.
+fn ambient_check(app: &App, ui: &AppWindow, mode: i32, now: Instant) {
+    let due = AMBIENT_AT.with(|c| match c.get() {
+        Some(t) if now.duration_since(t).as_millis() < 1000 => false,
+        _ => {
+            c.set(Some(now));
+            true
+        }
+    });
+    if !due {
+        return;
+    }
+    let u = ui.global::<Ui>();
+    let possible = mode == 0
+        && app.s.viz_place == 1
+        && app.s.viz != 4
+        && ui.global::<Player>().get_playing()
+        && !ui.global::<Video>().get_active();
+    if !possible {
+        if u.get_ambient() {
+            u.set_ambient(false);
+        }
+        return;
+    }
+    if !u.get_ambient() && idle_ms() >= AMBIENT_AFTER_MS {
+        u.set_ambient(true);
+    }
+}
+
 /// Klatka analizatora i tekstu piosenki.
 pub fn frame(app: &mut App) {
     let Some(ui) = app.ui() else { return };
@@ -755,6 +817,7 @@ pub fn frame(app: &mut App) {
     if mode == 1 || ui.window().is_minimized() {
         return;
     }
+    ambient_check(app, &ui, mode, now);
     // Dźwięk filmu idzie przez mpv – analizator nie ma czego pokazać, a każda zmiana słupków
     // wymuszałaby przerysowanie całego okna.
     if ui.global::<Video>().get_active() {
@@ -1068,18 +1131,28 @@ fn sel_extras(app: &mut App, t: Option<TrackInfo>) {
     if !fresh {
         return;
     }
-    if let Some(text) = meta::lyrics(Path::new(&t.path)) {
-        return set_lyrics(app, Some(text), tr!("file / tags"));
+    let local = meta::lyrics(Path::new(&t.path));
+    let need_any = local.is_none();
+    if let Some(text) = local {
+        let synced = openmp_core::lrclib::is_synced(&text);
+        set_lyrics(app, Some(text), tr!("file / tags"));
+        if synced {
+            return;
+        }
     }
     if !app.s.online_lyrics {
         return;
     }
+    // Sam tekst z pliku – w sieci szukamy wersji z sygnaturami czasu.
     match openmp_core::lrclib::cached(&t.artist, &t.title) {
-        Some(text) if !text.trim().is_empty() => set_lyrics(app, Some(text), "LRCLIB"),
+        Some(text) if !text.trim().is_empty() && (need_any || openmp_core::lrclib::is_synced(&text)) => set_lyrics(app, Some(text), "LRCLIB"),
         Some(_) => {}
         None => {
             std::thread::spawn(move || {
                 let Some(text) = openmp_core::lrclib::fetch(&t.artist, &t.title, &t.album, t.duration) else { return };
+                if !need_any && !openmp_core::lrclib::is_synced(&text) {
+                    return;
+                }
                 let _ = slint::invoke_from_event_loop(move || {
                     later(move |app| {
                         if app.cur.is_none() && app.sel_text == path {

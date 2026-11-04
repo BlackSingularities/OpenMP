@@ -520,6 +520,8 @@ export global Prefs {
 // Okna, menu i komunikaty.
 export global Ui {
     in-out property <int> mode;
+    // Tryb bezczynności: interfejs powoli znika, zostaje sama wizualizacja (klik albo klawisz – powrót).
+    in-out property <bool> ambient;
     // Ekran powitalny (pierwsze uruchomienie).
     in-out property <bool> welcome;
     callback welcome-done();

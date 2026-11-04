@@ -1,5 +1,12 @@
 # Zmiany
 
+## 2.0.4
+
+- Tryb bezczynności: po 90 sekundach bez myszy i klawiatury, gdy gra muzyka, a wizualizacja jest w tle, interfejs przez około minutę powoli znika, a wizualizacja rośnie na całe okno. Kliknięcie w okno albo dowolny klawisz przywraca zwykły widok.
+- Teksty piosenek: program najpierw szuka wersji z sygnaturami czasu – dokładne dopasowanie, bez albumu, z tytułem bez dopisków („Remastered”, „Live”, „feat.”), z pierwszym wykonawcą, na końcu wyszukiwanie z najbliższym czasem trwania. Sam tekst tylko wtedy, gdy nigdzie nie ma wersji z czasami.
+- Gdy plik albo tag ma sam tekst bez czasów, program pokazuje go od razu i w tle szuka wersji z czasami; po znalezieniu ją podmienia.
+- Wcześniej zapamiętane wyniki z LRCLIB są pobierane jeszcze raz, żeby znaleźć wersje z czasami.
+
 ## 2.0.3
 
 - Kafelki utworów i filmów: czas trwania zawsze w prawym górnym rogu okładki, a liczba odtworzeń w lewym górnym.

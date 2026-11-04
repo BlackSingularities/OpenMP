@@ -57,6 +57,10 @@ export component AppWindow inherits Window {
 
     keys := FocusScope {
         key-pressed(e) => {
+            if Ui.ambient {
+                Ui.ambient = false;
+                return accept;
+            }
             if e.text == Key.Escape {
                 if Ui.settings || Ui.equalizer || Ui.about || Ui.url-dialog || Ui.tag-editor || Ui.update-dialog || Ui.rename-dialog {
                     Ui.settings = false;
@@ -84,10 +88,17 @@ export component AppWindow inherits Window {
         // Okno i pełny ekran: panel nawigacji, okładka (albo obraz filmu) z opisem nad listą,
         // panel boczny i dolny pasek.
         if Ui.mode == 0: Rectangle {
+            // Bezczynność: 0 – zwykły widok, 1 – sama wizualizacja. Wejście trwa około minuty,
+            // powrót jest szybki.
+            property <float> amb: Ui.ambient ? 1 : 0;
+            animate amb { duration: Ui.ambient ? 60s : 400ms; easing: ease-in-out; }
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
             // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
-            if Prefs.backdrop > 0: Backdrop { }
+            if Prefs.backdrop > 0: Backdrop {
+                opacity: 1 - parent.amb;
+            }
             Rectangle {
+                opacity: 1 - parent.amb;
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
                 width: parent.width * 0.75;
@@ -104,11 +115,13 @@ export component AppWindow inherits Window {
                 property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
                 property <length> r: Prefs.viz-blur * 22px;
                 property <bool> soft: Prefs.viz-blur > 0.01;
-                x: self.left;
-                width: content.width - content.padding-left - content.padding-right;
+                // W bezczynności wizualizacja rośnie do całego okna.
+                property <float> k: parent.amb;
+                x: self.left * (1 - self.k);
+                width: (content.width - content.padding-left - content.padding-right) * (1 - self.k) + parent.width * self.k;
                 // Zawsze nad paskiem odtwarzania (pasek z falą ma własne miejsce pod spodem).
                 y: 0;
-                height: body.height - 4px;
+                height: (body.height - 4px) * (1 - self.k) + parent.height * self.k;
                 clip: true;
                 for o in (self.soft
                     ? [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0.5, y: 0.87 }, { x: -0.5, y: 0.87 }, { x: 0.5, y: -0.87 }, { x: -0.5, y: -0.87 }]
@@ -117,7 +130,7 @@ export component AppWindow inherits Window {
                     x: (parent.width - self.width) / 2 + o.x * parent.r;
                     height: parent.height * (parent.floor ? 0.6 : 0.76);
                     y: (parent.floor ? parent.height - self.height : (parent.height - self.height) / 2) + o.y * parent.r;
-                    opacity: parent.soft ? 0.32 * 2.4 / 7 : 0.32;
+                    opacity: (parent.soft ? 2.4 / 7 : 1) * (0.32 + 0.6 * parent.k);
                     overlay: true;
                     mode: Player.viz-mode;
                     bars: Player.bars;
@@ -133,102 +146,110 @@ export component AppWindow inherits Window {
                     note: "";
                 }
             }
-            VerticalLayout {
-                body := HorizontalLayout {
-                    vertical-stretch: 1;
-                    if Prefs.show-sidebar: Sidebar { }
-                    Rectangle {
-                        horizontal-stretch: 1;
-                        VerticalLayout {
-                            TitleBar {
-                                show-brand: !Prefs.show-sidebar;
-                                subtitle: "";
-                            }
-                            HorizontalLayout {
-                                vertical-stretch: 1;
-                                // Odstępy ma sama treść – panel po prawej dochodzi do krawędzi okna.
-                                content := VerticalLayout {
-                                    horizontal-stretch: 1;
-                                    padding-left: Theme.pad;
-                                    padding-right: Theme.dense ? 8px : 14px;
-                                    padding-bottom: Theme.dense ? 6px : 10px;
-                                    property <length> auto-h: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
-                                    // Własna wysokość z przeciągnięcia – lista pod spodem zawsze zostaje widoczna.
-                                    property <length> max-h: max(110px, root.height - 380px);
-                                    property <length> drag-h: -1px;
-                                    hero := Hero {
-                                        avail: root.width;
-                                        height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
-                                        small: self.height < 220px;
-                                    }
-                                    // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
-                                    Rectangle {
-                                        height: Theme.gap;
-                                        // Separator na środku odstępu – tylko na nim (±4 px) zmienia się wysokość,
-                                        // nie nad przyciskami listy.
-                                        Rectangle {
-                                            y: (parent.height - self.height) / 2;
-                                            height: 1px;
-                                            background: grip.pressed ? Theme.tint : grip.has-hover ? Theme.line2.brighter(0.6) : Theme.line;
+            // Interfejs znika w bezczynności; całkiem niewidoczny nie przyjmuje kliknięć.
+            Rectangle {
+                opacity: 1 - parent.amb;
+                VerticalLayout {
+                    body := HorizontalLayout {
+                        vertical-stretch: 1;
+                        if Prefs.show-sidebar: Sidebar { }
+                        Rectangle {
+                            horizontal-stretch: 1;
+                            VerticalLayout {
+                                TitleBar {
+                                    show-brand: !Prefs.show-sidebar;
+                                    subtitle: "";
+                                }
+                                HorizontalLayout {
+                                    vertical-stretch: 1;
+                                    // Odstępy ma sama treść – panel po prawej dochodzi do krawędzi okna.
+                                    content := VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        padding-left: Theme.pad;
+                                        padding-right: Theme.dense ? 8px : 14px;
+                                        padding-bottom: Theme.dense ? 6px : 10px;
+                                        property <length> auto-h: Theme.dense ? clamp((root.height - 200px) * 0.36, 110px, 280px) : clamp((root.height - 230px) * 0.5, 150px, 400px);
+                                        // Własna wysokość z przeciągnięcia – lista pod spodem zawsze zostaje widoczna.
+                                        property <length> max-h: max(110px, root.height - 380px);
+                                        property <length> drag-h: -1px;
+                                        hero := Hero {
+                                            avail: root.width;
+                                            height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
+                                            small: self.height < 220px;
                                         }
-                                        grip := TouchArea {
-                                            y: (parent.height - self.height) / 2;
-                                            height: 9px;
-                                            mouse-cursor: row-resize;
-                                            property <length> start;
-                                            pointer-event(e) => {
-                                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
-                                                    self.start = hero.height;
+                                        // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
+                                        Rectangle {
+                                            height: Theme.gap;
+                                            // Separator na środku odstępu – tylko na nim (±4 px) zmienia się wysokość,
+                                            // nie nad przyciskami listy.
+                                            Rectangle {
+                                                y: (parent.height - self.height) / 2;
+                                                height: 1px;
+                                                background: grip.pressed ? Theme.tint : grip.has-hover ? Theme.line2.brighter(0.6) : Theme.line;
+                                            }
+                                            grip := TouchArea {
+                                                y: (parent.height - self.height) / 2;
+                                                height: 9px;
+                                                mouse-cursor: row-resize;
+                                                property <length> start;
+                                                pointer-event(e) => {
+                                                    if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                                                        self.start = hero.height;
+                                                    }
+                                                    if e.button == PointerEventButton.left && e.kind == PointerEventKind.up && drag-h >= 0 {
+                                                        Prefs.hero-h = drag-h / 1px;
+                                                        drag-h = -1px;
+                                                        Prefs.changed("hero-h");
+                                                    }
                                                 }
-                                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.up && drag-h >= 0 {
-                                                    Prefs.hero-h = drag-h / 1px;
+                                                moved => {
+                                                    if self.pressed {
+                                                        drag-h = clamp(self.start + self.mouse-y - self.pressed-y, 110px, max-h);
+                                                    }
+                                                }
+                                                double-clicked => {
                                                     drag-h = -1px;
+                                                    Prefs.hero-h = 0;
                                                     Prefs.changed("hero-h");
                                                 }
                                             }
-                                            moved => {
-                                                if self.pressed {
-                                                    drag-h = clamp(self.start + self.mouse-y - self.pressed-y, 110px, max-h);
-                                                }
-                                            }
-                                            double-clicked => {
-                                                drag-h = -1px;
-                                                Prefs.hero-h = 0;
-                                                Prefs.changed("hero-h");
+                                            Rectangle {
+                                                y: (parent.height - self.height) / 2;
+                                                width: 36px;
+                                                height: 3px;
+                                                border-radius: 1.5px;
+                                                background: grip.pressed ? Theme.tint : Theme.line2;
+                                                opacity: grip.has-hover || grip.pressed ? 1 : 0;
                                             }
                                         }
-                                        Rectangle {
-                                            y: (parent.height - self.height) / 2;
-                                            width: 36px;
-                                            height: 3px;
-                                            border-radius: 1.5px;
-                                            background: grip.pressed ? Theme.tint : Theme.line2;
-                                            opacity: grip.has-hover || grip.pressed ? 1 : 0;
+                                        if Lib.view == 0: PlaylistView {
+                                            vertical-stretch: 1;
+                                        }
+                                        if Lib.view == 1: LibraryView {
+                                            vertical-stretch: 1;
+                                        }
+                                        if Lib.view == 2: RadioView {
+                                            vertical-stretch: 1;
+                                        }
+                                        if Lib.view == 3: StatsView {
+                                            vertical-stretch: 1;
                                         }
                                     }
-                                    if Lib.view == 0: PlaylistView {
-                                        vertical-stretch: 1;
-                                    }
-                                    if Lib.view == 1: LibraryView {
-                                        vertical-stretch: 1;
-                                    }
-                                    if Lib.view == 2: RadioView {
-                                        vertical-stretch: 1;
-                                    }
-                                    if Lib.view == 3: StatsView {
-                                        vertical-stretch: 1;
-                                    }
+                                    if Prefs.side-panel > 0: SidePanel { }
                                 }
-                                if Prefs.side-panel > 0: SidePanel { }
                             }
                         }
                     }
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.line;
+                    }
+                    BottomBar { }
                 }
-                Rectangle {
-                    height: 1px;
-                    background: Theme.line;
-                }
-                BottomBar { }
+            }
+            // Kliknięcie gdziekolwiek w oknie kończy tryb bezczynności.
+            if Ui.ambient: TouchArea {
+                clicked => { Ui.ambient = false; }
             }
         }
 
