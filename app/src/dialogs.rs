@@ -330,7 +330,7 @@ pub fn check_update(app: &mut App, manual: bool) {
                     if let Some(ui) = app.ui() {
                         let u = ui.global::<Ui>();
                         u.set_update_version(ss(&rel.version));
-                        u.set_update_notes(ss(rel.notes.trim()));
+                        u.set_update_notes(ss(""));
                         u.set_update_progress(-1.0);
                         u.set_update_status(ss(""));
                         u.set_update_portable(!openmp_core::update::installed());

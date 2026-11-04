@@ -2497,21 +2497,6 @@ export component UpdateDialog inherits Dialog {
             font-size: Theme.fs;
             wrap: word-wrap;
         }
-        if Ui.update-notes != "": Rectangle {
-            height: min(180px, nt.preferred-height + 20px);
-            border-radius: Theme.radius;
-            background: Theme.panel2;
-            ScrollView {
-                nt := Text {
-                    x: 10px;
-                    width: parent.width - 20px;
-                    text: Ui.update-notes;
-                    color: Theme.text2;
-                    font-size: Theme.fs-sm;
-                    wrap: word-wrap;
-                }
-            }
-        }
         if Ui.update-progress >= 0: Rectangle {
             height: 6px;
             border-radius: 3px;

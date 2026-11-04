@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.12
+
+- Komunikat o nowej wersji bez listy zmian, linków i informacji, skąd pobierana jest aktualizacja.
+
 ## 2.0.11
 
 - Tryb bezczynności: okładka staje po lewej stronie tytułu i razem są na środku u góry okna. Tekst z sygnaturami czasu jest wyśrodkowany pod nimi, idzie od dołu, za wizualizacją, i zanika przed okładką.

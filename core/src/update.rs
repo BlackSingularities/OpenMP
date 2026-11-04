@@ -53,7 +53,7 @@ pub fn check() -> Result<Option<Release>, String> {
     let Some(exe) = find(&|n| n.starts_with("openmp-setup-") && n.ends_with(".exe")) else { return Ok(None) };
     Ok(Some(Release {
         version,
-        notes: r["body"].as_str().unwrap_or_default().to_string(),
+        notes: String::new(),
         asset: exe["browser_download_url"].as_str().unwrap_or_default().to_string(),
         name: exe["name"].as_str().unwrap_or("OpenMP-Setup.exe").to_string(),
         sums: find(&|n| n == "sha256sums.txt").and_then(|a| a["browser_download_url"].as_str().map(str::to_string)),
