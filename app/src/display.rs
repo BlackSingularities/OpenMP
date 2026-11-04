@@ -744,33 +744,58 @@ fn details(app: &mut App) {
     }
 }
 
-/// Po tylu milisekundach bez myszy i klawiatury zaczyna się tryb bezczynności.
+/// Po tylu milisekundach bez ruchu myszy nad oknem i bez klawiszy w programie zaczyna się
+/// tryb bezczynności. Praca w innych programach się nie liczy.
 const AMBIENT_AFTER_MS: u64 = 90_000;
 
 thread_local! {
     static AMBIENT_AT: std::cell::Cell<Option<Instant>> = const { std::cell::Cell::new(None) };
+    /// Ostatnia aktywność w programie, ostatnie wejście systemu i pozycja kursora z poprzedniego sprawdzenia.
+    static ACTIVITY: std::cell::Cell<(Option<Instant>, u32, (i32, i32))> = const { std::cell::Cell::new((None, 0, (i32::MIN, i32::MIN))) };
 }
 
-/// Czas od ostatniego ruchu myszy albo klawisza w systemie.
+/// Czy od poprzedniego sprawdzenia ktoś używał tego programu: kursor poruszył się nad jego
+/// oknem albo okno ma fokus i było wejście z klawiatury lub myszy.
 #[cfg(windows)]
-fn idle_ms() -> u64 {
-    use windows::Win32::System::SystemInformation::GetTickCount;
+fn used_since_last(ui: &AppWindow) -> bool {
+    use windows::Win32::Foundation::{HWND, POINT, RECT};
     use windows::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
+    use windows::Win32::UI::WindowsAndMessaging::{GetCursorPos, GetForegroundWindow, GetWindowRect};
+    let h = HWND(crate::win::hwnd(ui) as *mut _);
     let mut li = LASTINPUTINFO { cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32, dwTime: 0 };
-    if unsafe { GetLastInputInfo(&mut li) }.as_bool() {
-        unsafe { GetTickCount() }.wrapping_sub(li.dwTime) as u64
-    } else {
-        0
-    }
+    let tick = if unsafe { GetLastInputInfo(&mut li) }.as_bool() { li.dwTime } else { 0 };
+    let mut pt = POINT::default();
+    let _ = unsafe { GetCursorPos(&mut pt) };
+    let mut r = RECT::default();
+    let inside = unsafe { GetWindowRect(h, &mut r) }.is_ok() && pt.x >= r.left && pt.x < r.right && pt.y >= r.top && pt.y < r.bottom;
+    let focused = unsafe { GetForegroundWindow() } == h;
+    ACTIVITY.with(|c| {
+        let (at, last_tick, last_pos) = c.get();
+        let moved_here = inside && last_pos != (pt.x, pt.y) && last_pos.0 != i32::MIN;
+        let typed_here = focused && last_tick != 0 && tick != last_tick;
+        c.set((at, tick, (pt.x, pt.y)));
+        moved_here || typed_here
+    })
 }
 
 #[cfg(not(windows))]
-fn idle_ms() -> u64 {
-    0
+fn used_since_last(_ui: &AppWindow) -> bool {
+    false
+}
+
+/// Milisekundy od ostatniej aktywności w programie.
+fn app_idle_ms(ui: &AppWindow, now: Instant) -> u64 {
+    let used = used_since_last(ui);
+    ACTIVITY.with(|c| {
+        let (at, tick, pos) = c.get();
+        let at = if used || at.is_none() { now } else { at.unwrap_or(now) };
+        c.set((Some(at), tick, pos));
+        now.duration_since(at).as_millis() as u64
+    })
 }
 
 /// Raz na sekundę: włącza tryb bezczynności (sama wizualizacja w tle), gdy gra muzyka,
-/// wizualizacja jest w tle i nikt nie rusza myszą ani klawiaturą; wyłącza, gdy warunki
+/// wizualizacja jest w tle i nikt nie używa programu; wyłącza, gdy warunki
 /// przestają być spełnione. Kliknięcie albo klawisz wyłącza go w samym interfejsie.
 fn ambient_check(app: &App, ui: &AppWindow, mode: i32, now: Instant) {
     let due = AMBIENT_AT.with(|c| match c.get() {
@@ -789,13 +814,15 @@ fn ambient_check(app: &App, ui: &AppWindow, mode: i32, now: Instant) {
         && app.s.viz != 4
         && ui.global::<Player>().get_playing()
         && !ui.global::<Video>().get_active();
+    // Liczone zawsze – po powrocie do warunków odliczanie nie zaczyna się od zera przypadkiem.
+    let idle = app_idle_ms(ui, now);
     if !possible {
         if u.get_ambient() {
             u.set_ambient(false);
         }
         return;
     }
-    if !u.get_ambient() && idle_ms() >= AMBIENT_AFTER_MS {
+    if !u.get_ambient() && idle >= AMBIENT_AFTER_MS {
         u.set_ambient(true);
     }
 }

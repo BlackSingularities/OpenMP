@@ -1,5 +1,10 @@
 # Zmiany
 
+## 2.0.5
+
+- Tryb bezczynności liczy tylko bezczynność samego programu: ruch kursora nad oknem i klawisze lub kliknięcia, gdy okno ma fokus. Praca w innych programach nie przerywa odliczania.
+- Kafelki: liczba odtworzeń i czas trwania bez tła i obramowania; tytuł bez wykonawcy schodzi na dolną linię.
+
 ## 2.0.4
 
 - Tryb bezczynności: po 90 sekundach bez myszy i klawiatury, gdy gra muzyka, a wizualizacja jest w tle, interfejs przez około minutę powoli znika, a wizualizacja rośnie na całe okno. Kliknięcie w okno albo dowolny klawisz przywraca zwykły widok.

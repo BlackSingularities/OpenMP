@@ -208,8 +208,6 @@ export component TrackList inherits Rectangle {
                     y: cov.y + 6px;
                     width: plx.preferred-width + 30px;
                     height: 20px;
-                    border-radius: 10px;
-                    background: #000000b0;
                     HorizontalLayout {
                         padding-left: 7px;
                         spacing: 4px;
@@ -234,8 +232,6 @@ export component TrackList inherits Rectangle {
                     y: cov.y + 6px;
                     width: dtx.preferred-width + 12px;
                     height: 20px;
-                    border-radius: 10px;
-                    background: #000000b0;
                     dtx := Text {
                         text: r.dur;
                         color: #ffffffe8;
@@ -273,7 +269,8 @@ export component TrackList inherits Rectangle {
                 }
                 Text {
                     x: Prefs.caption-overlay ? cov.x + 8px : 8px;
-                    y: Prefs.caption-overlay ? cov.y + cov.height - 40px : parent.width + 1px;
+                    // Bez wykonawcy tytuł schodzi na jego miejsce – do dołu.
+                    y: Prefs.caption-overlay ? cov.y + cov.height - (r.artist == "" ? 26px : 40px) : parent.width + (r.artist == "" ? 9px : 1px);
                     width: Prefs.caption-overlay ? cov.width - 16px : parent.width - 16px;
                     text: r.title;
                     color: Prefs.caption-overlay ? (r.playing ? Theme.tint-hi : #ffffff) : r.missing ? Theme.text3 : r.playing ? Theme.tint-hi : Theme.text;
