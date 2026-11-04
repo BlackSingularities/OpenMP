@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.13
+
+- Bez żadnych wzmianek o GitHubie w aplikacji: nowy adres serwera aktualizacji, komunikaty błędów bez nazw zewnętrznych serwerów.
+
 ## 2.0.12
 
 - Komunikat o nowej wersji bez listy zmian, linków i informacji, skąd pobierana jest aktualizacja.
