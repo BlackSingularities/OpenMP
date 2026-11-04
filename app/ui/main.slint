@@ -5,7 +5,7 @@ import { Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon } from "widgets.slint";
-import { Hero, HeroLyrics, BottomBar } from "nowplaying.slint";
+import { Hero, HeroLyrics, CoverArt, NowInfo, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
 import { Backdrop } from "surface.slint";
@@ -92,6 +92,16 @@ export component AppWindow inherits Window {
             // listy i dolny pasek znikają; ich miejsce zajmuje wizualizacja. Wejście trwa około
             // minuty, powrót jest szybki.
             property <float> amb: Ui.ambient ? 1 : 0;
+            // Zwykły układ gaśnie w pierwszej połowie przejścia, układ bezczynności pojawia się w drugiej;
+            // przestawienie następuje, gdy oba są niewidoczne.
+            property <bool> amb-layout: self.amb >= 0.5;
+            property <float> amb-in: max(0, self.amb * 2 - 1);
+            property <float> amb-out: max(0, 1 - self.amb * 2);
+            // Okładka z opisem na środku u góry, pod nimi tekst.
+            property <length> amb-h: clamp(self.height * 0.3, 180px, 340px);
+            property <length> amb-y: max(36px, self.height * 0.05);
+            property <length> amb-info-w: min(self.width * 0.4, 640px);
+            property <length> amb-lyr-w: min(self.width * 0.6, 900px);
             animate amb { duration: Ui.ambient ? 60s : 400ms; easing: ease-in-out; }
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
             // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
@@ -104,15 +114,15 @@ export component AppWindow inherits Window {
                 background: @radial-gradient(circle, Theme.tint.with-alpha(min(0.09 * Theme.glow-k, 0.3)) 0%, transparent 65%);
             }
             // Tekst piosenki obok opisu – warstwa pod wizualizacją. W bezczynności tekst z sygnaturami
-            // ciągnie się do dołu okna za wizualizacją, a tekst bez nich znika (jego miejsce zostaje,
-            // żeby okładka i tytuł nie skakały).
+            // jest na środku okna, od okładki do dołu, za wizualizacją; tekst bez nich znika.
             if hero.show-lyrics: HeroLyrics {
                 property <length> top: hero.absolute-position.y - parent.absolute-position.y;
-                x: hero.absolute-position.x - parent.absolute-position.x + hero.lyrics-x;
-                y: self.top;
-                width: hero.lyrics-w;
-                height: hero.height + (parent.height - self.top - hero.height) * stage.amb;
-                opacity: Player.lyrics-synced ? 1 : 1 - stage.amb;
+                ambient: stage.amb-layout;
+                x: stage.amb-layout ? (parent.width - stage.amb-lyr-w) / 2 : hero.absolute-position.x - parent.absolute-position.x + hero.lyrics-x;
+                y: stage.amb-layout ? stage.amb-y + stage.amb-h + 12px : self.top;
+                width: stage.amb-layout ? stage.amb-lyr-w : hero.lyrics-w;
+                height: stage.amb-layout ? parent.height - self.y : hero.height;
+                opacity: stage.amb-layout ? (Player.lyrics-synced ? stage.amb-in : 0) : stage.amb-out;
             }
             // Wizualizacja w tle (ustawienie „Pokazuj wizualizację”): duża, przygaszona, pod listami
             // i panelami, wyśrodkowana względem treści okna – bez panelu nawigacji. Słupki i widma
@@ -185,6 +195,7 @@ export component AppWindow inherits Window {
                                         property <length> drag-h: -1px;
                                         hero := Hero {
                                             avail: root.width;
+                                            opacity: stage.amb-out;
                                             height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
                                             small: self.height < 220px;
                                         }
@@ -265,6 +276,25 @@ export component AppWindow inherits Window {
                     }
                     BottomBar {
                         opacity: 1 - stage.amb;
+                    }
+                }
+            }
+            // Bezczynność: okładka po lewej stronie opisu, razem na środku okna.
+            if stage.amb-layout && !Video.active: amb-group := Rectangle {
+                property <length> cover-w: stage.amb-h * hero.cover-ratio;
+                width: self.cover-w + 36px + stage.amb-info-w;
+                height: stage.amb-h;
+                x: (parent.width - self.width) / 2;
+                y: stage.amb-y;
+                opacity: stage.amb-in;
+                HorizontalLayout {
+                    spacing: 36px;
+                    CoverArt {
+                        width: amb-group.cover-w;
+                        show-viz: false;
+                    }
+                    NowInfo {
+                        width: stage.amb-info-w;
                     }
                 }
             }

@@ -330,6 +330,9 @@ export component NowInfo inherits VerticalLayout {
 // Tekst piosenki obok opisu utworu: wiersz po wierszu przy znacznikach czasu,
 // bez nich – przewijany ręcznie kółkiem myszy.
 export component HeroLyrics inherits Rectangle {
+    // Tryb bezczynności: wyśrodkowany tekst, bieżąca linia niżej, wyższe linie zanikają.
+    in property <bool> ambient;
+    property <float> anchor: root.ambient ? 0.62 : 0.5;
     clip: true;
     lyr := Flickable {
         property <length> line-h: LyricStyle.line-h;
@@ -338,22 +341,23 @@ export component HeroLyrics inherits Rectangle {
         animate content-y { duration: 400ms; easing: ease-out; }
         col := VerticalLayout {
             width: lyr.width;
-            padding-top: Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px;
-            padding-bottom: Player.lyrics-synced ? lyr.height / 2 : 16px;
+            padding-top: Player.lyrics-synced ? lyr.height * root.anchor - lyr.line-h / 2 : 16px;
+            padding-bottom: Player.lyrics-synced ? lyr.height * (1 - root.anchor) : 16px;
             for l[i] in Player.lyrics: row := Rectangle {
                 height: max(lyr.line-h, lt.preferred-height + 6px);
                 property <bool> on: l.active;
+                opacity: root.ambient ? clamp((self.y + lyr.content-y) / (lyr.height * 0.4), 0, 1) : 1;
                 // Kolumna zmienia wysokość w trybie bezczynności – bieżąca linia zostaje na środku.
                 property <length> view-h: lyr.height;
                 changed view-h => {
                     if self.on && Player.lyrics-synced {
-                        lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
+                        lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height * root.anchor);
                     }
                 }
                 // Bieżąca linia na środku widoku.
                 changed on => {
                     if self.on && Player.lyrics-synced {
-                        lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
+                        lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height * root.anchor);
                     }
                 }
                 lt := LyricText {
@@ -364,6 +368,7 @@ export component HeroLyrics inherits Rectangle {
                     synced: Player.lyrics-synced;
                     dist: abs(i - Player.lyrics-active);
                     wrap: word-wrap;
+                    horizontal-alignment: root.ambient || Prefs.lyr-align == 1 ? center : left;
                 }
                 // Klik – przewinięcie do tej linii (w zaznaczeniu: utwór zaczyna grać od niej).
                 TouchArea {
@@ -589,7 +594,7 @@ export component Hero inherits Rectangle {
     init => { Player.hero-lyrics = self.show-lyrics; }
     changed show-lyrics => { Player.hero-lyrics = self.show-lyrics; }
     // Proporcje okładki (plakat filmu, okładka albumu, klatka) – bez przycinania.
-    property <float> cover-ratio: Player.has-cover ? clamp(Player.cover.width / max(1, Player.cover.height), 0.5, 2) : 1;
+    out property <float> cover-ratio: Player.has-cover ? clamp(Player.cover.width / max(1, Player.cover.height), 0.5, 2) : 1;
     property <float> sel-ratio: Player.sel-has-cover ? clamp(Player.sel-cover.width / max(1, Player.sel-cover.height), 0.5, 2) : 1;
     // Miejsce kolumny tekstu liczone od prawej: sam tekst leży w warstwie pod wizualizacją (main.slint).
     property <float> right-ratio: Video.active ? clamp(Video.ratio, 0.5, 2) : Player.idle && Player.sel-mode ? root.sel-ratio : root.cover-ratio;

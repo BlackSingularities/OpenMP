@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.11
+
+- Tryb bezczynności: okładka staje po lewej stronie tytułu i razem są na środku u góry okna. Tekst z sygnaturami czasu jest wyśrodkowany pod nimi, idzie od dołu, za wizualizacją, i zanika przed okładką.
+
 ## 2.0.10
 
 - Tryb bezczynności: tekst z sygnaturami czasu ciągnie się do dołu okna, za wizualizacją.
