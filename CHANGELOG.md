@@ -1,5 +1,10 @@
 # Zmiany
 
+## 2.0.9
+
+- Tryb bezczynności: bez kreski nad miejscem dolnego paska, a tekst piosenki zostaje tylko wtedy, gdy ma sygnatury czasu.
+- Napis stanu („Teraz odtwarzane”, „Wstrzymane”) bez ramki, tła i kropki.
+
 ## 2.0.8
 
 - Tekst piosenki może mieć kolor z okładki: nowe kółko „Z okładki” przy kolorze pozostałych linii i śpiewanej linii. Działa także przy wyłączonym akcencie z okładki.

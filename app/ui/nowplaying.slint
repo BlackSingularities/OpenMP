@@ -116,41 +116,19 @@ export component NowInfo inherits VerticalLayout {
     property <bool> movie: Video.active || Video.bg-audio || Player.subs-mode;
     alignment: center;
     spacing: root.small ? 2px : 4px;
-    // Stan: pulsująca kropka, „teraz odtwarzane” / „wstrzymane”, rodzaj i miejsce na liście.
-    // Plakietka w kolorze akcentu: kropka, stan półgrubym krojem i miejsce na liście obok.
+    // Stan: sam napis „teraz odtwarzane” / „wstrzymane” i rodzaj, obok miejsce na liście.
     if !root.small: HorizontalLayout {
         spacing: 10px;
         alignment: start;
         height: 24px;
-        Rectangle {
-            horizontal-stretch: 0;
-            width: pill.preferred-width;
-            border-radius: 12px;
-            background: Player.playing ? Theme.tint.with-alpha(0.16) : Theme.hover;
-            border-width: 1px;
-            border-color: Player.playing ? Theme.tint.with-alpha(0.3) : Theme.line2;
-            pill := HorizontalLayout {
-                padding-left: 10px;
-                padding-right: 12px;
-                spacing: 7px;
-                if !Player.idle: Rectangle {
-                    y: (parent.height - self.height) / 2;
-                    width: 7px;
-                    height: 7px;
-                    border-radius: 3.5px;
-                    background: Player.playing ? Theme.tint-hi : Theme.text3;
-                    opacity: Player.playing ? 0.55 + 0.45 * abs(sin(animation-tick() / 1.6s * 180deg)) : 1;
-                }
-                Text {
-                    text: Player.idle ? "OpenMP" : (Player.playing ? @tr("Now playing") : @tr("Paused")) + (root.movie ? @tr("  ·  Movie") : "");
-                    color: Player.playing ? Theme.tint-hi : Theme.text2;
-                    font-family: "Segoe UI Variable Display";
-                    font-size: Theme.fs-sm;
-                    font-weight: 600;
-                    letter-spacing: 0.4px;
-                    vertical-alignment: center;
-                }
-            }
+        Text {
+            text: Player.idle ? "OpenMP" : (Player.playing ? @tr("Now playing") : @tr("Paused")) + (root.movie ? @tr("  ·  Movie") : "");
+            color: Player.playing ? Theme.tint-hi : Theme.text2;
+            font-family: "Segoe UI Variable Display";
+            font-size: Theme.fs-sm;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            vertical-alignment: center;
         }
         if Player.position-text != "": Text {
             text: Player.position-text;
@@ -599,6 +577,9 @@ export component Hero inherits Rectangle {
     // Szerokie okno i tekst dostępny – kolumna z tekstem obok opisu.
     // Szerokość okna (nie Hero) – szerokość Hero zależy od tego, czy tekst jest obok (pętla wiązań).
     in property <length> avail: 1200px;
+    // Postęp trybu bezczynności (0–1): tekst bez znaczników czasu wtedy znika, jego kolumna zostaje,
+    // żeby okładka i tytuł nie skakały.
+    in property <float> ambient;
     // Przy odtwarzaniu i w trybie zaznaczenia (tekst zaznaczonego utworu).
     property <bool> show-lyrics: !root.small && root.avail >= 1320px && (!Player.idle || Player.sel-mode) && Player.lyrics.length > 0;
     init => { Player.hero-lyrics = self.show-lyrics; }
@@ -624,6 +605,7 @@ export component Hero inherits Rectangle {
         }
         if root.show-lyrics: HeroLyrics {
             width: min(root.avail * 0.27, 520px);
+            opacity: Player.lyrics-synced ? 1 : 1 - root.ambient;
         }
         // Tryb zaznaczenia: okładka zaznaczonego pliku / grupy.
         if Player.idle && Player.sel-mode: Cover {
