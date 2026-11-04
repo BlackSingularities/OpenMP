@@ -1,5 +1,12 @@
 # Zmiany
 
+## 2.0.3
+
+- Kafelki utworów i filmów: czas trwania zawsze w prawym górnym rogu okładki, a liczba odtworzeń w lewym górnym.
+- Wysokość podglądu nad listą zmienia się przeciąganiem widocznego separatora, a nie całego odstępu nad przyciskami.
+- Przycisk sortowania ma swoją szerokość i nie rozciąga się na pasek.
+- Napis „Teraz odtwarzane” jest teraz plakietką w kolorze akcentu z czytelniejszym krojem, a miejsce na liście stoi obok.
+
 ## 2.0.2
 
 - Wizualizacja w tle sięga dokładnie do tych samych krawędzi co kafelki i listy, także przy otwartym panelu po prawej.

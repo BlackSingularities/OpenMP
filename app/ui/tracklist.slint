@@ -180,7 +180,7 @@ export component TrackList inherits Rectangle {
                 }
                 if r.video && r.watched: Rectangle {
                     x: Prefs.caption-overlay ? parent.width - self.width - 11px : 11px;
-                    y: Prefs.caption-overlay ? 11px : parent.width - self.height - 12px;
+                    y: Prefs.caption-overlay ? (r.dur != "" ? 37px : 11px) : parent.width - self.height - 12px;
                     height: 22px;
                     width: wtx.preferred-width + 30px;
                     border-radius: 11px;
@@ -200,6 +200,48 @@ export component TrackList inherits Rectangle {
                             font-size: 10px;
                             vertical-alignment: center;
                         }
+                    }
+                }
+                // Liczba odtworzeń w lewym górnym rogu (za znacznikiem grania albo kolejki).
+                if r.plays > 0: Rectangle {
+                    x: cov.x + (r.playing || r.queued != "" ? 34px : 6px);
+                    y: cov.y + 6px;
+                    width: plx.preferred-width + 30px;
+                    height: 20px;
+                    border-radius: 10px;
+                    background: #000000b0;
+                    HorizontalLayout {
+                        padding-left: 7px;
+                        spacing: 4px;
+                        Icon {
+                            y: (parent.height - self.height) / 2;
+                            icon: Icons.play;
+                            size: 10px;
+                            fill: #ffffffc0;
+                        }
+                        plx := Text {
+                            text: r.plays;
+                            color: #ffffffe8;
+                            font-size: 10px;
+                            font-weight: 600;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+                // Czas trwania zawsze w prawym górnym rogu okładki – stałe miejsce, niezależne od długości podpisu.
+                if r.dur != "": Rectangle {
+                    x: cov.x + cov.width - self.width - 6px;
+                    y: cov.y + 6px;
+                    width: dtx.preferred-width + 12px;
+                    height: 20px;
+                    border-radius: 10px;
+                    background: #000000b0;
+                    dtx := Text {
+                        text: r.dur;
+                        color: #ffffffe8;
+                        font-size: 10px;
+                        font-weight: 600;
+                        vertical-alignment: center;
                     }
                 }
                 if r.playing: Rectangle {
@@ -243,7 +285,7 @@ export component TrackList inherits Rectangle {
                     x: Prefs.caption-overlay ? cov.x + 8px : 8px;
                     y: Prefs.caption-overlay ? cov.y + cov.height - 22px : parent.width + 18px;
                     width: Prefs.caption-overlay ? cov.width - 16px : parent.width - 16px;
-                    text: r.artist + (r.dur != "" ? "  ·  " + r.dur : "");
+                    text: r.artist;
                     color: Prefs.caption-overlay ? #ffffffb8 : Theme.text3;
                     font-size: Theme.fs-sm;
                     overflow: elide;

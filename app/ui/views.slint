@@ -719,9 +719,15 @@ export component LibraryView inherits Rectangle {
                     Lib.kind-filter-changed(i);
                 }
             }
+            // Wolne miejsce przed sortowaniem – przycisk ma swoją szerokość, nie rozciąga się.
+            Rectangle {
+                horizontal-stretch: 1;
+            }
             // Sortowanie listy: pokazuje bieżące, klik – wybór (każdy widok ma swoje domyślne).
             if !Lib.show-tiles && Lib.rows.length > 0: Btn {
                 y: (parent.height - self.height) / 2;
+                horizontal-stretch: 0;
+                max-width: self.min-width;
                 compact: true;
                 icon: Icons.sort;
                 text: Lib.sort-label;

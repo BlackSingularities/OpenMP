@@ -4417,3 +4417,12 @@ msgstr "Ollama (lokalnie)"
 
 msgid "A server compatible with the OpenAI API, e.g. LM Studio, vLLM or your own gateway"
 msgstr "Serwer zgodny z API OpenAI, np. LM Studio, vLLM albo własna bramka"
+
+msgid "Now playing"
+msgstr "Teraz odtwarzane"
+
+msgid "Paused"
+msgstr "Wstrzymane"
+
+msgid "  ·  Movie"
+msgstr "  ·  Film"

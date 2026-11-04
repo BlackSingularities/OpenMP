@@ -164,7 +164,16 @@ export component AppWindow inherits Window {
                                     // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
                                     Rectangle {
                                         height: Theme.gap;
+                                        // Separator na środku odstępu – tylko na nim (±4 px) zmienia się wysokość,
+                                        // nie nad przyciskami listy.
+                                        Rectangle {
+                                            y: (parent.height - self.height) / 2;
+                                            height: 1px;
+                                            background: grip.pressed ? Theme.tint : grip.has-hover ? Theme.line2.brighter(0.6) : Theme.line;
+                                        }
                                         grip := TouchArea {
+                                            y: (parent.height - self.height) / 2;
+                                            height: 9px;
                                             mouse-cursor: row-resize;
                                             property <length> start;
                                             pointer-event(e) => {
@@ -189,6 +198,7 @@ export component AppWindow inherits Window {
                                             }
                                         }
                                         Rectangle {
+                                            y: (parent.height - self.height) / 2;
                                             width: 36px;
                                             height: 3px;
                                             border-radius: 1.5px;

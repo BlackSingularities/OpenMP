@@ -1029,6 +1029,7 @@ fn rows(app: &mut App) {
             let mut r = crate::lists::track_row(t, i, (i + 1).to_string(), playing.as_deref() == Some(&t.path.to_lowercase()), app.libv.sel.contains(&i), st.rating >= 5, String::new());
             r.in_queue = qpaths.contains(&t.path.to_lowercase());
             r.cols = crate::columns::values(t, &st, &r.artist, &r.info);
+            r.plays = st.plays as i32;
             crate::lists::with_rating(&mut r, st.rating);
             crate::lists::with_progress(&mut r, t, &st);
             if grid {

@@ -117,30 +117,47 @@ export component NowInfo inherits VerticalLayout {
     alignment: center;
     spacing: root.small ? 2px : 4px;
     // Stan: pulsująca kropka, „teraz odtwarzane” / „wstrzymane”, rodzaj i miejsce na liście.
+    // Plakietka w kolorze akcentu: kropka, stan półgrubym krojem i miejsce na liście obok.
     if !root.small: HorizontalLayout {
-        spacing: 8px;
+        spacing: 10px;
         alignment: start;
-        height: 14px;
-        if !Player.idle: Rectangle {
-            y: (parent.height - self.height) / 2;
-            width: 7px;
-            height: 7px;
-            border-radius: 3.5px;
-            background: Player.playing ? Theme.tint-hi : Theme.text3;
-            opacity: Player.playing ? 0.55 + 0.45 * abs(sin(animation-tick() / 1.6s * 180deg)) : 1;
-        }
-        Text {
-            text: Player.idle ? "OPENMP" : (Player.playing ? @tr("NOW PLAYING") : @tr("PAUSED")) + (root.movie ? @tr("  ·  MOVIE") : "");
-            color: Theme.text3;
-            font-size: Theme.fs-xs;
-            letter-spacing: 3px;
-            vertical-alignment: center;
+        height: 24px;
+        Rectangle {
+            horizontal-stretch: 0;
+            width: pill.preferred-width;
+            border-radius: 12px;
+            background: Player.playing ? Theme.tint.with-alpha(0.16) : Theme.hover;
+            border-width: 1px;
+            border-color: Player.playing ? Theme.tint.with-alpha(0.3) : Theme.line2;
+            pill := HorizontalLayout {
+                padding-left: 10px;
+                padding-right: 12px;
+                spacing: 7px;
+                if !Player.idle: Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 7px;
+                    height: 7px;
+                    border-radius: 3.5px;
+                    background: Player.playing ? Theme.tint-hi : Theme.text3;
+                    opacity: Player.playing ? 0.55 + 0.45 * abs(sin(animation-tick() / 1.6s * 180deg)) : 1;
+                }
+                Text {
+                    text: Player.idle ? "OpenMP" : (Player.playing ? @tr("Now playing") : @tr("Paused")) + (root.movie ? @tr("  ·  Movie") : "");
+                    color: Player.playing ? Theme.tint-hi : Theme.text2;
+                    font-family: "Segoe UI Variable Display";
+                    font-size: Theme.fs-sm;
+                    font-weight: 600;
+                    letter-spacing: 0.4px;
+                    vertical-alignment: center;
+                }
+            }
         }
         if Player.position-text != "": Text {
-            text: "·  " + Player.position-text;
+            text: Player.position-text;
             color: Theme.text3;
-            font-size: Theme.fs-xs;
-            letter-spacing: 1px;
+            font-family: "Segoe UI Variable Display";
+            font-size: Theme.fs-sm;
+            font-weight: 500;
             vertical-alignment: center;
         }
     }

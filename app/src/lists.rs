@@ -109,6 +109,7 @@ pub fn track_row(t: &TrackInfo, idx: usize, num: String, playing: bool, selected
         missing: false,
         progress: -1.0,
         watched: false,
+        plays: 0,
         video: t.video || meta::is_video(Path::new(&t.path)),
         h_title: ss(""),
         h_sub: ss(""),
@@ -205,6 +206,7 @@ pub fn rebuild(app: &mut App) {
         let mut r = track_row(t, i, num, is_playing_item(app, list.id, i), app.sel.contains(&i), rating >= 5, queued_label(app, list.id, i));
         r.in_queue = qpaths.contains(&t.path.to_lowercase());
         r.cols = crate::columns::values(t, &st, &r.artist, &r.info);
+        r.plays = st.plays as i32;
         with_rating(&mut r, rating);
         with_progress(&mut r, t, &st);
         if grid {
