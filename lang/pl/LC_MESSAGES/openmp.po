@@ -4143,6 +4143,9 @@ msgstr "Akcent"
 msgid "Colorful"
 msgstr "Kolorowe"
 
+msgid "Background visualization blur"
+msgstr "Rozmycie wizualizacji w tle"
+
 msgid "Darken cover under visualization"
 msgstr "Przyciemnienie okładki pod wizualizacją"
 
@@ -4164,8 +4167,8 @@ msgstr "Pokazuj wizualizację"
 msgid "On the bottom part of the cover"
 msgstr "Na dolnej części okładki"
 
-msgid "Large, centered behind the lists and panels – next to the navigation panel"
-msgstr "Duża, wyśrodkowana pod listami i panelami – obok panelu nawigacji"
+msgid "Large, behind the lists and panels – centered on the content, without the navigation panel"
+msgstr "Duża, pod listami i panelami – wyśrodkowana względem treści, bez panelu nawigacji"
 
 msgid "On the cover"
 msgstr "Na okładce"

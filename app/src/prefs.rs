@@ -102,6 +102,7 @@ pub fn publish(app: &mut App) {
     p.set_viz_color(s.viz_color);
     p.set_viz_place(s.viz_place);
     p.set_viz_dim(s.viz_dim);
+    p.set_viz_blur(s.viz_blur);
     p.set_viz_fps(s.viz_fps);
     p.set_viz_speed(s.viz_speed);
     p.set_show_waveform(s.show_waveform);
@@ -366,6 +367,7 @@ pub fn changed(app: &mut App, key: &str) {
         "viz-color" => app.s.viz_color = p.get_viz_color(),
         "viz-place" => app.s.viz_place = p.get_viz_place(),
         "viz-dim" => app.s.viz_dim = p.get_viz_dim(),
+        "viz-blur" => app.s.viz_blur = p.get_viz_blur(),
         "viz-fps" => app.s.viz_fps = p.get_viz_fps(),
         "viz-speed" => app.s.viz_speed = p.get_viz_speed(),
         "show-waveform" => {

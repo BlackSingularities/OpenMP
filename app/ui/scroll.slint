@@ -83,6 +83,8 @@ export component ScrollView {
     in property <ScrollBarPolicy> horizontal-scrollbar-policy <=> hbar.policy;
     in property <bool> mouse-drag-pan-enabled <=> flickable.mouse-drag-pan-enabled;
     in-out property <bool> has-focus;
+    // Przesunięcie pionowego paska w prawo – np. do krawędzi panelu, gdy widok ma odstęp od niej.
+    in property <length> bar-shift;
     callback scrolled <=> flickable.flicked;
 
     min-height: 50px;
@@ -105,7 +107,7 @@ export component ScrollView {
     vbar := Bar {
         enabled: root.enabled;
         horizontal: false;
-        x: parent.width - self.width;
+        x: parent.width - self.width + root.bar-shift;
         y: 0;
         width: 14px;
         height: hbar.visible ? parent.height - 10px : parent.height;

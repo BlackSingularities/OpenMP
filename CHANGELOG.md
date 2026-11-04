@@ -1,5 +1,13 @@
 # Zmiany
 
+## 1.14.3
+
+- Za długie linie tekstu piosenki i napisów filmu zawijają się na kolejny wiersz zamiast urywać się wielokropkiem – obok opisu utworu i w panelu tekstu.
+- Analizator może mieć do 512 słupków (wcześniej 256).
+- Wizualizacja w tle jest wyśrodkowana względem treści okna, bez panelu nawigacji, i nie wchodzi pod niego.
+- Nowe ustawienie: rozmycie wizualizacji w tle (Ustawienia → Wizualizacja).
+- Pasek przewijania panelu nawigacji leży przy jego krawędzi, a nie w odstępie od niej.
+
 ## 1.14.2
 
 - Nowy wygląd panelu po prawej (tekst, informacje, kolejka), podobny do panelu nawigacji: gradient od krawędzi okna, karty z ikonami, wiersze z ikonami; panel dochodzi do krawędzi okna.

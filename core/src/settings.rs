@@ -24,6 +24,8 @@ pub struct Settings {
     pub viz_place: i32,
     /// Przyciemnienie okładki pod wizualizacją (0..1).
     pub viz_dim: f32,
+    /// Rozmycie wizualizacji w tle okna (0..1).
+    pub viz_blur: f32,
     /// Klatki na sekundę analizatora (15..60) i szybkość reakcji (0.5..2).
     pub viz_fps: i32,
     pub viz_speed: f32,
@@ -243,6 +245,7 @@ impl Default for Settings {
             viz_color: 1,
             viz_place: 0,
             viz_dim: 0.45,
+            viz_blur: 0.0,
             viz_fps: 60,
             viz_speed: 1.0,
             ai_provider: 0,

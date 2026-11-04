@@ -94,37 +94,48 @@ export component AppWindow inherits Window {
                 height: parent.height * 0.9;
                 background: @radial-gradient(circle, Theme.tint.with-alpha(min(0.09 * Theme.glow-k, 0.3)) 0%, transparent 65%);
             }
+            // Wizualizacja w tle (ustawienie „Pokazuj wizualizację”): duża, przygaszona, pod listami
+            // i panelami, wyśrodkowana względem treści okna – bez panelu nawigacji. Słupki i widma
+            // stoją na dole, tryby symetryczne są na środku wysokości. Rozmycie – kilka przesuniętych,
+            // słabszych kopii wokół środka.
+            if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Rectangle {
+                property <length> left: Prefs.show-sidebar ? Prefs.sidebar-width * 1px : 0px;
+                property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
+                property <length> r: Prefs.viz-blur * 22px;
+                property <bool> soft: Prefs.viz-blur > 0.01;
+                x: self.left;
+                width: parent.width - self.left;
+                height: body.height;
+                clip: true;
+                for o in (self.soft
+                    ? [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0.5, y: 0.87 }, { x: -0.5, y: 0.87 }, { x: 0.5, y: -0.87 }, { x: -0.5, y: -0.87 }]
+                    : [{ x: 0, y: 0 }]): Visualizer {
+                    width: parent.width * 0.94;
+                    x: (parent.width - self.width) / 2 + o.x * parent.r;
+                    height: parent.height * (parent.floor ? 0.6 : 0.76);
+                    y: (parent.floor ? parent.height - self.height : (parent.height - self.height) / 2) + o.y * parent.r;
+                    opacity: parent.soft ? 0.32 * 2.4 / 7 : 0.32;
+                    overlay: true;
+                    mode: Player.viz-mode;
+                    bars: Player.bars;
+                    peaks: Player.peaks;
+                    scope-path: Player.scope-path;
+                    spectrum-path: Player.spectrum-path;
+                    viz-path: Player.viz-path;
+                    vu-l: Player.vu-l;
+                    vu-r: Player.vu-r;
+                    vu-pl: Player.vu-pl;
+                    vu-pr: Player.vu-pr;
+                    active: Player.viz-active;
+                    note: "";
+                }
+            }
             VerticalLayout {
-                HorizontalLayout {
+                body := HorizontalLayout {
                     vertical-stretch: 1;
                     if Prefs.show-sidebar: Sidebar { }
                     Rectangle {
                         horizontal-stretch: 1;
-                        // Wizualizacja w tle (ustawienie „Pokazuj wizualizację”): duża, przygaszona,
-                        // pod listami i panelami, wyśrodkowana obok panelu nawigacji. Słupki i widma
-                        // stoją na dole, tryby symetryczne (oscyloskop, VU, lustro, okrąg, stereo,
-                        // fala, plama, puls, kapsułki) są na środku wysokości.
-                        if Prefs.viz-place == 1 && Player.viz-mode != 4 && !Player.idle && !Video.active: Visualizer {
-                            property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
-                            width: parent.width * 0.94;
-                            x: (parent.width - self.width) / 2;
-                            height: parent.height * (self.floor ? 0.6 : 0.76);
-                            y: self.floor ? parent.height - self.height : (parent.height - self.height) / 2;
-                            opacity: 0.32;
-                            overlay: true;
-                            mode: Player.viz-mode;
-                            bars: Player.bars;
-                            peaks: Player.peaks;
-                            scope-path: Player.scope-path;
-                            spectrum-path: Player.spectrum-path;
-                            viz-path: Player.viz-path;
-                            vu-l: Player.vu-l;
-                            vu-r: Player.vu-r;
-                            vu-pl: Player.vu-pl;
-                            vu-pr: Player.vu-pr;
-                            active: Player.viz-active;
-                            note: "";
-                        }
                         VerticalLayout {
                             TitleBar {
                                 show-brand: !Prefs.show-sidebar;

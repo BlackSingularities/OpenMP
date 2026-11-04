@@ -338,34 +338,38 @@ component HeroLyrics inherits Rectangle {
     clip: true;
     lyr := Flickable {
         property <length> line-h: LyricStyle.line-h;
-        content-height: Player.lyrics.length * line-h + (Player.lyrics-synced ? self.height : 32px);
-        property <int> act: Player.lyrics-active;
-        changed act => {
-            if Player.lyrics-synced && self.act >= 0 {
-                self.content-y = -(self.act * self.line-h);
-            }
-        }
+        // Za długie linie zawijają się na kolejny wiersz – każda linia ma własną wysokość.
+        content-height: col.preferred-height;
         animate content-y { duration: 400ms; easing: ease-out; }
-        for l[i] in Player.lyrics: Rectangle {
-            x: 0;
-            y: (Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px) + i * lyr.line-h;
+        col := VerticalLayout {
             width: lyr.width;
-            height: lyr.line-h;
-            LyricText {
-                width: parent.width;
-                height: parent.height;
-                text: l.text;
-                active: l.active;
-                synced: Player.lyrics-synced;
-                dist: abs(i - Player.lyrics-active);
-                overflow: elide;
-            }
-            // Klik – przewinięcie do tej linii (w zaznaczeniu: utwór zaczyna grać od niej).
-            TouchArea {
-                mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
-                clicked => {
-                    if Player.lyrics-synced {
-                        Player.lyrics-seek(i);
+            padding-top: Player.lyrics-synced ? lyr.height / 2 - lyr.line-h / 2 : 16px;
+            padding-bottom: Player.lyrics-synced ? lyr.height / 2 : 16px;
+            for l[i] in Player.lyrics: row := Rectangle {
+                height: max(lyr.line-h, lt.preferred-height + 6px);
+                property <bool> on: l.active;
+                // Bieżąca linia na środku widoku.
+                changed on => {
+                    if self.on && Player.lyrics-synced {
+                        lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
+                    }
+                }
+                lt := LyricText {
+                    width: parent.width;
+                    height: parent.height;
+                    text: l.text;
+                    active: l.active;
+                    synced: Player.lyrics-synced;
+                    dist: abs(i - Player.lyrics-active);
+                    wrap: word-wrap;
+                }
+                // Klik – przewinięcie do tej linii (w zaznaczeniu: utwór zaczyna grać od niej).
+                TouchArea {
+                    mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
+                    clicked => {
+                        if Player.lyrics-synced {
+                            Player.lyrics-seek(i);
+                        }
                     }
                 }
             }

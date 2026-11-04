@@ -364,6 +364,8 @@ export component Sidebar inherits Rectangle {
             }
         }
         ListView {
+            // Pasek przewijania przy samej krawędzi panelu, nie w odstępie od niej.
+            bar-shift: 8px;
             for n in Lib.nav: Rectangle {
                 height: Theme.nav-h;
                 // Klik w nagłówek sekcji zwija ją albo rozwija.
@@ -1167,50 +1169,52 @@ export component SidePanel inherits Rectangle {
                 width: parent.width - 40px;
             }
             if Player.lyrics.length > 0: lyr := Flickable {
-                // Kwestie z filmu są dłuższe – dwa wiersze.
-                property <length> line-h: Player.subs-mode ? LyricStyle.line-h * 1.6 : LyricStyle.line-h;
-                property <length> base: Player.lyrics-synced ? self.height / 2 - self.line-h : 16px;
-                content-height: Player.lyrics.length * line-h + self.height;
-                property <int> act: Player.lyrics-active;
-                property <int> want: Player.lyrics-focus;
-                // Bieżąca linia na środku – chyba że trwa wyszukiwanie (wtedy widok trzyma trafienie).
-                changed act => {
-                    if Player.lyrics-synced && self.act >= 0 && Player.lyrics-query == "" {
-                        self.content-y = -(self.act * self.line-h);
-                    }
-                }
-                changed want => {
-                    if self.want >= 0 {
-                        self.content-y = -max(0px, self.base + self.want * self.line-h - self.height / 2 + self.line-h / 2);
-                    }
-                }
+                property <length> line-h: LyricStyle.line-h;
+                // Za długie linie (i kwestie z filmu) zawijają się – każda ma własną wysokość.
+                content-height: col.preferred-height;
                 animate content-y { duration: 350ms; easing: ease-out; }
-                for l[i] in Player.lyrics: Rectangle {
-                    x: 8px;
-                    y: lyr.base + i * lyr.line-h;
-                    width: lyr.width - 16px;
-                    height: lyr.line-h;
-                    border-radius: Theme.radius;
-                    // Trafienie wyszukiwania – tło, bieżące trafienie mocniej; najechanie – lekko.
-                    background: l.hit ? (i == Player.lyrics-focus ? Theme.sel-strong : Theme.sel) : lta.has-hover && Player.lyrics-synced ? Theme.hover : transparent;
-                    LyricText {
-                        x: 8px;
-                        width: parent.width - 16px;
-                        height: parent.height;
-                        text: l.text;
-                        // Trafienie wyszukiwania liczy się jak bieżąca linia – dobrze widoczne.
-                        active: l.active || l.hit;
-                        synced: Player.lyrics-synced;
-                        dist: abs(i - Player.lyrics-active);
-                        wrap: Player.subs-mode ? word-wrap : no-wrap;
-                        overflow: elide;
-                    }
-                    // Klik – przewinięcie utworu albo filmu do tej linii (gdy tekst ma czasy).
-                    lta := TouchArea {
-                        mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
-                        clicked => {
-                            if Player.lyrics-synced {
-                                Player.lyrics-seek(i);
+                col := VerticalLayout {
+                    width: lyr.width;
+                    padding-top: Player.lyrics-synced ? lyr.height / 2 - lyr.line-h : 16px;
+                    padding-bottom: lyr.height / 2;
+                    padding-left: 8px;
+                    padding-right: 8px;
+                    for l[i] in Player.lyrics: Rectangle {
+                        height: max(lyr.line-h, lt.preferred-height + 8px);
+                        border-radius: Theme.radius;
+                        // Trafienie wyszukiwania – tło, bieżące trafienie mocniej; najechanie – lekko.
+                        background: l.hit ? (i == Player.lyrics-focus ? Theme.sel-strong : Theme.sel) : lta.has-hover && Player.lyrics-synced ? Theme.hover : transparent;
+                        property <bool> on: l.active;
+                        property <bool> focus: i == Player.lyrics-focus;
+                        // Bieżąca linia na środku – chyba że trwa wyszukiwanie (wtedy widok trzyma trafienie).
+                        changed on => {
+                            if self.on && Player.lyrics-synced && Player.lyrics-query == "" {
+                                lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
+                            }
+                        }
+                        changed focus => {
+                            if self.focus {
+                                lyr.content-y = -max(0px, self.y + self.height / 2 - lyr.height / 2);
+                            }
+                        }
+                        lt := LyricText {
+                            x: 8px;
+                            width: parent.width - 16px;
+                            height: parent.height;
+                            text: l.text;
+                            // Trafienie wyszukiwania liczy się jak bieżąca linia – dobrze widoczne.
+                            active: l.active || l.hit;
+                            synced: Player.lyrics-synced;
+                            dist: abs(i - Player.lyrics-active);
+                            wrap: word-wrap;
+                        }
+                        // Klik – przewinięcie utworu albo filmu do tej linii (gdy tekst ma czasy).
+                        lta := TouchArea {
+                            mouse-cursor: Player.lyrics-synced ? MouseCursor.pointer : MouseCursor.default;
+                            clicked => {
+                                if Player.lyrics-synced {
+                                    Player.lyrics-seek(i);
+                                }
                             }
                         }
                     }

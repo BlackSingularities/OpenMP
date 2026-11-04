@@ -76,7 +76,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
         soft_pause, speed, sub_lang, sub_size, swap, version, video_folders, video_resume,
-        viz_bands, viz_sensitivity, viz_color, viz_dim, viz_fps, viz_speed, viz_place, wave_style, width,
+        viz_bands, viz_sensitivity, viz_color, viz_dim, viz_blur, viz_fps, viz_speed, viz_place, wave_style, width,
     );
     props!(v, Player: viz_mode);
     props!(v, Prefs:
