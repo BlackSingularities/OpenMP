@@ -1,5 +1,11 @@
 # Zmiany
 
+## 2.0.0
+
+- Dużo szybsze wczytywanie okładek: gotowe miniatury zapisywane są na dysku, więc przy kolejnym uruchomieniu nie trzeba ponownie czytać tagów ani dekodować dużych obrazów. Okładki z sieci (MusicBrainz, 1 zapytanie na sekundę) mają osobną kolejkę i nie blokują okładek z dysku. Więcej wątków wczytujących, a listy i kafelki odświeżane są zbiorczo zamiast po każdej okładce.
+- Wizualizacja w tle zawsze kończy się nad paskiem odtwarzania.
+- Zawiera wszystkie zmiany z 1.14.x: nowy panel boczny, kolekcje AI, wizualizację w tle z rozmyciem i do 512 słupków, zawijanie tekstu piosenek i napisów oraz pasek przewijania panelu nawigacji przy krawędzi.
+
 ## 1.14.3
 
 - Za długie linie tekstu piosenki i napisów filmu zawijają się na kolejny wiersz zamiast urywać się wielokropkiem – obok opisu utworu i w panelu tekstu.
