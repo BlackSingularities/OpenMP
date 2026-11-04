@@ -1,5 +1,11 @@
 # Zmiany
 
+## 2.0.8
+
+- Tekst piosenki może mieć kolor z okładki: nowe kółko „Z okładki” przy kolorze pozostałych linii i śpiewanej linii. Działa także przy wyłączonym akcencie z okładki.
+- Przycisk sortowania ma tę samą wysokość co pasek wyszukiwania.
+- Usunięty dodatkowy margines po prawej stronie okładki.
+
 ## 2.0.7
 
 - „Popraw dopasowanie TMDB” pojawia się w menu tylko przy filmach i serialach, przy muzyce już nie.

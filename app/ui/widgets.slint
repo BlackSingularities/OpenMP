@@ -6,8 +6,8 @@ import { Prefs } from "state.slint";
 
 // Wygląd tekstu piosenki i napisów w panelu – ten sam przy okładce, w panelu bocznym, dla muzyki i filmów.
 export global LyricStyle {
-    // Paleta kolorów (0 – z motywu).
-    out property <[color]> palette: [#00000000, #ffffff, #ffe14d, #86e1ff, #a6ffa0, #ff9ec7, #ffb36b];
+    // Paleta kolorów (0 – z motywu, ostatni – z okładki).
+    out property <[color]> palette: [#00000000, #ffffff, #ffe14d, #86e1ff, #a6ffa0, #ff9ec7, #ffb36b, Theme.cover-hi];
     out property <length> size: Prefs.lyr-size * 1px * Theme.text-scale;
     out property <length> line-h: self.size * Prefs.lyr-spacing / 100;
     out property <string> font: Prefs.lyr-font != "" ? Prefs.lyr-font : Theme.font;

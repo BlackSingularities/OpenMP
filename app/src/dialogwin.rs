@@ -61,7 +61,7 @@ macro_rules! props {
 
 fn all_props() -> Vec<Box<dyn SyncProp>> {
     let mut v: Vec<Box<dyn SyncProp>> = Vec::new();
-    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has);
+    props!(v, Theme: dark, accent, tint, scope, corners, text_scale, title_font, glow_k, dense, glass, nav_scale, glass_tint, glass_image, glass_has, cover_has, cover_color);
     props!(v, Prefs:
         compact_ui, track_grid, grid_size, caption_overlay, tray, custom_keys, accent_scope, backdrop, backdrop_opacity, backdrop_motion, glow, corners, text_scale, title_font,
         video_leave, video_open_view, autohide_window, video_quality, hwdec_mode, interpolation,

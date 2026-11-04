@@ -728,6 +728,8 @@ export component LibraryView inherits Rectangle {
                 y: (parent.height - self.height) / 2;
                 horizontal-stretch: 0;
                 max-width: self.min-width;
+                // Ta sama wysokość co pole wyszukiwania obok.
+                height: 30px;
                 compact: true;
                 icon: Icons.sort;
                 text: Lib.sort-label;

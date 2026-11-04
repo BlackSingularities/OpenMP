@@ -7,6 +7,11 @@ export global Theme {
     in-out property <color> accent: #4f8cff;
     // Akcent z okładki (gdy włączony) – wyświetlacz, przyciski, suwaki, poświata.
     in-out property <color> tint: accent;
+    // Barwa okładki bieżącego utworu – także przy wyłączonym akcencie z okładki (kolor tekstu piosenki).
+    in-out property <bool> cover-has;
+    in-out property <color> cover-color: accent;
+    out property <color> cover-base: cover-has ? cover-color : tint;
+    out property <color> cover-hi: dark ? cover-base.brighter(0.25) : cover-base.darker(0.35);
     // 0 – tylko akcenty, 1 – też ikony, suwaki i znaczniki (zamiast bieli), 2 – cały interfejs.
     in-out property <int> scope: 1;
     // 0 – ostre, 1 – zwykłe, 2 – mocne zaokrąglenia.

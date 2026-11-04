@@ -611,8 +611,7 @@ export component Hero inherits Rectangle {
     HorizontalLayout {
         spacing: root.small ? 18px : 36px;
         padding-left: root.small ? 4px : 8px;
-        // Miejsce na przycisk zamknięcia pliku obok okładki.
-        padding-right: Player.idle ? 0px : 34px;
+        padding-right: 0px;
         padding-top: root.small ? 2px : 0px;
         padding-bottom: root.small ? 2px : 0px;
         if !(Player.idle && Player.sel-mode): NowInfo {

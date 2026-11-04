@@ -1856,7 +1856,7 @@ export component SettingsDialog inherits Dialog {
                 }
                 for row[r] in [@tr("Color of the other lines"), @tr("Color of the sung line")]: SettingRow {
                     title: row;
-                    hint: (r == 0 ? Prefs.lyr-color : Prefs.lyr-active-color) == 0 ? @tr("From the theme") : "";
+                    hint: (r == 0 ? Prefs.lyr-color : Prefs.lyr-active-color) == 0 ? @tr("From the theme") : (r == 0 ? Prefs.lyr-color : Prefs.lyr-active-color) == 7 ? @tr("From the cover") : "";
                     HorizontalLayout {
                         spacing: 6px;
                         for c[i] in LyricStyle.palette: Rectangle {

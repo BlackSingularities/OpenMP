@@ -219,6 +219,11 @@ pub fn show_track(app: &mut App) {
             };
             let th = ui.global::<Theme>();
             th.set_tint(t);
+            // Barwa okładki dla tekstu piosenki – niezależnie od akcentu z okładki.
+            th.set_cover_has(tint.is_some());
+            if let Some((r, g, b)) = tint {
+                th.set_cover_color(Color::from_rgb_u8(r, g, b));
+            }
             // Gradient tła: trzy barwy okładki (brakujące – odcienie akcentu).
             let c = |i: usize, f: f32| pal.get(i).map(|&(r, g, b)| Color::from_rgb_u8(r, g, b)).unwrap_or_else(|| if f >= 0.0 { t.brighter(f) } else { t.darker(-f) });
             th.set_grad_a(c(0, 0.0));
@@ -1239,6 +1244,7 @@ pub fn close_current(app: &mut App) {
         p.set_subs_mode(false);
         p.set_lyrics_source(ss(""));
         ui.global::<Theme>().set_glass_has(false);
+        ui.global::<Theme>().set_cover_has(false);
         ui.global::<Theme>().set_tint(ui.global::<Theme>().get_accent());
     }
     crate::win::smtc_state(app);

@@ -3947,6 +3947,9 @@ msgstr "Kolor śpiewanej linii"
 msgid "From the theme"
 msgstr "Z motywu"
 
+msgid "From the cover"
+msgstr "Z okładki"
+
 msgid "Alignment"
 msgstr "Wyrównanie"
 
