@@ -1391,7 +1391,9 @@ pub fn selected(app: &App) -> Vec<TrackInfo> {
 
 pub fn row_menu(app: &mut App, x: f32, y: f32) {
     let n = app.libv.sel.len();
-    let items = vec![
+    let sel = selected(app);
+    let all_video = !sel.is_empty() && sel.iter().all(|t| t.video || openmp_core::meta::is_video(std::path::Path::new(&t.path)));
+    let mut items = vec![
         crate::menu::item("l-play", tr!("Play"), "play", "Enter"),
         crate::menu::item("l-add", tr!("Add to the current list"), "add", ""),
         crate::menu::item("l-new", tr!("New list from selection"), "playlist", ""),
@@ -1402,9 +1404,12 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::sep(),
         crate::menu::item("l-resume-reset", tr!("Forget the resume position"), "history", ""),
         crate::menu::item("l-watched", tr!("Watched / unwatched (toggle)"), "check", ""),
-        crate::menu::item_en("l-tmdb", tr!("Fix TMDB match…"), "edit", "", n == 1 && !app.s.tmdb_key.is_empty()),
-        crate::menu::item_en("l-save-smart", tr!("Save search as a smart playlist"), "playlist", "", !app.libv.search.trim().is_empty()),
     ];
+    // TMDB opisuje tylko filmy i seriale – przy muzyce pozycji nie ma.
+    if all_video {
+        items.push(crate::menu::item_en("l-tmdb", tr!("Fix TMDB match…"), "edit", "", n == 1 && !app.s.tmdb_key.is_empty()));
+    }
+    items.push(crate::menu::item_en("l-save-smart", tr!("Save search as a smart playlist"), "playlist", "", !app.libv.search.trim().is_empty()));
     crate::menu::open(app, MenuCtx::Lib, items, x, y);
 }
 

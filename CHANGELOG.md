@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.7
+
+- „Popraw dopasowanie TMDB” pojawia się w menu tylko przy filmach i serialach, przy muzyce już nie.
+
 ## 2.0.6
 
 - Tryb bezczynności zostawia okładkę, tytuł, tekst piosenki i tło. Znikają tylko panel nawigacji, listy, panel po prawej i dolny pasek, a wizualizacja zajmuje ich miejsce pod okładką na całą szerokość okna.
