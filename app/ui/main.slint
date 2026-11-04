@@ -5,7 +5,7 @@ import { Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Icon } from "widgets.slint";
-import { Hero, BottomBar } from "nowplaying.slint";
+import { Hero, HeroLyrics, BottomBar } from "nowplaying.slint";
 import { TitleBar, Sidebar, PlaylistView, LibraryView, RadioView, SidePanel } from "views.slint";
 import { VideoView, MiniView } from "video.slint";
 import { Backdrop } from "surface.slint";
@@ -103,6 +103,17 @@ export component AppWindow inherits Window {
                 height: parent.height * 0.9;
                 background: @radial-gradient(circle, Theme.tint.with-alpha(min(0.09 * Theme.glow-k, 0.3)) 0%, transparent 65%);
             }
+            // Tekst piosenki obok opisu – warstwa pod wizualizacją. W bezczynności tekst z sygnaturami
+            // ciągnie się do dołu okna za wizualizacją, a tekst bez nich znika (jego miejsce zostaje,
+            // żeby okładka i tytuł nie skakały).
+            if hero.show-lyrics: HeroLyrics {
+                property <length> top: hero.absolute-position.y - parent.absolute-position.y;
+                x: hero.absolute-position.x - parent.absolute-position.x + hero.lyrics-x;
+                y: self.top;
+                width: hero.lyrics-w;
+                height: hero.height + (parent.height - self.top - hero.height) * stage.amb;
+                opacity: Player.lyrics-synced ? 1 : 1 - stage.amb;
+            }
             // Wizualizacja w tle (ustawienie „Pokazuj wizualizację”): duża, przygaszona, pod listami
             // i panelami, wyśrodkowana względem treści okna – bez panelu nawigacji. Słupki i widma
             // stoją na dole, tryby symetryczne są na środku wysokości. Rozmycie – kilka przesuniętych,
@@ -174,7 +185,6 @@ export component AppWindow inherits Window {
                                         property <length> drag-h: -1px;
                                         hero := Hero {
                                             avail: root.width;
-                                            ambient: stage.amb;
                                             height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
                                             small: self.height < 220px;
                                         }

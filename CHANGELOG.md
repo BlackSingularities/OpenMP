@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.10
+
+- Tryb bezczynności: tekst z sygnaturami czasu ciągnie się do dołu okna, za wizualizacją.
+
 ## 2.0.9
 
 - Tryb bezczynności: bez kreski nad miejscem dolnego paska, a tekst piosenki zostaje tylko wtedy, gdy ma sygnatury czasu.
