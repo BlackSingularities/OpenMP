@@ -106,6 +106,7 @@ export component AppWindow inherits Window {
                 x: self.left;
                 width: parent.width - self.left;
                 // Zawsze nad paskiem odtwarzania (pasek z falą ma własne miejsce pod spodem).
+                y: 0;
                 height: body.height - 4px;
                 clip: true;
                 for o in (self.soft

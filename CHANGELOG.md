@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.1
+
+- Naprawione: wizualizacja w tle schodziła pod pasek odtwarzania. Teraz zawsze kończy się nad nim.
+
 ## 2.0.0
 
 - Szybsze wczytywanie okładek z plików FLAC, zwłaszcza z dysku sieciowego: okładka czytana jest prosto z bloków metadanych na początku pliku, resztę program przeskakuje. Pozostałe formaty czytają same tagi, bez właściwości dźwięku.
