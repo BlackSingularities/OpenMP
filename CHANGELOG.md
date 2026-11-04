@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.0.6
+
+- Tryb bezczynności zostawia okładkę, tytuł, tekst piosenki i tło. Znikają tylko panel nawigacji, listy, panel po prawej i dolny pasek, a wizualizacja zajmuje ich miejsce pod okładką na całą szerokość okna.
+
 ## 2.0.5
 
 - Tryb bezczynności liczy tylko bezczynność samego programu: ruch kursora nad oknem i klawisze lub kliknięcia, gdy okno ma fokus. Praca w innych programach nie przerywa odliczania.

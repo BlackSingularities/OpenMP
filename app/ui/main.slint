@@ -87,18 +87,16 @@ export component AppWindow inherits Window {
 
         // Okno i pełny ekran: panel nawigacji, okładka (albo obraz filmu) z opisem nad listą,
         // panel boczny i dolny pasek.
-        if Ui.mode == 0: Rectangle {
-            // Bezczynność: 0 – zwykły widok, 1 – sama wizualizacja. Wejście trwa około minuty,
-            // powrót jest szybki.
+        if Ui.mode == 0: stage := Rectangle {
+            // Bezczynność: 0 – zwykły widok, 1 – okładka, tytuł i tekst zostają, a panel nawigacji,
+            // listy i dolny pasek znikają; ich miejsce zajmuje wizualizacja. Wejście trwa około
+            // minuty, powrót jest szybki.
             property <float> amb: Ui.ambient ? 1 : 0;
             animate amb { duration: Ui.ambient ? 60s : 400ms; easing: ease-in-out; }
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
             // Przy szkle to tylko delikatna barwa okładki – to, co za oknem, dalej prześwituje.
-            if Prefs.backdrop > 0: Backdrop {
-                opacity: 1 - parent.amb;
-            }
+            if Prefs.backdrop > 0: Backdrop { }
             Rectangle {
-                opacity: 1 - parent.amb;
                 x: parent.width * 0.05;
                 y: -parent.height * 0.35;
                 width: parent.width * 0.75;
@@ -115,13 +113,15 @@ export component AppWindow inherits Window {
                 property <bool> floor: Player.viz-mode == 0 || Player.viz-mode == 1 || Player.viz-mode == 7 || Player.viz-mode == 8 || Player.viz-mode == 10;
                 property <length> r: Prefs.viz-blur * 22px;
                 property <bool> soft: Prefs.viz-blur > 0.01;
-                // W bezczynności wizualizacja rośnie do całego okna.
+                // W bezczynności wizualizacja zajmuje całą szerokość okna pod okładką i tytułem –
+                // miejsce list i dolnego paska.
                 property <float> k: parent.amb;
+                property <length> top: hero.absolute-position.y + hero.height - parent.absolute-position.y + 8px;
                 x: self.left * (1 - self.k);
                 width: (content.width - content.padding-left - content.padding-right) * (1 - self.k) + parent.width * self.k;
                 // Zawsze nad paskiem odtwarzania (pasek z falą ma własne miejsce pod spodem).
-                y: 0;
-                height: (body.height - 4px) * (1 - self.k) + parent.height * self.k;
+                y: self.top * self.k;
+                height: (body.height - 4px) * (1 - self.k) + (parent.height - self.top) * self.k;
                 clip: true;
                 for o in (self.soft
                     ? [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0.5, y: 0.87 }, { x: -0.5, y: 0.87 }, { x: 0.5, y: -0.87 }, { x: -0.5, y: -0.87 }]
@@ -146,13 +146,13 @@ export component AppWindow inherits Window {
                     note: "";
                 }
             }
-            // Interfejs znika w bezczynności; całkiem niewidoczny nie przyjmuje kliknięć.
             Rectangle {
-                opacity: 1 - parent.amb;
                 VerticalLayout {
                     body := HorizontalLayout {
                         vertical-stretch: 1;
-                        if Prefs.show-sidebar: Sidebar { }
+                        if Prefs.show-sidebar: Sidebar {
+                            opacity: 1 - stage.amb;
+                        }
                         Rectangle {
                             horizontal-stretch: 1;
                             VerticalLayout {
@@ -179,6 +179,7 @@ export component AppWindow inherits Window {
                                         }
                                         // Uchwyt między podglądem a listą: przeciągnij, podwójne kliknięcie – automatycznie.
                                         Rectangle {
+                                            opacity: 1 - stage.amb;
                                             height: Theme.gap;
                                             // Separator na środku odstępu – tylko na nim (±4 px) zmienia się wysokość,
                                             // nie nad przyciskami listy.
@@ -223,19 +224,25 @@ export component AppWindow inherits Window {
                                             }
                                         }
                                         if Lib.view == 0: PlaylistView {
+                                            opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 1: LibraryView {
+                                            opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 2: RadioView {
+                                            opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 3: StatsView {
+                                            opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                     }
-                                    if Prefs.side-panel > 0: SidePanel { }
+                                    if Prefs.side-panel > 0: SidePanel {
+                                        opacity: 1 - stage.amb;
+                                    }
                                 }
                             }
                         }
@@ -244,7 +251,9 @@ export component AppWindow inherits Window {
                         height: 1px;
                         background: Theme.line;
                     }
-                    BottomBar { }
+                    BottomBar {
+                        opacity: 1 - stage.amb;
+                    }
                 }
             }
             // Kliknięcie gdziekolwiek w oknie kończy tryb bezczynności.
