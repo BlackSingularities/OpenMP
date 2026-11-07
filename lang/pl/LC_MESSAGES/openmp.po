@@ -157,6 +157,10 @@ msgstr "OpenMP jest darmowy. Jeśli ci się przydaje, możesz wesprzeć dalszy r
 msgid "Buy me a coffee"
 msgstr "Postaw kawę"
 
+#: app/ui/dialogs.slint
+msgid "Report a problem or suggest a feature"
+msgstr "Zgłoś błąd lub sugestię"
+
 #: app/ui/dialogs.slint:397
 msgid "No folders."
 msgstr "Brak folderów."

@@ -13,11 +13,12 @@ import { Visualizer } from "display.slint";
 import { StatsView } from "stats.slint";
 import { MenuWindow } from "popup.slint";
 import { DialogWindow } from "dialogwin.slint";
+import { FeedbackWindow } from "feedback.slint";
 import { Welcome } from "welcome.slint";
 import { Player, Lists, Lib, Video, Prefs, Ui } from "state.slint";
 import { StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp } from "types.slint";
 
-export { MenuWindow, DialogWindow, Theme, Player, Lists, Lib, Video, Prefs, Ui, StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
+export { MenuWindow, DialogWindow, FeedbackWindow, Theme, Player, Lists, Lib, Video, Prefs, Ui, StatCard, StatDay, StatTop, TrackRow, NavItem, Tile, MenuEntry, TabItem, LyricLine, Opt, Station, KeyHelp }
 
 export component AppWindow inherits Window {
     title: Player.idle ? "OpenMP" : Player.title + " – OpenMP";

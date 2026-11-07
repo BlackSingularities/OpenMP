@@ -15,6 +15,7 @@ mod columns;
 mod covers;
 mod dialogs;
 mod dialogwin;
+mod feedback;
 mod display;
 mod keys;
 mod libview;
@@ -69,8 +70,9 @@ fn crash_report(app: &mut App) {
     let last = dir.join("crash-last.txt");
     let _ = std::fs::remove_file(&last);
     if std::fs::rename(&fresh, &last).is_ok() {
-        app.toast(tr!("OpenMP closed unexpectedly last time. The report is in {} – you can send it to the author.", last.display()));
-        win::reveal(&last.to_string_lossy());
+        // Okno z pytaniem o wysłanie raportu do redzikowski.com; kopia zostaje w crash-last.txt.
+        let _ = app;
+        feedback::open_crash(std::fs::read_to_string(&last).unwrap_or_default());
     }
 }
 
@@ -87,6 +89,8 @@ fn main() {
             let _ = f.write_all(report.as_bytes());
         }
     }));
+    // Awarie zapisuje hak wyżej; raport proponuje crash_report() przez feedback::open_crash.
+    feedback::install("openmp", "OpenMP", openmp_core::version(), openmp_core::paths::cache(), || openmp_core::i18n::current().starts_with("pl"), false);
     let argv: Vec<String> = std::env::args().skip(1).collect();
     openmp_core::paths::log(&format!("start {} {:?}", openmp_core::version(), argv));
     let add_only = argv.iter().any(|a| a == "--add");
@@ -807,6 +811,10 @@ fn wire(ui: &AppWindow) {
     pr.on_ai_stop(|| later(ai::stop));
     pr.on_ai_forget(|| later(ai::forget));
     pr.on_open_url(|u| {
+        if u == "app:feedback" {
+            feedback::open_form();
+            return;
+        }
         let _ = open::that(u.as_str());
     });
     pr.on_associate(|| {

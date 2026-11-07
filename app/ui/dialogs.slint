@@ -476,6 +476,12 @@ export component AuthorCard inherits Rectangle {
                 clicked => { Prefs.open-url("mailto:kontakt@redzikowski.com"); }
             }
             Btn {
+                text: @tr("Report a problem or suggest a feature");
+                icon: Icons.bug;
+                // Obsługuje Rust (feedback::open_form) – adres nie trafia do przeglądarki.
+                clicked => { Prefs.open-url("app:feedback"); }
+            }
+            Btn {
                 text: @tr("Buy me a coffee");
                 icon: Icons.coffee;
                 primary: true;
