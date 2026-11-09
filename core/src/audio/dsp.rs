@@ -33,7 +33,16 @@ pub struct DspSettings {
     /// Barwa: półki basów (100 Hz) i sopranów (10 kHz) w dB – działają razem z korektorem.
     pub bass: f32,
     pub treble: f32,
+    /// Ulepszanie brzmienia 0..1 (jak „Enhancer” w dużych odtwarzaczach): pełniejszy bas, mniej
+    /// buczenia w dolnym środku, powietrze w górze, harmoniczne w sopranach i szersza scena.
+    pub enhance: f32,
 }
+
+/// Ulepszanie brzmienia przy pełnej sile: półki i zapas przed ogranicznikiem w dB.
+pub const ENH_BASS_DB: f32 = 6.0;
+pub const ENH_MUD_DB: f32 = 2.0;
+pub const ENH_AIR_DB: f32 = 4.5;
+pub const ENH_HEADROOM_DB: f32 = 3.0;
 
 /// Częstotliwości półek barwy i ich zakres w dB.
 pub const BASS_HZ: f32 = 100.0;
@@ -97,6 +106,7 @@ impl Default for DspSettings {
             peq_name: String::new(),
             bass: 0.0,
             treble: 0.0,
+            enhance: 0.5,
         }
     }
 }
@@ -193,6 +203,7 @@ enum Kind {
     Peak,
     LowShelf,
     HighShelf,
+    HighPass,
 }
 
 impl Biquad {
@@ -204,6 +215,7 @@ impl Biquad {
         let alpha = sn / (2.0 * q);
         let (b0, b1, b2, a0, a1, a2) = match kind {
             Kind::Peak => (1.0 + alpha * a, -2.0 * cs, 1.0 - alpha * a, 1.0 + alpha / a, -2.0 * cs, 1.0 - alpha / a),
+            Kind::HighPass => ((1.0 + cs) / 2.0, -(1.0 + cs), (1.0 + cs) / 2.0, 1.0 + alpha, -2.0 * cs, 1.0 - alpha),
             Kind::LowShelf => {
                 let s = 2.0 * a.sqrt() * alpha;
                 (
@@ -265,11 +277,15 @@ pub struct Dsp {
     tone: [(Biquad, bool); 2],
     lim_gain: f32,
     xf: [f32; 2],
+    /// Ulepszanie: półki (bas, dolny środek, powietrze) i dwa górnoprzepustowe exciter-a.
+    enh: [Biquad; 3],
+    exc: [Biquad; 2],
+    enh_pre: f32,
 }
 
 impl Dsp {
     pub fn new(rate: u32) -> Dsp {
-        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pbands: Vec::new(), ppre: 1.0, pre: 1.0, tone: [(Biquad::default(), false); 2], lim_gain: 1.0, xf: [0.0; 2] };
+        let mut d = Dsp { settings: DspSettings::default(), rate: rate as f32, bands: Vec::new(), pbands: Vec::new(), ppre: 1.0, pre: 1.0, tone: [(Biquad::default(), false); 2], lim_gain: 1.0, xf: [0.0; 2], enh: [Biquad::default(); 3], exc: [Biquad::default(); 2], enh_pre: 1.0 };
         d.apply(DspSettings::default());
         d
     }
@@ -316,6 +332,13 @@ impl Dsp {
             bq.set(kind, p.f.clamp(10.0, 22_000.0), p.q.clamp(0.05, 20.0), p.db.clamp(-30.0, 30.0), self.rate);
         }
         self.ppre = 10f32.powf(s.peq_pre.clamp(-30.0, 10.0) / 20.0);
+        let k = s.enhance.clamp(0.0, 1.0);
+        self.enh[0].set(Kind::LowShelf, 90.0, 0.7, ENH_BASS_DB * k, self.rate);
+        self.enh[1].set(Kind::Peak, 350.0, 0.8, -ENH_MUD_DB * k, self.rate);
+        self.enh[2].set(Kind::HighShelf, 9000.0, 0.7, ENH_AIR_DB * k, self.rate);
+        self.exc[0].set(Kind::HighPass, 3000.0, 0.707, 0.0, self.rate);
+        self.exc[1].set(Kind::HighPass, 3000.0, 0.707, 0.0, self.rate);
+        self.enh_pre = 10f32.powf(-ENH_HEADROOM_DB * k / 20.0);
         self.settings = s;
     }
 
@@ -348,6 +371,28 @@ impl Dsp {
                         l = bq.run(0, l);
                         r = bq.run(1, r);
                     }
+                }
+            }
+            let k = s.enhance.clamp(0.0, 1.0);
+            if k > 0.005 {
+                l *= self.enh_pre;
+                r *= self.enh_pre;
+                for bq in self.enh.iter_mut() {
+                    l = bq.run(0, l);
+                    r = bq.run(1, r);
+                }
+                // Exciter: soprany lekko nasycone dają harmoniczne (blask), drugi filtr usuwa
+                // to, co nasycenie zostawiło na dole.
+                let (hl, hr) = (self.exc[0].run(0, l), self.exc[0].run(1, r));
+                let sat = |h: f32| h.abs() * 0.6 + (h * 3.0).tanh() / 3.0 - h;
+                let (el, er) = (self.exc[1].run(0, sat(hl)), self.exc[1].run(1, sat(hr)));
+                l += el * 0.25 * k;
+                r += er * 0.25 * k;
+                if !s.mono {
+                    let m = (l + r) * 0.5;
+                    let sd = (l - r) * 0.5 * (1.0 + 0.25 * k);
+                    l = m + sd;
+                    r = m - sd;
                 }
             }
             if s.mono {

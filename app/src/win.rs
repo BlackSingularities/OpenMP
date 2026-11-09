@@ -192,8 +192,17 @@ pub fn smtc_init(app: &mut App) {
     let ok = c.attach(|e: MediaControlEvent| {
         let _ = slint::invoke_from_event_loop(move || {
             later(move |app| match e {
-                MediaControlEvent::Play => crate::player::set_paused(app, false),
-                MediaControlEvent::Pause => crate::player::set_paused(app, true),
+                // Play z klawiatury także po zatrzymaniu i gdy nic jeszcze nie gra – jak przycisk w oknie.
+                MediaControlEvent::Play => {
+                    if !crate::player::is_playing(app) {
+                        crate::player::play_pause(app);
+                    }
+                }
+                MediaControlEvent::Pause => {
+                    if crate::player::is_playing(app) {
+                        crate::player::set_paused(app, true);
+                    }
+                }
                 MediaControlEvent::Toggle => crate::player::play_pause(app),
                 MediaControlEvent::Next => crate::player::next(app),
                 MediaControlEvent::Previous => crate::player::prev(app),
@@ -242,7 +251,8 @@ pub fn smtc_meta(app: &mut App) {
 
 pub fn smtc_state(app: &mut App) {
     let playing = crate::player::is_playing(app);
-    let has = app.cur.as_ref().is_some_and(|c| c.item != 0);
+    // Zatrzymany utwór na wyświetlaczu to dla Windows pauza – klawisz Play dalej trafia do nas.
+    let has = app.cur.is_some();
     let pos = crate::player::position(app).0;
     let Some(c) = app.smtc.as_mut() else { return };
     let progress = Some(MediaPosition(Duration::from_secs_f64(pos.max(0.0))));

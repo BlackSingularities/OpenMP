@@ -664,9 +664,11 @@ export component PlaylistView inherits Rectangle {
 // Bez własnego tła i obrysu – siatka i lista leżą wprost na tle okna.
 export component LibraryView inherits Rectangle {
     clip: true;
+    // Wąskie okno: suwak wielkości i filtr przechodzą do drugiego rzędu – nic nie jest ucinane.
+    property <bool> narrow: root.width < 1000px;
     VerticalLayout {
         HorizontalLayout {
-            height: 56px;
+            height: root.narrow ? 48px : 56px;
             padding-left: 12px;
             padding-right: 10px;
             spacing: 8px;
@@ -706,11 +708,11 @@ export component LibraryView inherits Rectangle {
                 }
             }
             // Ten sam suwak w każdym widoku biblioteki – także przy kafelkach (gatunki, albumy…).
-            ViewSize {
+            if !root.narrow: ViewSize {
                 y: (parent.height - self.height) / 2;
             }
             // Zbiory (ulubione, historia…): muzyka, filmy albo jedno i drugie.
-            if Lib.kind-filter-shown: Segmented {
+            if !root.narrow && Lib.kind-filter-shown: Segmented {
                 y: (parent.height - self.height) / 2;
                 options: [@tr("All"), @tr("Music"), @tr("Videos")];
                 selected: Lib.kind-filter;
@@ -737,7 +739,7 @@ export component LibraryView inherits Rectangle {
             }
             Field {
                 y: (parent.height - self.height) / 2;
-                width: 200px;
+                width: root.narrow ? 160px : 200px;
                 icon: Icons.search;
                 placeholder: @tr("Search the library");
                 text <=> Lib.search;
@@ -753,6 +755,28 @@ export component LibraryView inherits Rectangle {
                 tip: @tr("Refresh library");
                 enabled: !Lib.scanning;
                 clicked => { Lib.rescan(); }
+            }
+        }
+        if root.narrow: HorizontalLayout {
+            height: 40px;
+            padding-left: 12px;
+            padding-right: 10px;
+            spacing: 8px;
+            ViewSize {
+                y: (parent.height - self.height) / 2;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+            if Lib.kind-filter-shown: Segmented {
+                y: (parent.height - self.height) / 2;
+                small: true;
+                options: [@tr("All"), @tr("Music"), @tr("Videos")];
+                selected: Lib.kind-filter;
+                changed(i) => {
+                    Lib.kind-filter = i;
+                    Lib.kind-filter-changed(i);
+                }
             }
         }
         Divider { }

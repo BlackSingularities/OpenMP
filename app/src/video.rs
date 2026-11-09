@@ -915,6 +915,14 @@ pub fn apply_audio_filters(app: &App) {
     if d.crossfeed {
         f.push("lavfi=[crossfeed]".into());
     }
+    // Ulepszanie brzmienia w przybliżeniu: te same półki co w silniku muzyki.
+    let k = d.enhance.clamp(0.0, 1.0);
+    if k > 0.005 {
+        f.push(format!("lavfi=[volume={:.1}dB]", -openmp_core::audio::dsp::ENH_HEADROOM_DB * k));
+        f.push(format!("lavfi=[lowshelf=f=90:width_type=q:w=0.7:g={:.1}]", openmp_core::audio::dsp::ENH_BASS_DB * k));
+        f.push(format!("lavfi=[equalizer=f=350:width_type=q:w=0.8:g={:.1}]", -openmp_core::audio::dsp::ENH_MUD_DB * k));
+        f.push(format!("lavfi=[highshelf=f=9000:width_type=q:w=0.7:g={:.1}]", openmp_core::audio::dsp::ENH_AIR_DB * k));
+    }
     if d.eq_on {
         let entries: Vec<String> = openmp_core::audio::dsp::BANDS.iter().zip(d.gains.iter()).map(|(f, g)| format!("entry({f},{g:.1})")).collect();
         f.push(format!("lavfi=[firequalizer=gain_entry='{}']", entries.join(";")));

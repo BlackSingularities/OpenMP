@@ -1,5 +1,13 @@
 # Zmiany
 
+## 2.2.0
+
+- Pełniejsze brzmienie: nowe „Ulepszanie brzmienia” w korektorze (domyślnie 50%) – mocniejszy bas, mniej buczenia w dolnym środku, więcej powietrza w sopranach, delikatne harmoniczne i szersza scena stereo. Działa też przy filmach i radiu.
+- Wizualizacja w tle jest mocno przygaszona za listami (lista odtwarzania, utwory, radio, statystyki), więc tekst jest czytelny; za kafelkami zostaje jaśniejsza.
+- Tryb okna: minimalny rozmiar uwzględnia panel nawigacji i panel boczny, a pasek narzędzi biblioteki w wąskim oknie przenosi suwak wielkości i filtr do drugiego rzędu – nic nie jest ucinane.
+- Tryb mini: okładka na stałe po lewej stronie tytułu i wykonawcy.
+- Klawisz Play na klawiaturze wznawia odtwarzanie także po zatrzymaniu i gdy nic jeszcze nie gra; przy aktywnym oknie nie jest już liczony podwójnie.
+
 ## 2.1.0
 
 - Zgłaszanie błędów i sugestii: nowa pozycja „Zgłoś błąd lub sugestię” – opis trafia prosto do autora przez redzikowski.com, e-mail jest opcjonalny.

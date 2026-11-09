@@ -4433,3 +4433,7 @@ msgstr "Wstrzymane"
 
 msgid "  ·  Movie"
 msgstr "  ·  Film"
+
+#: app/ui/dialogs.slint:310
+msgid "Sound enhancer"
+msgstr "Ulepszanie brzmienia"

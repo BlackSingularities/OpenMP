@@ -26,8 +26,9 @@ export component AppWindow inherits Window {
     no-frame: true;
     // Przezroczystość okna = szkło: przez tło prześwituje akryl systemowy.
     background: Ui.mode == 1 ? #000000 : Theme.bg.with-alpha(1 - Theme.glass);
-    min-width: Ui.mode == 2 ? 260px : Ui.mode == 1 ? 320px : 720px;
-    min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 180px : 560px;
+    // Okno: panel nawigacji i panel boczny + kolumna treści, w której mieszczą się wszystkie narzędzia.
+    min-width: Ui.mode == 2 ? 300px : Ui.mode == 1 ? 320px : (Prefs.show-sidebar ? Prefs.sidebar-width * 1px : 0px) + (Prefs.side-panel > 0 ? 300px : 0px) + 700px;
+    min-height: Ui.mode == 2 ? 120px : Ui.mode == 1 ? 180px : 600px;
     preferred-width: 1180px;
     preferred-height: 780px;
     default-font-family: Theme.font;
@@ -138,6 +139,9 @@ export component AppWindow inherits Window {
                 // W bezczynności wizualizacja zajmuje całą szerokość okna pod okładką i tytułem –
                 // miejsce list i dolnego paska.
                 property <float> k: parent.amb;
+                // Za wierszami listy (lista odtwarzania, utwory, radio, statystyki) mocno przygaszona,
+                // żeby tekst był czytelny; za kafelkami jaśniejsza.
+                property <float> base: Lib.view == 1 && Lib.show-tiles && Prefs.track-grid ? 0.32 : 0.12;
                 property <length> top: hero.absolute-position.y + hero.height - parent.absolute-position.y + 8px;
                 x: self.left * (1 - self.k);
                 width: (content.width - content.padding-left - content.padding-right) * (1 - self.k) + parent.width * self.k;
@@ -152,7 +156,7 @@ export component AppWindow inherits Window {
                     x: (parent.width - self.width) / 2 + o.x * parent.r;
                     height: parent.height * (parent.floor ? 0.6 : 0.76);
                     y: (parent.floor ? parent.height - self.height : (parent.height - self.height) / 2) + o.y * parent.r;
-                    opacity: (parent.soft ? 2.4 / 7 : 1) * (0.32 + 0.6 * parent.k);
+                    opacity: (parent.soft ? 2.4 / 7 : 1) * (parent.base + (0.92 - parent.base) * parent.k);
                     overlay: true;
                     mode: Player.viz-mode;
                     bars: Player.bars;

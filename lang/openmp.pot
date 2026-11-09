@@ -3846,3 +3846,7 @@ msgstr ""
 msgctxt "decimal separator"
 msgid "."
 msgstr ""
+
+#: app/ui/dialogs.slint:310
+msgid "Sound enhancer"
+msgstr ""

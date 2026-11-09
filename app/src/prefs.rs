@@ -142,6 +142,7 @@ pub fn publish(app: &mut App) {
     p.set_treble(s.dsp.treble);
     p.set_balance(s.dsp.balance);
     p.set_width(s.dsp.width);
+    p.set_enhance(s.dsp.enhance);
     p.set_mono(s.dsp.mono);
     p.set_swap(s.dsp.swap);
     p.set_crossfeed(s.dsp.crossfeed);
@@ -461,6 +462,7 @@ pub fn changed(app: &mut App, key: &str) {
             }
             d.balance = p.get_balance();
             d.width = p.get_width();
+            d.enhance = (p.get_enhance() * 100.0).round() / 100.0;
             d.mono = p.get_mono();
             d.swap = p.get_swap();
             d.crossfeed = p.get_crossfeed();

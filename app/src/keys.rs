@@ -384,7 +384,9 @@ pub fn key(app: &mut App, text: &str, ctrl: bool, shift: bool, alt: bool) {
         return;
     }
     match c {
-        ' ' | MEDIA_PLAY => crate::player::play_pause(app),
+        ' ' => crate::player::play_pause(app),
+        // Z panelem multimediów Windows klawisz przychodzi stamtąd – drugi raz by pauzę cofnął.
+        MEDIA_PLAY if app.smtc.is_none() => crate::player::play_pause(app),
         LEFT => crate::player::seek_rel(app, if shift { -1.0 } else { -step }),
         RIGHT => crate::player::seek_rel(app, if shift { 1.0 } else { step }),
         UP if video => crate::player::set_volume(app, app.s.volume + 0.05),

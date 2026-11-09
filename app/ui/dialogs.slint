@@ -307,6 +307,24 @@ export component EqualizerDialog inherits Dialog {
                     }
                 }
                 SettingRow {
+                    title: @tr("Sound enhancer");
+                    hint: Prefs.enhance > 0.005 ? round(Prefs.enhance * 100) + "%" : @tr("short" => "Off");
+                    HSlider {
+                        width: 150px;
+                        minimum: 0;
+                        maximum: 1;
+                        value: Prefs.enhance;
+                        moved(v) => {
+                            Prefs.enhance = v;
+                            Prefs.changed("width");
+                        }
+                        reset => {
+                            Prefs.enhance = 0.5;
+                            Prefs.changed("width");
+                        }
+                    }
+                }
+                SettingRow {
                     title: @tr("Stereo width");
                     hint: round(Prefs.width * 100) + "%";
                     HSlider {
