@@ -183,6 +183,8 @@ export component AppWindow inherits Window {
                             horizontal-stretch: 1;
                             VerticalLayout {
                                 TitleBar {
+                                    // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                    min-width: 0px;
                                     show-brand: !Prefs.show-sidebar;
                                     subtitle: "";
                                 }
@@ -199,6 +201,8 @@ export component AppWindow inherits Window {
                                         property <length> max-h: max(110px, root.height - 380px);
                                         property <length> drag-h: -1px;
                                         hero := Hero {
+                                            // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                            min-width: 0px;
                                             avail: root.width;
                                             opacity: stage.amb-out;
                                             height: drag-h >= 0 ? drag-h : Prefs.hero-h > 0 ? clamp(Prefs.hero-h * 1px, 110px, max-h) : auto-h;
@@ -251,18 +255,26 @@ export component AppWindow inherits Window {
                                             }
                                         }
                                         if Lib.view == 0: PlaylistView {
+                                            // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                            min-width: 0px;
                                             opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 1: LibraryView {
+                                            // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                            min-width: 0px;
                                             opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 2: RadioView {
+                                            // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                            min-width: 0px;
                                             opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }
                                         if Lib.view == 3: StatsView {
+                                            // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
+                                            min-width: 0px;
                                             opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }

@@ -814,7 +814,9 @@ fn ambient_check(app: &App, ui: &AppWindow, mode: i32, now: Instant) {
         return;
     }
     let u = ui.global::<Ui>();
+    // Tylko w oknie zmaksymalizowanym albo na pełnym ekranie – w zwykłym oknie nie przejmuje widoku.
     let possible = mode == 0
+        && (u.get_maximized() || u.get_fullscreen())
         && app.s.viz_place == 1
         && app.s.viz != 4
         && ui.global::<Player>().get_playing()

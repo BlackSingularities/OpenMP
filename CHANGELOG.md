@@ -1,5 +1,10 @@
 # Zmiany
 
+## 2.2.1
+
+- Tryb okna: treść nie wychodzi już za prawą krawędź – przyciski minimalizacji, maksymalizacji, zamknięcia i przypinania są znów widoczne i działają, a pasek narzędzi biblioteki w węższym oknie przechodzi na dwa rzędy.
+- Pełnoekranowa wizualizacja bezczynności włącza się tylko w oknie zmaksymalizowanym albo na pełnym ekranie.
+
 ## 2.2.0
 
 - Pełniejsze brzmienie: nowe „Ulepszanie brzmienia” w korektorze (domyślnie 50%) – mocniejszy bas, mniej buczenia w dolnym środku, więcej powietrza w sopranach, delikatne harmoniczne i szersza scena stereo. Działa też przy filmach i radiu.
