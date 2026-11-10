@@ -665,7 +665,9 @@ export component PlaylistView inherits Rectangle {
 export component LibraryView inherits Rectangle {
     clip: true;
     // Wąskie okno: suwak wielkości i filtr przechodzą do drugiego rzędu – nic nie jest ucinane.
-    property <bool> narrow: root.width < 1000px;
+    // Szerokość z okna (nie z root.width) – inaczej pętla wiązań: narrow zmienia układ, układ zmienia szerokość.
+    in property <length> avail: 1200px;
+    property <bool> narrow: avail < 1000px;
     VerticalLayout {
         HorizontalLayout {
             height: root.narrow ? 48px : 56px;

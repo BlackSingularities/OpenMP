@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.2.2
+
+- Wydanie zawierające zmiany z 2.2.0 i 2.2.1 – poprzednie dwie wersje nie zbudowały się i nie trafiły do aktualizacji.
+
 ## 2.2.1
 
 - Tryb okna: treść nie wychodzi już za prawą krawędź – przyciski minimalizacji, maksymalizacji, zamknięcia i przypinania są znów widoczne i działają, a pasek narzędzi biblioteki w węższym oknie przechodzi na dwa rzędy.

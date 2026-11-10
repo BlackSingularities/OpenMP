@@ -263,6 +263,7 @@ export component AppWindow inherits Window {
                                         if Lib.view == 1: LibraryView {
                                             // Szerokość z okna, nie z zawartości – inaczej treść wychodzi za prawą krawędź razem z przyciskami okna.
                                             min-width: 0px;
+                                            avail: root.width - (Prefs.show-sidebar ? Prefs.sidebar-width * 1px : 0px) - 30px;
                                             opacity: 1 - stage.amb;
                                             vertical-stretch: 1;
                                         }

@@ -15,14 +15,6 @@ import { Player, Video, Ui, Prefs, Lists } from "state.slint";
 import { Opt } from "types.slint";
 import { GlassFill } from "glass.slint";
 
-component Pill inherits Rectangle {
-    background: #0c0e12d9;
-    border-radius: Theme.radius-lg;
-    border-width: 1px;
-    border-color: Theme.scope >= 1 ? Theme.tint.with-alpha(0.22) : #ffffff14;
-    drop-shadow-blur: 24px;
-    drop-shadow-color: #00000080;
-}
 
 // Barwy panelu: w szerokim widoku z motywu, na obrazie – jasne.
 global VInk {
