@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.2.3
+
+- Tryb bezczynności: śpiewana linia tekstu jest tuż pod okładką, a nie przy dolnej krawędzi okna.
+
 ## 2.2.2
 
 - Wydanie zawierające zmiany z 2.2.0 i 2.2.1 – poprzednie dwie wersje nie zbudowały się i nie trafiły do aktualizacji.

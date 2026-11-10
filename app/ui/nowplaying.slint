@@ -330,9 +330,9 @@ export component NowInfo inherits VerticalLayout {
 // Tekst piosenki obok opisu utworu: wiersz po wierszu przy znacznikach czasu,
 // bez nich – przewijany ręcznie kółkiem myszy.
 export component HeroLyrics inherits Rectangle {
-    // Tryb bezczynności: wyśrodkowany tekst, bieżąca linia niżej, wyższe linie zanikają.
+    // Tryb bezczynności: wyśrodkowany tekst, bieżąca linia tuż pod okładką, wyższe linie zanikają.
     in property <bool> ambient;
-    property <float> anchor: root.ambient ? 0.62 : 0.5;
+    property <float> anchor: root.ambient ? 0.22 : 0.5;
     clip: true;
     lyr := Flickable {
         property <length> line-h: LyricStyle.line-h;
@@ -346,7 +346,7 @@ export component HeroLyrics inherits Rectangle {
             for l[i] in Player.lyrics: row := Rectangle {
                 height: max(lyr.line-h, lt.preferred-height + 6px);
                 property <bool> on: l.active;
-                opacity: root.ambient ? clamp((self.y + lyr.content-y) / (lyr.height * 0.4), 0, 1) : 1;
+                opacity: root.ambient ? clamp((self.y + lyr.content-y) / (lyr.height * 0.16), 0, 1) : 1;
                 // Kolumna zmienia wysokość w trybie bezczynności – bieżąca linia zostaje na środku.
                 property <length> view-h: lyr.height;
                 changed view-h => {
