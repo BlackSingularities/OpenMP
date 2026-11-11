@@ -1,5 +1,13 @@
 # OpenMP
 
+<!-- posters:start -->
+<p align="center">
+  <img src="docs/posters/windows.png" alt="OpenMP – Windows" width="460">
+</p>
+
+<p align="center"><a href="https://redzikowski.com/portfolio/openmp">redzikowski.com/portfolio/openmp</a></p>
+<!-- posters:end -->
+
 Odtwarzacz muzyki i wideo dla Windows 10 i 11. Natywny program w Rust ze Slint: szybki start, jeden lekki plik i własny silnik dźwięku.
 
 ## Muzyka

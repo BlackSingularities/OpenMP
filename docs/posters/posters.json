@@ -1,0 +1,22 @@
+{
+  "slug": "openmp",
+  "name": "OpenMP",
+  "label": "odtwarzacz muzyki i wideo",
+  "icon": "icon.png",
+  "url": "https://redzikowski.com/portfolio/openmp",
+  "posters": [
+    {
+      "platform": "windows",
+      "file": "windows.png",
+      "title": "Muzyka w kolorach *okładki*",
+      "lead": "Duża okładka z wizualizacją, tekst przewijany razem z utworem i taśma z falą całego nagrania. Akcent interfejsu płynie z okładki.",
+      "shots": [
+        { "src": "../screenshots/windows/01-teraz.png", "caption": "Teraz odtwarzane" },
+        { "src": "../screenshots/windows/02-tekst.png", "caption": "Tekst w rytm utworu" },
+        { "src": "../screenshots/windows/03-lista.png", "caption": "Listy pogrupowane w albumy" }
+      ],
+      "features": ["wizualizacja na okładce", "korektor 18-pasmowy", "przejścia bez przerw", "teksty z LRCLIB", "wideo z libmpv", "radio internetowe"],
+      "meta": "Windows 10 i 11"
+    }
+  ]
+}
