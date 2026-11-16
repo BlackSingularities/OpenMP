@@ -5,6 +5,7 @@
 - Nowe ustawienie „Po uruchomieniu”: nic, ostatni utwór wstrzymany albo od razu odtwarzany – od miejsca, w którym skończyłeś. Utwór odnajduje się też po zmianie kolejności listy.
 - Ustawienia, listy, statystyki i to, co grało, zapisują się przy wyłączaniu, restarcie i wylogowaniu z Windows oraz co 30 sekund – nic nie ginie po awarii czy zabiciu procesu.
 - Uszkodzony plik danych nie kasuje już ustawień: program wczytuje poprzednią kopię (`.prev`).
+- Okładki wszędzie najpierw z pliku i folderu, dopiero potem z sieci – a pobrane są zapamiętywane. Film na wyświetlaczu dostaje ten sam obraz co na liście (obraz obok pliku, plakat, klatka), a ikony stacji radiowych zapisują się na dysku zamiast pobierać przy każdym włączeniu.
 - Przejście w tryb bezczynności trwa 3 sekundy zamiast minuty, a na pełnoekranowej wizualizacji widać czas odtwarzania.
 
 ## 2.2.3

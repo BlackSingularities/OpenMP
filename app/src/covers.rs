@@ -137,6 +137,26 @@ fn local_source(path: &str) -> Option<Vec<u8>> {
     }
 }
 
+/// Ikona stacji radiowej: z pamięci podręcznej, a gdy jej nie ma – z sieci i zapisana na dysk.
+pub fn station_icon(url: &str) -> Option<Vec<u8>> {
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    std::hash::Hash::hash(url, &mut h);
+    let dir = openmp_core::paths::cache().join("station-icons");
+    let file = dir.join(format!("{:016x}", std::hash::Hasher::finish(&h)));
+    if let Ok(b) = std::fs::read(&file) {
+        return (!b.is_empty()).then_some(b);
+    }
+    let r = ureq::get(url).timeout(std::time::Duration::from_secs(6)).call().ok()?;
+    let mut b = Vec::new();
+    std::io::Read::read_to_end(&mut std::io::Read::take(r.into_reader(), 4 << 20), &mut b).ok()?;
+    if image::load_from_memory(&b).is_err() {
+        return None;
+    }
+    let _ = std::fs::create_dir_all(&dir);
+    openmp_core::paths::write_atomic(&file, &b);
+    Some(b)
+}
+
 /// Bez okładki w pliku i folderze – z sieci, wg wykonawcy i albumu z tagów.
 fn net_source(path: &str) -> Option<Vec<u8>> {
     let p = Path::new(path);
