@@ -110,6 +110,8 @@ pub struct Settings {
     /// 0 – bez powtarzania, 1 – lista, 2 – utwór.
     pub repeat: i32,
     pub resume_on_start: bool,
+    /// Po uruchomieniu: 0 – nic, 1 – ostatni utwór wstrzymany, 2 – wznowienie odtwarzania.
+    pub start_mode: i32,
     pub follow_playing: bool,
     pub seek_step: f64,
     // Wideo
@@ -301,6 +303,7 @@ impl Default for Settings {
             shuffle: false,
             repeat: 0,
             resume_on_start: true,
+            start_mode: -1,
             follow_playing: true,
             seek_step: 5.0,
             hero_h: 0.0,
@@ -394,6 +397,11 @@ impl Settings {
             s.hwdec_mode = 0;
         }
         s.hwdec = s.hwdec_mode != 0;
+        // Do 2.2.3 był tylko przełącznik „Wznów po uruchomieniu” (wstrzymany).
+        if s.start_mode < 0 {
+            s.start_mode = if s.resume_on_start { 1 } else { 0 };
+        }
+        s.start_mode = s.start_mode.clamp(0, 2);
         s
     }
     pub fn save(&self) {

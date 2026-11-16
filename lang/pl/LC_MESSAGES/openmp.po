@@ -4437,3 +4437,12 @@ msgstr "  ·  Film"
 #: app/ui/dialogs.slint:310
 msgid "Sound enhancer"
 msgstr "Ulepszanie brzmienia"
+
+msgid "On startup"
+msgstr "Po uruchomieniu"
+
+msgid "What to do with the last track, from where you left off"
+msgstr "Co zrobić z ostatnim utworem – od miejsca, w którym skończyłeś"
+
+msgid "Nothing"
+msgstr "Nic"

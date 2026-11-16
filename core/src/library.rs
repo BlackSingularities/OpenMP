@@ -125,7 +125,7 @@ fn file() -> PathBuf {
 
 impl Library {
     pub fn load() -> Library {
-        crate::paths::read_sealed(&file()).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+        crate::paths::load_from(&file())
     }
     pub fn save(&self) {
         crate::paths::write_sealed(&file(), &serde_json::to_vec(self).unwrap_or_default());

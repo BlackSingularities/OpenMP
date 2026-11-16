@@ -395,8 +395,17 @@ unsafe extern "system" fn thumb_proc(
     _data: usize,
 ) -> windows::Win32::Foundation::LRESULT {
     use windows::Win32::UI::Shell::{DefSubclassProc, THBN_CLICKED};
-    use windows::Win32::UI::WindowsAndMessaging::WM_COMMAND;
-    if msg == WM_COMMAND && ((wparam.0 >> 16) & 0xffff) as u32 == THBN_CLICKED {
+    use windows::Win32::UI::WindowsAndMessaging::{WM_COMMAND, WM_ENDSESSION, WM_QUERYENDSESSION};
+    // Wylogowanie, restart albo wyłączenie Windows: system zabije proces bez zamykania okna,
+    // więc zapisujemy ustawienia, listy, statystyki i to, co grało, od razu.
+    if msg == WM_QUERYENDSESSION || (msg == WM_ENDSESSION && wparam.0 != 0) {
+        openmp_core::paths::log("koniec sesji Windows – zapis stanu");
+        crate::app::with(|app| {
+            crate::player::save_resume(app);
+            crate::keys::save_all(app);
+        });
+    }
+    if msg == WM_COMMAND &&((wparam.0 >> 16) & 0xffff) as u32 == THBN_CLICKED {
         match (wparam.0 & 0xffff) as u32 {
             THUMB_PREV => later(crate::player::prev),
             THUMB_PLAY => later(crate::player::play_pause),

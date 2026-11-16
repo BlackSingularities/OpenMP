@@ -147,7 +147,7 @@ pub fn publish(app: &mut App) {
     p.set_swap(s.dsp.swap);
     p.set_crossfeed(s.dsp.crossfeed);
     p.set_limiter(s.dsp.limiter);
-    p.set_resume_on_start(s.resume_on_start);
+    p.set_start_mode(s.start_mode);
     p.set_follow_playing(s.follow_playing);
     p.set_seek_step(s.seek_step as f32);
     p.set_hero_h(s.hero_h);
@@ -480,7 +480,7 @@ pub fn changed(app: &mut App, key: &str) {
                 m.set("audio-device", "auto");
             }
         }
-        "resume-on-start" => app.s.resume_on_start = p.get_resume_on_start(),
+        "start-mode" => app.s.start_mode = p.get_start_mode(),
         "follow-playing" => app.s.follow_playing = p.get_follow_playing(),
         "seek-step" => app.s.seek_step = p.get_seek_step().round() as f64,
         "hero-h" => app.s.hero_h = p.get_hero_h().max(0.0),

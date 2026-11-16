@@ -73,7 +73,7 @@ fn all_props() -> Vec<Box<dyn SyncProp>> {
         accent, accent_from_cover, languages, language, audio_lang, author_line, auto_eq, autohide_ms, balance, check_updates,
         crossfade, crossfeed, dark, deinterlace, device, devices, eq, eq_on, folders, follow_playing,
         group_albums, keys, limiter, media_keys, global_hotkeys, mono, mpv_info, mpv_ok, online_lyrics, preamp,
-        lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, resume_on_start, rg_preamp,
+        lb_token, online_covers, preset, presets, prevent_sleep, remaining, replaygain, resample_quality, exclusive, start_mode, rg_preamp,
         screenshot_dir, scroll_title, seek_step, show_sidebar, show_waveform, single_instance,
         soft_pause, speed, sub_lang, sub_size, swap, version, video_folders, video_resume,
         viz_bands, viz_sensitivity, viz_color, viz_dim, viz_blur, viz_fps, viz_speed, viz_place, wave_style, width, enhance,

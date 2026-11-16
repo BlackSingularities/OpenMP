@@ -15,16 +15,55 @@ pub fn cache() -> PathBuf {
     d
 }
 
+/// Pliki, których nie dało się odczytać przy starcie – ich kopii `.prev` nie wolno nadpisać,
+/// bo to ostatnia dobra wersja danych.
+static BROKEN: std::sync::Mutex<Vec<PathBuf>> = std::sync::Mutex::new(Vec::new());
+
+fn is_broken(path: &Path) -> bool {
+    BROKEN.lock().map(|b| b.iter().any(|p| p == path)).unwrap_or(false)
+}
+
 /// Zapis przez plik tymczasowy – awaria w trakcie nie zostawi uciętego JSON-a.
+/// Poprzednia wersja zostaje jako `.prev` – zapasowa kopia na wypadek uszkodzenia pliku.
 pub fn write_atomic(path: &Path, bytes: &[u8]) {
     let tmp = path.with_extension("tmp");
-    if std::fs::write(&tmp, bytes).is_ok() {
-        let _ = std::fs::rename(&tmp, path);
+    if std::fs::write(&tmp, bytes).is_err() {
+        log(&format!("nie udało się zapisać {}", tmp.display()));
+        return;
     }
+    if path.exists() && !is_broken(path) {
+        let _ = std::fs::copy(path, path.with_extension("prev"));
+    }
+    // Plik bywa chwilowo zablokowany (antywirus, indeksowanie, OneDrive) – kilka prób.
+    for i in 0..5 {
+        if std::fs::rename(&tmp, path).is_ok() {
+            return;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(40 * (i + 1)));
+    }
+    log(&format!("nie udało się podmienić {}", path.display()));
+}
+
+/// Odczyt pliku danych jako `T`. Gdy plik jest uszkodzony albo nie pasuje do formatu,
+/// próbuje kopii `.prev`; dopiero gdy i ta zawiedzie – wartości domyślne.
+pub fn load_from<T: serde::de::DeserializeOwned + Default>(path: &Path) -> T {
+    let parse = |p: &Path| read_sealed(p).and_then(|b| serde_json::from_slice::<T>(&b).ok());
+    if let Some(v) = parse(path) {
+        return v;
+    }
+    if !path.exists() {
+        return T::default();
+    }
+    log(&format!("uszkodzony plik {} – próba kopii zapasowej", path.display()));
+    if let Ok(mut b) = BROKEN.lock() {
+        b.push(path.to_path_buf());
+    }
+    let _ = std::fs::copy(path, path.with_extension("bad"));
+    parse(&path.with_extension("prev")).unwrap_or_default()
 }
 
 pub fn load_json<T: serde::de::DeserializeOwned + Default>(name: &str) -> T {
-    read_sealed(&data().join(name)).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+    load_from(&data().join(name))
 }
 
 pub fn save_json<T: serde::Serialize>(name: &str, v: &T) {

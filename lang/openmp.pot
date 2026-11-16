@@ -3850,3 +3850,12 @@ msgstr ""
 #: app/ui/dialogs.slint:310
 msgid "Sound enhancer"
 msgstr ""
+
+msgid "On startup"
+msgstr ""
+
+msgid "What to do with the last track, from where you left off"
+msgstr ""
+
+msgid "Nothing"
+msgstr ""

@@ -1,5 +1,12 @@
 # Zmiany
 
+## 2.3.0
+
+- Nowe ustawienie „Po uruchomieniu”: nic, ostatni utwór wstrzymany albo od razu odtwarzany – od miejsca, w którym skończyłeś. Utwór odnajduje się też po zmianie kolejności listy.
+- Ustawienia, listy, statystyki i to, co grało, zapisują się przy wyłączaniu, restarcie i wylogowaniu z Windows oraz co 30 sekund – nic nie ginie po awarii czy zabiciu procesu.
+- Uszkodzony plik danych nie kasuje już ustawień: program wczytuje poprzednią kopię (`.prev`).
+- Przejście w tryb bezczynności trwa 3 sekundy zamiast minuty, a na pełnoekranowej wizualizacji widać czas odtwarzania.
+
 ## 2.2.3
 
 - Tryb bezczynności: śpiewana linia tekstu jest tuż pod okładką, a nie przy dolnej krawędzi okna.

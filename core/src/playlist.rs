@@ -37,7 +37,7 @@ fn file() -> PathBuf {
 
 impl Store {
     pub fn load() -> Store {
-        let mut s: Store = crate::paths::read_sealed(&file()).and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+        let mut s: Store = crate::paths::load_from(&file());
         if s.lists.is_empty() {
             s.lists.push(Playlist { id: 1, name: "Kolejka".into(), ..Default::default() });
         }

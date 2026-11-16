@@ -279,7 +279,7 @@ fn main() {
     with(|app| {
         if !files.is_empty() {
             player::open_paths(app, files.clone(), !add_only, None);
-        } else if app.s.resume_on_start {
+        } else if app.s.start_mode > 0 {
             restore(app);
         }
         if app.s.single_instance {
@@ -375,12 +375,12 @@ fn main() {
                     app.last_smtc = Instant::now();
                     win::smtc_state(app);
                 }
-                if app.dirty && app.last_save.elapsed() > Duration::from_secs(8) {
+                // Zmiany – po 8 s; a i bez nich co 30 s stan sesji (co gra, pozycja, okno),
+                // żeby po zabiciu procesu, awarii czy zaniku prądu nic nie przepadło.
+                let since = app.last_save.elapsed();
+                if (app.dirty && since > Duration::from_secs(8)) || since > Duration::from_secs(30) {
                     app.last_save = Instant::now();
-                    app.store.save();
-                    app.stats.save();
-                    app.s.save();
-                    app.dirty = false;
+                    keys::save_all(app);
                 }
             }
         });
@@ -407,17 +407,25 @@ fn restore(app: &mut App) {
         return;
     }
     let Some(li) = app.list_index(s.list_id) else { return };
-    let Some(t) = app.store.lists[li].items.get(s.idx).cloned() else { return };
-    if t.path != s.path || openmp_core::meta::is_url(&t.path) || openmp_core::meta::is_video(std::path::Path::new(&t.path)) {
+    let items = &app.store.lists[li].items;
+    // Lista mogła się zmienić (sortowanie, usunięcie) – szukamy utworu po ścieżce.
+    let idx = if items.get(s.idx).is_some_and(|t| t.path == s.path) {
+        s.idx
+    } else {
+        let Some(i) = items.iter().position(|t| t.path == s.path) else { return };
+        i
+    };
+    let path = items[idx].path.clone();
+    if openmp_core::meta::is_url(&path) || openmp_core::meta::is_video(std::path::Path::new(&path)) {
         return;
     }
-    if !std::path::Path::new(&t.path).exists() {
+    if !std::path::Path::new(&path).exists() {
         return;
     }
     app.store.active = li;
     lists::rebuild(app);
-    app.pause_after_load = true;
-    player::play(app, s.list_id, s.idx, Some(s.pos));
+    app.pause_after_load = app.s.start_mode != 2;
+    player::play(app, s.list_id, idx, Some(s.pos));
 }
 
 fn drop_files(path: String) {

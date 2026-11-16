@@ -1186,11 +1186,14 @@ export component SettingsDialog inherits Dialog {
                 SectionTitle {
                     text: @tr("GENERAL");
                 }
-                SettingSwitch {
-                    title: @tr("Resume on startup");
-                    hint: @tr("The last track from where you left off");
-                    checked <=> Prefs.resume-on-start;
-                    toggled => { Prefs.changed("resume-on-start"); }
+                SettingRow {
+                    title: @tr("On startup");
+                    hint: @tr("What to do with the last track, from where you left off");
+                    Segmented {
+                        options: [@tr("Nothing"), @tr("Paused"), @tr("Play")];
+                        selected <=> Prefs.start-mode;
+                        changed => { Prefs.changed("start-mode"); }
+                    }
                 }
                 SettingSwitch {
                     title: @tr("Follow the playing track");
