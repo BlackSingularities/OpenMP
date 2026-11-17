@@ -1527,39 +1527,51 @@ export component MiniView inherits Rectangle {
                 Rectangle {
                     width: 8px;
                 }
-                SeekBar {
-                    y: (parent.height - self.height) / 2;
+                // Nad paskiem: czas od startu po lewej, koniec (albo pozostały) po prawej –
+                // pasek ma całą szerokość i nie zmienia jej w trakcie odtwarzania.
+                VerticalLayout {
                     horizontal-stretch: 1;
-                    wave-height: 32px;
-                    value: Player.duration > 0 ? Player.pos / Player.duration : 0;
-                    duration: Player.duration;
-                    wave: Player.wave;
-                    wave2: Player.wave2;
-                    wave2-kind: Player.wave2-kind;
-                    wave-live: Player.wave-live;
-                    live-span: Player.live-span;
-                    show-wave: Prefs.show-waveform;
-                    ab-a: Player.ab-a;
-                    ab-b: Player.ab-b;
-                    seek(v) => { Player.seek(v); }
-                }
-                Rectangle {
-                    width: 12px;
-                }
-                // Stała szerokość – zmieniające się cyfry czasu nie poszerzają ani nie zwężają paska.
-                Text {
-                    width: Player.duration >= 3600 ? 62px : 48px;
-                    text: Prefs.remaining && Player.duration > 0 ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.pos);
-                    color: Theme.text2;
-                    font-size: Theme.fs-sm;
-                    vertical-alignment: center;
-                    horizontal-alignment: right;
-                    TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => {
-                            Prefs.remaining = !Prefs.remaining;
-                            Prefs.changed("remaining");
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        height: 14px;
+                        Text {
+                            text: Fmt.time(Player.pos);
+                            color: Theme.text2;
+                            font-size: Theme.fs-xs;
+                            vertical-alignment: center;
                         }
+                        Rectangle {
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: Player.duration <= 0 ? "" : Prefs.remaining ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.duration);
+                            color: Theme.text2;
+                            font-size: Theme.fs-xs;
+                            vertical-alignment: center;
+                            horizontal-alignment: right;
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    Prefs.remaining = !Prefs.remaining;
+                                    Prefs.changed("remaining");
+                                }
+                            }
+                        }
+                    }
+                    SeekBar {
+                        wave-height: 26px;
+                        value: Player.duration > 0 ? Player.pos / Player.duration : 0;
+                        duration: Player.duration;
+                        wave: Player.wave;
+                        wave2: Player.wave2;
+                        wave2-kind: Player.wave2-kind;
+                        wave-live: Player.wave-live;
+                        live-span: Player.live-span;
+                        show-wave: Prefs.show-waveform;
+                        ab-a: Player.ab-a;
+                        ab-b: Player.ab-b;
+                        seek(v) => { Player.seek(v); }
                     }
                 }
             }

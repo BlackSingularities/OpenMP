@@ -1,5 +1,9 @@
 # Zmiany
 
+## 2.3.2
+
+- Mini odtwarzacz: czas od startu i czas zakończenia (albo pozostały – kliknij) są nad paskiem odtwarzania, po jego dwóch stronach; pasek zajmuje całą szerokość.
+
 ## 2.3.1
 
 - Mini odtwarzacz: pasek postępu nie zmienia już szerokości w trakcie odtwarzania – czas obok ma stałe miejsce.
