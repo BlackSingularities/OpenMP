@@ -322,6 +322,33 @@ pub fn scroll_to_current(app: &mut App) {
     }
 }
 
+/// Pokazuje grający utwór na jego liście: przełącza kartę (albo zdejmuje filtr, który go
+/// ukrywa), zaznacza go i przewija do niego.
+pub fn reveal_current(app: &mut App, list: u64) {
+    let Some(i) = app.list_index(list) else { return };
+    if i != app.store.active {
+        switch_tab(app, i);
+    } else if app.cur.as_ref().is_some_and(|c| !app.row_of.contains_key(&c.idx)) && !app.filter.is_empty() {
+        app.filter.clear();
+        if let Some(ui) = app.ui() {
+            ui.global::<Lists>().set_filter(ss(""));
+        }
+        rebuild(app);
+    }
+    if let Some(ui) = app.ui() {
+        let l = ui.global::<Lib>();
+        l.set_view(0);
+        l.set_nav_selected(ss(format!("list:{list}")));
+    }
+    if let Some(idx) = app.cur.as_ref().map(|c| c.idx) {
+        app.sel.clear();
+        app.sel.insert(idx);
+        app.anchor = Some(idx);
+        refresh_selection(app);
+    }
+    scroll_to_current(app);
+}
+
 pub fn select_click(app: &mut App, idx: usize, ctrl: bool, shift: bool) {
     if shift {
         let a = app.anchor.unwrap_or(idx);

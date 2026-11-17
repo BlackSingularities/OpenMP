@@ -593,17 +593,14 @@ fn wire(ui: &AppWindow) {
             lists::rebuild(app);
         }
     }));
+    // Klik w tytuł grającego utworu: lista, z której gra, i ten utwór na niej – zaznaczony
+    // i przewinięty do widoku (radio – widok radia).
     p.on_show_current(|| later(|app| {
-        if let Some(l) = app.cur.as_ref().and_then(|c| c.list) {
-            if let Some(i) = app.list_index(l) {
-                if i != app.store.active {
-                    lists::switch_tab(app, i);
-                }
-                if let Some(ui) = app.ui() {
-                    ui.global::<Lib>().set_view(0);
-                }
-                lists::scroll_to_current(app);
-            }
+        let Some(c) = app.cur.clone() else { return };
+        if let Some(l) = c.list {
+            lists::reveal_current(app, l);
+        } else if c.station.is_some() {
+            libview::nav_clicked(app, "radio");
         }
     }));
     p.on_open_cover(|| later(|app| {
