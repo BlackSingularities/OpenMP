@@ -3006,6 +3006,10 @@ msgstr "Edytuj tagi…"
 msgid "Show in Explorer"
 msgstr "Pokaż w Eksploratorze"
 
+#: app/src/libview.rs app/src/lists.rs
+msgid "Go to folder"
+msgstr "Przejdź do folderu"
+
 #: app/src/libview.rs:1098
 msgid "Forget the resume position"
 msgstr "Zapomnij miejsce wznowienia"

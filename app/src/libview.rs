@@ -224,6 +224,15 @@ pub fn nav_clicked(app: &mut App, id: &str) {
     show(app);
 }
 
+/// „Przejdź do folderu”: w bibliotece zostaje tylko folder, w którym leży plik.
+pub fn go_to_folder(app: &mut App, path: &str) {
+    if openmp_core::meta::is_url(path) {
+        return;
+    }
+    let Some(dir) = std::path::Path::new(path).parent().map(|d| d.to_string_lossy().to_string()) else { return };
+    nav_clicked(app, &format!("root:{dir}"));
+}
+
 pub fn nav_menu(app: &mut App, id: &str, x: f32, y: f32) {
     if let Some(lid) = id.strip_prefix("list:").and_then(|s| s.parse::<u64>().ok()) {
         if let Some(i) = app.list_index(lid) {
@@ -1400,6 +1409,7 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::sep(),
         crate::menu::item("l-fav", tr!("Favorite (toggle)"), "heart", ""),
         crate::menu::item_en("l-tags", tr!("Edit tags…"), "edit", "", n > 0),
+        crate::menu::item_en("l-folder", tr!("Go to folder"), "folder", "", n == 1),
         crate::menu::item("l-explorer", tr!("Show in Explorer"), "folder-open", ""),
         crate::menu::sep(),
         crate::menu::item("l-resume-reset", tr!("Forget the resume position"), "history", ""),
@@ -1445,6 +1455,11 @@ pub fn command(app: &mut App, cmd: &str) {
         "l-tags" => {
             let p = sel.into_iter().map(|t| t.path).collect();
             crate::dialogs::open_tag_editor(app, p);
+        }
+        "l-folder" => {
+            if let Some(t) = sel.first() {
+                go_to_folder(app, &t.path);
+            }
         }
         "l-explorer" => {
             if let Some(t) = sel.first() {

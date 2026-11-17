@@ -730,6 +730,11 @@ pub fn command(app: &mut App, id: &str) {
                 }
             }
         }
+        "folder" => {
+            if let Some(t) = selected_tracks(app).first() {
+                crate::libview::go_to_folder(app, &t.path);
+            }
+        }
         "explorer" => {
             if let Some(t) = selected_tracks(app).first() {
                 crate::win::reveal(&t.path);
@@ -775,6 +780,7 @@ pub fn row_menu(app: &mut App, x: f32, y: f32) {
         crate::menu::item("fav", if all_fav { tr!("Remove from favorites") } else { tr!("Add to favorites") }, "heart", "Ctrl+D"),
         crate::menu::item_en("tags", if n > 1 { tr!("Edit tags of selected…") } else { tr!("Edit tags…") }, "edit", "F2", n > 0),
         crate::menu::item("info", tr!("Track info"), "info", "Ctrl+I"),
+        crate::menu::item_en("folder", tr!("Go to folder"), "folder", "", n == 1),
         crate::menu::item("explorer", tr!("Show in Explorer"), "folder-open", ""),
         crate::menu::sep(),
         crate::menu::item("new-from-sel", tr!("New list from selection"), "playlist", ""),

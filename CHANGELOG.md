@@ -3,6 +3,7 @@
 ## 2.3.3
 
 - Kliknięcie tytułu grającego utworu przenosi do listy, z której gra (także z innego widoku: biblioteki, statystyk), zaznacza na niej ten utwór i przewija do niego. Filtr, który go ukrywa, jest zdejmowany. Przy radiu – przejście do widoku radia.
+- Nowa pozycja „Przejdź do folderu” w menu biblioteki i list: pokazuje w aplikacji tylko folder, w którym leży plik.
 
 ## 2.3.2
 
