@@ -99,10 +99,12 @@ export component AppWindow inherits Window {
             property <bool> amb-layout: self.amb >= 0.5;
             property <float> amb-in: max(0, self.amb * 2 - 1);
             property <float> amb-out: max(0, 1 - self.amb * 2);
-            // Okładka z opisem na środku u góry, pod nimi tekst.
-            property <length> amb-h: clamp(self.height * 0.3, 180px, 340px);
+            // Okładka na środku u góry, pod nią wyśrodkowany opis, niżej tekst piosenki.
+            property <length> amb-cover: clamp(self.height * 0.26, 130px, 300px);
+            property <length> amb-info-h: 220px;
+            property <length> amb-h: self.amb-cover + 20px + self.amb-info-h;
             property <length> amb-y: max(36px, self.height * 0.05);
-            property <length> amb-info-w: min(self.width * 0.4, 640px);
+            property <length> amb-info-w: min(self.width * 0.8, 960px);
             property <length> amb-lyr-w: min(self.width * 0.6, 900px);
             animate amb { duration: Ui.ambient ? 3s : 400ms; easing: ease-in-out; }
             // Tło z okładki (albo z obrazu filmu) i poświata akcentu za górną częścią okna.
@@ -297,33 +299,39 @@ export component AppWindow inherits Window {
                     }
                 }
             }
-            // Bezczynność: okładka po lewej stronie opisu, razem na środku okna.
+            // Bezczynność: okładka na środku u góry, pod nią wyśrodkowany opis i czas –
+            // jak ekran „teraz odtwarzane” w odtwarzaczach.
             if stage.amb-layout && !Video.active: amb-group := Rectangle {
-                property <length> cover-w: stage.amb-h * hero.cover-ratio;
-                width: self.cover-w + 36px + stage.amb-info-w;
+                width: stage.amb-info-w;
                 height: stage.amb-h;
                 x: (parent.width - self.width) / 2;
                 y: stage.amb-y;
                 opacity: stage.amb-in;
-                HorizontalLayout {
-                    spacing: 36px;
-                    CoverArt {
-                        width: amb-group.cover-w;
-                        show-viz: false;
+                CoverArt {
+                    width: min(stage.amb-cover * hero.cover-ratio, amb-group.width);
+                    height: stage.amb-cover;
+                    x: (amb-group.width - self.width) / 2;
+                    y: 0;
+                    show-viz: false;
+                }
+                VerticalLayout {
+                    x: 0;
+                    y: stage.amb-cover + 20px;
+                    width: amb-group.width;
+                    height: stage.amb-info-h;
+                    alignment: start;
+                    spacing: 10px;
+                    NowInfo {
+                        centered: true;
                     }
-                    VerticalLayout {
-                        width: stage.amb-info-w;
-                        alignment: center;
-                        spacing: 10px;
-                        NowInfo { }
-                        // Czas odtwarzania: miniony / całość.
-                        Text {
-                            text: Fmt.time(Player.pos) + (Player.duration > 0 ? "  /  " + Fmt.time(Player.duration) : "");
-                            color: Theme.text2;
-                            font-family: "Segoe UI Variable Display";
-                            font-size: 22px;
-                            font-weight: 500;
-                        }
+                    // Czas odtwarzania: miniony / całość.
+                    Text {
+                        text: Fmt.time(Player.pos) + (Player.duration > 0 ? "  /  " + Fmt.time(Player.duration) : "");
+                        color: Theme.text2;
+                        font-family: "Segoe UI Variable Display";
+                        font-size: 22px;
+                        font-weight: 500;
+                        horizontal-alignment: center;
                     }
                 }
             }

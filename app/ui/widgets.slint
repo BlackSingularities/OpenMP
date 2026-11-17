@@ -613,6 +613,8 @@ export component Marquee inherits Rectangle {
     in property <color> text-color: Theme.text;
     in property <bool> enabled: true;
     in property <string> font-family: Theme.font;
+    // Krótki tekst na środku (długi i tak się przewija od lewej).
+    in property <bool> center;
     clip: true;
     height: t.preferred-height;
     property <length> over: t.preferred-width - self.width;
@@ -621,7 +623,7 @@ export component Marquee inherits Rectangle {
     property <duration> cycle: span / 34px * 1s;
     property <length> off: (enabled && over > 0) ? mod(animation-tick(), cycle + 2.5s) > 2.5s ? -(mod(animation-tick(), cycle + 2.5s) - 2.5s) / cycle * span : 0px : 0px;
     t := Text {
-        x: root.off;
+        x: root.center && root.over <= 0 ? -root.over / 2 : root.off;
         text: root.text;
         font-size: root.font-size;
         font-weight: root.font-weight;

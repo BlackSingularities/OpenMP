@@ -1,5 +1,10 @@
 # Zmiany
 
+## 2.3.1
+
+- Mini odtwarzacz: pasek postępu nie zmienia już szerokości w trakcie odtwarzania – czas obok ma stałe miejsce.
+- Tryb bezczynności z wizualizacją: okładka na środku u góry, pod nią wyśrodkowany tytuł, wykonawca, album, parametry i czas – jak w ekranach „teraz odtwarzane” znanych odtwarzaczy.
+
 ## 2.3.0
 
 - Nowe ustawienie „Po uruchomieniu”: nic, ostatni utwór wstrzymany albo od razu odtwarzany – od miejsca, w którym skończyłeś. Utwór odnajduje się też po zmianie kolejności listy.

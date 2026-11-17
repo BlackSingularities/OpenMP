@@ -1546,11 +1546,14 @@ export component MiniView inherits Rectangle {
                 Rectangle {
                     width: 12px;
                 }
+                // Stała szerokość – zmieniające się cyfry czasu nie poszerzają ani nie zwężają paska.
                 Text {
+                    width: Player.duration >= 3600 ? 62px : 48px;
                     text: Prefs.remaining && Player.duration > 0 ? "-" + Fmt.time(Player.duration - Player.pos) : Fmt.time(Player.pos);
                     color: Theme.text2;
                     font-size: Theme.fs-sm;
                     vertical-alignment: center;
+                    horizontal-alignment: right;
                     TouchArea {
                         mouse-cursor: pointer;
                         clicked => {
